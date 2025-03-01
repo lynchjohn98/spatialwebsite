@@ -10,7 +10,6 @@
 module.exports = {
   plugins: {
     tailwindcss: {},
-    autoprefixer: {}, // ✅ Ensures Tailwind works correctly
   },
 };
 
