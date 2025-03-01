@@ -47,3 +47,5 @@ export function generateJoinCode() {
 export function generateStudentCode(){
     return Math.random().toString(36).substr(2, 6).toUpperCase(); // Example: "XK5D9A"
   };
+
+

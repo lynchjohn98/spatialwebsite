@@ -1,9 +1,12 @@
 "use client";
-import { insertCourse } from "../actions";
+import { insertCourseSettings, insertNewCourse } from "../actions";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { generateJoinCode } from "../../utils/helpers";
 import { validateTeacherCode } from "../../utils/helpers";
+import { generateDefaultModuleQuizInformation } from "../actions";
+import { generateDefaultStudent } from "../actions";
+
 
 
 export default function FinalizeCourse() {
@@ -13,8 +16,10 @@ export default function FinalizeCourse() {
   const [courseData, setCourseData] = useState(null);
   const [joinCode, setJoinCode] = useState("");
   const [teacherCode, setTeacherCode] = useState("");
+  const [moduleData, setModuleData] = useState([]);
+  const [quizData, setQuizData] = useState([]);
+  const [studentData, setStudentData] = useState([]);
   const [allCourseData, setAllCourseData] = useState([]);
-
 
   useEffect(() => {
     const storedData = sessionStorage.getItem("courseData");
@@ -32,7 +37,6 @@ export default function FinalizeCourse() {
 
   // Validation phase to ensure all fields are selected.
   const handleSubmit = async () => {
-    console.log("courseData", courseData);
     if (!courseData.name || !courseData.school || !courseData.classType) {
       alert("Error: Course details are missing.");
       return;
@@ -53,8 +57,6 @@ export default function FinalizeCourse() {
       return;
     }
 
-
-
     if (teacherCode.length === 0) {
       alert("Please enter the course creation password.");
       return;
@@ -67,7 +69,11 @@ export default function FinalizeCourse() {
       return;
     }
 
-    //Validated all data, send to server side to upload into backend.
+    const otherData = await generateDefaultModuleQuizInformation();
+    console.log(otherData);
+   
+    //Validated all data, send all brand new course data to the backend.
+    //General course data
     const allCourseData = {
       name: courseData.name,
       school: courseData.school,
@@ -75,9 +81,22 @@ export default function FinalizeCourse() {
       joinCode: joinCode,
       password: password,
     };
-    await insertCourse(allCourseData);
+    //Grab original settings (module / quiz) from the call inside insert of course
+    const result = await insertNewCourse(allCourseData);
+    //Use courseId created to insert a basic student and use the resulting data to place all into course_settings
+    const studentResult = await generateDefaultStudent(result.courseId);
+    const allPayload = {
+      courseSettings: JSON.stringify(allCourseData), //allCourseData,
+      moduleSettings: JSON.stringify(otherData.modules), //otherData.modules,
+      quizSettings: JSON.stringify(otherData.quizzes), //otherData.quizzes,
+      studentSettings: JSON.stringify(studentResult.data), //studentResult.data,
+      courseId: result.courseId //result.courseId
+    }
+    console.log("ALL PAYLOAD: ", allPayload);
+    const result2 = await insertCourseSettings(allPayload);
+    console.log("RESULT 2: ", result2);
     alert("Course created successfully! Please remember your join code and password. Join Code: " + joinCode + " Password: " + password);
-    router.push('/')
+    //router.push('/')
   };
 
   return (

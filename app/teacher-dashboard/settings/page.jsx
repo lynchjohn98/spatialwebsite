@@ -9,75 +9,14 @@ import StudentTable from "../../../components/StudentTable";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
-  const [courseData, setCourseData] = useState(null);
-  const [studentInfo, setStudentInfo] = useState([
-    {
-      first_name: "John",
-      last_name: "Lynch",
-      student_code: generateStudentCode(),
-      gender: "Male",
-      grade: "12th",
-    },
-  ]);
   const router = useRouter();
+  const [courseData, setCourseData] = useState(null);
+  const [courseSettings, setCourseSettings] = useState(null);
 
-  const assignmentData = [
-    {
-      name: "Module 1",
-      description: "This is the first module",
-      visible: true,
-    },
-    {
-      name: "Module 2",
-      description: "This is the second module",
-      visible: false,
-    },
-    {
-      name: "Module 3",
-      description: "This is the third module",
-      visible: true,
-    },
-  ];
-  const moduleData = [
-    {
-      name: "Module 1",
-      description: "This is the first module",
-      visible: true,
-    },
-    {
-      name: "Module 2",
-      description: "This is the second module",
-      visible: false,
-    },
-    {
-      name: "Module 3",
-      description: "This is the third module",
-      visible: true,
-    },
-  ];
-  const studentData = [
-    {
-      first_name: "John",
-      last_name: "Lynch",
-      student_code: generateStudentCode(),
-      gender: "Male",
-      grade: "12th"
-    },
-    {
-      first_name: "Jane",
-      last_name: "Doe",
-      student_code: generateStudentCode(),
-      gender: "Female",
-      grade: "11th",
-    },
-    {
-      first_name: "John",
-      last_name: "Smith",
-      student_code: generateStudentCode(),
-      gender: "Male",
-      grade: "10th",
-    },
-  ];
+
+  //Grab up the jsonB so that all the data is available, then only update the data once the faculty hits
+  //the save or submit changes at the bottom. Add in precaution for reload or other errors.
+
 
   useEffect(() => {
     const storedData = sessionStorage.getItem("courseData");
