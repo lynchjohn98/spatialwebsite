@@ -23,7 +23,7 @@ export default function TeacherJoin() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-black">
+    <div className="flex flex-col text-xl items-center justify-center min-h-screen py-2 bg-gradient bg-green-800">
       This is the teacher join page. Please enter the course join code that was
       generated during creating your course and the password you created.
       <div className="flex flex-row items-center justify-center">
@@ -34,7 +34,6 @@ export default function TeacherJoin() {
           placeholder="Enter course join code here"
         ></input>
         <p> - </p>
-
         <input
           type="text"
           className="text-black"

@@ -126,3 +126,23 @@ export async function insertCourseSettings(allPayload) {
     return { success: true, data };
   }
 }
+
+
+//Teacher dashboard functions
+
+//Grab all course settings to setup visibility items
+export async function retrieveCourseSettings(payload: { id: any; }) {
+  console.log("Retrieving course settings", payload);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("course_settings")
+    .select("*")
+    .eq("course_id", payload.id)
+    .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  return { success: true, data };
+
+}

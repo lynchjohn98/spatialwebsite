@@ -6,6 +6,7 @@ import Sidebar from "../../../components/Sidebar";
 import MainContent from "../../../components/MainContent";
 import VisibilityTable from "../../../components/VisibilityTable";
 import StudentTable from "../../../components/StudentTable";
+import { retrieveCourseSettings } from "../../actions";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
@@ -13,26 +14,45 @@ export default function Settings() {
   const [courseData, setCourseData] = useState(null);
   const [courseSettings, setCourseSettings] = useState(null);
 
-
-  //Grab up the jsonB so that all the data is available, then only update the data once the faculty hits
-  //the save or submit changes at the bottom. Add in precaution for reload or other errors.
-
+  const [studentData, setStudentData] = useState([]);
+  const [moduleData, setModuleData] = useState([]);
+  const [quizData, setQuizData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true); // ✅ Track loading state
 
   useEffect(() => {
-    const storedData = sessionStorage.getItem("courseData");
-    if (storedData) {
-      try {
-        setCourseData(JSON.parse(storedData)); // ✅ Parse data and set state
-      } catch (error) {
-        sessionStorage.removeItem("courseData");
-        router.push("/teacher-join"); // Redirect if data is corrupted
+    const fetchCourseSettings = async () => {
+      setIsLoading(true); // ✅ Start loading
+      const storedData = sessionStorage.getItem("courseData");
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        setCourseData(parsedData);
+
+        const response = await retrieveCourseSettings({ id: parsedData.id });
+        if (response.success) {
+          const settings = response.data;
+
+          // ✅ Parse JSON fields immediately
+          const parsedStudentSettings = JSON.parse(settings.student_settings || "{}");
+          const parsedModuleSettings = JSON.parse(settings.module_settings || "[]");
+          const parsedQuizSettings = JSON.parse(settings.quiz_settings || "[]");
+
+          // ✅ Set State
+          setCourseSettings(settings);
+          setStudentData(parsedStudentSettings);
+          setModuleData(parsedModuleSettings);
+          setQuizData(parsedQuizSettings);
+        } else {
+          console.error("Error retrieving course settings:", response.error);
+        }
       }
-    } else {
-      router.push("/teacher-join"); // Redirect if no data
-    }
+      setIsLoading(false); // ✅ End loading
+    };
+
+    fetchCourseSettings();
   }, []);
 
-  if (!courseData) {
+  // ✅ Show loading screen until all data is ready
+  if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black text-white text-4xl font-bold">
         Loading...
@@ -58,11 +78,11 @@ export default function Settings() {
           moniker={"Module"}
         />
         <VisibilityTable
-          tableTitle={"Assignment Visibility"}
-          tableData={assignmentData}
-          moniker={"Assignment"}
+          tableTitle={"Quiz Visibility"}
+          tableData={quizData}
+          moniker={"Quiz"}
         />
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
           Submit Changes
         </button>
       </div>

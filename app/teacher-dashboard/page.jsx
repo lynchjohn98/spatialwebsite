@@ -10,11 +10,16 @@ export default function TeacherDashboard() {
   const [courseData, setCourseData] = useState(null);
   const router = useRouter();
 
+  
+
+
+
   useEffect(() => {
     const storedData = sessionStorage.getItem("courseData");
     if (storedData) {
       try {
         setCourseData(JSON.parse(storedData)); // ✅ Parse data and set state
+        console.log("Course data loaded", JSON.parse(storedData));
       } catch (error) {
         sessionStorage.removeItem("courseData");
         router.push("/teacher-join"); // Redirect if data is corrupted
