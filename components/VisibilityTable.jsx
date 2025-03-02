@@ -18,7 +18,7 @@ export default function VisibilityTable({ tableTitle, tableData, moniker }) {
 
   return (
     <div className="w-full bg-gray-800 p-4 rounded-lg shadow-md m-4">
-      {/* ✅ Clickable Header */}
+      {/* Header section */}
       <div
         className="flex items-center justify-between cursor-pointer text-white text-xl font-semibold bg-gray-700 p-3 rounded-lg transition-all duration-300"
         onClick={() => setShowTable(!showTable)}
@@ -29,43 +29,53 @@ export default function VisibilityTable({ tableTitle, tableData, moniker }) {
         </span>
       </div>
 
-      {/* ✅ Smooth Animated Collapsible Table */}
+      {/* Table container with animation */}
       <div
         className={`overflow-hidden transition-all duration-500 ${
           showTable ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <table className="table-auto w-full border-collapse border border-gray-600 mt-2">
-          <thead className="bg-gray-700">
-            <tr>
-              <th className="border border-gray-600 px-4 py-2">{moniker} Name</th>
-              <th className="border border-gray-600 px-4 py-2">{moniker} Description</th>
-              <th className="border border-gray-600 px-4 py-2">{moniker} Visible</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((item, index) => (
-              <tr key={index} className="border border-gray-600 px-4 py-2">
-                <td className="border border-gray-600 px-4 py-2">{item.name}</td>
-                <td className="border border-gray-600 px-4 py-2">{item.description}</td>
-
-                {/* ✅ Visibility Toggle */}
-                <td className="border border-gray-600 px-4 py-2 text-center">
-                  <button
-                    onClick={() => toggleVisibility(index)}
-                    className="text-2xl transition-all"
-                  >
-                    {item.visible ? (
-                      <span className="text-green-500">✅</span>
-                    ) : (
-                      <span className="text-red-500">❌</span>
-                    )}
-                  </button>
-                </td>
+        {/* Fixed header table */}
+        <div className="relative mt-2">
+          {/* Table header - fixed */}
+          <table className="table-auto w-full border-collapse border border-gray-600 sticky top-0">
+            <thead className="bg-gray-700">
+              <tr>
+                <th className="border border-gray-600 px-4 py-2">{moniker} Name</th>
+                <th className="border border-gray-600 px-4 py-2">{moniker} Description</th>
+                <th className="border border-gray-600 px-4 py-2 w-24">{moniker} Visible</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+          </table>
+          
+          {/* Scrollable table body */}
+          <div className="max-h-[250px] overflow-y-auto">
+            <table className="table-auto w-full border-collapse border border-gray-600">
+              <tbody>
+                {data.map((item, index) => (
+                  <tr key={index} className="border border-gray-600 hover:bg-gray-700">
+                    <td className="border border-gray-600 px-4 py-2">{item.name}</td>
+                    <td className="border border-gray-600 px-4 py-2">{item.description}</td>
+
+                    {/* ✅ Visibility Toggle */}
+                    <td className="border border-gray-600 px-4 py-2 text-center w-24">
+                      <button
+                        onClick={() => toggleVisibility(index)}
+                        className="text-2xl transition-all"
+                      >
+                        {item.visible ? (
+                          <span className="text-green-500">✅</span>
+                        ) : (
+                          <span className="text-red-500">❌</span>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );

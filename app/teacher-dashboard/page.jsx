@@ -3,17 +3,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
 import MainContent from "../../components/MainContent";
-
+import HamburgerButton from "../../components/HamburgerButton";
 
 export default function TeacherDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [courseData, setCourseData] = useState(null);
   const router = useRouter();
-
-  
-
-
-
   useEffect(() => {
     const storedData = sessionStorage.getItem("courseData");
     if (storedData) {
@@ -39,12 +34,12 @@ export default function TeacherDashboard() {
   
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
+      <HamburgerButton onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
       <Sidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         courseData={courseData}
       />
-
       <MainContent
         pageTitle="Dashboard"
         pageContent="This is the main content area. Add tables, charts, and other interactive elements here. 

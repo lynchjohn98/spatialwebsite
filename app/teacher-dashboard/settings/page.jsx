@@ -45,13 +45,12 @@ export default function Settings() {
           console.error("Error retrieving course settings:", response.error);
         }
       }
-      setIsLoading(false); // ✅ End loading
+      setIsLoading(false);
     };
 
     fetchCourseSettings();
   }, []);
 
-  // ✅ Show loading screen until all data is ready
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black text-white text-4xl font-bold">
@@ -82,10 +81,12 @@ export default function Settings() {
           tableData={quizData}
           moniker={"Quiz"}
         />
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold center py-2 px-4 rounded">
           Submit Changes
         </button>
+        
       </div>
+      
     </div>
   );
 }
