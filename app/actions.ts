@@ -75,8 +75,6 @@ export async function generateDefaultModuleQuizInformation() {
   return jsonData;
 }
 
-//The first time a new course is generated, create a single fake student that will be inside the course
-//The teacher can edit the student's information later and remove them if needed.
 export async function generateDefaultStudent(courseId) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -129,6 +127,21 @@ export async function insertCourseSettings(allPayload) {
 
 
 //Teacher dashboard functions
+export async function retrieveSupplementalCourseInformation(payload: { id: any; }) {
+  console.log("Retrieving course settings", payload);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("courses")
+    .select("*")
+    .eq("id", payload.id)
+    .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  return { success: true, data };
+}
+
 
 //Grab all course settings to setup visibility items
 export async function retrieveCourseSettings(payload: { id: any; }) {
@@ -144,5 +157,64 @@ export async function retrieveCourseSettings(payload: { id: any; }) {
     return { error: error.message };
   }
   return { success: true, data };
-
 }
+
+// Update course information in backend
+export async function updateCourseSettings(payload: { courseId: any; studentSettings: any; moduleSettings: any; quizSettings: any; }) {
+  console.log("Updating course settings in backend", payload);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("course_settings")
+    .update({
+      student_settings: payload.studentSettings,
+      module_settings: payload.moduleSettings,
+      quiz_settings: payload.quizSettings,
+      updated_at : new Date().toISOString()
+    })
+    .eq("course_id", payload.courseId)
+    .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  else {
+    console.log ("Updated course settings", data);
+    return { success: true, data };
+  }
+}
+
+
+//Dedicated to modules page, this will retrieve only the modules settings for a course if a refresh is clicked
+//and if the user did not reset any information in the page
+export async function retrieveModules(payload: { id: any; }) {
+  console.log("Fetching modules", payload);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("course_settings")
+    .select("module_settings")
+    .eq("course_id", payload.id)
+    .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  return { success: true, data };
+}
+
+//Dedicated to quizzes page, this will retrieve only the quizzes settings for a course if a refresh is clicked
+//and if the user did not reset any information in the page
+export async function retrieveQuizzes(payload: { id: any; }) {
+  console.log("Fetching quizzes", payload);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("course_settings")
+    .select("quiz_settings")
+    .eq("course_id", payload.id)
+    .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  return { success: true, data };
+}
+  

@@ -49,3 +49,67 @@ export function generateStudentCode(){
   };
 
 
+
+
+  //Teacher module page generator:
+  export function useModulePage() {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [courseData, setCourseData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+  
+    useEffect(() => {
+      const checkWindowSize = () => {
+        if (window.innerWidth >= 1024) {
+          setIsSidebarOpen(true);
+        } else {
+          setIsSidebarOpen(false);
+        }
+      };
+      
+      window.addEventListener("resize", checkWindowSize);
+      checkWindowSize();
+      
+      const loadData = () => {
+        const storedData = sessionStorage.getItem("courseData");
+        if (storedData) {
+          try {
+            setCourseData(JSON.parse(storedData));
+          } catch (error) {
+            console.error("Error parsing course data:", error);
+            router.push("/teacher-join");
+          }
+        } else {
+          router.push("/teacher-join");
+        }
+        setIsLoading(false);
+      };
+      
+      loadData();
+      
+      return () => window.removeEventListener("resize", checkWindowSize);
+    }, [router]);
+  
+    const returnToModules = () => {
+      router.push("/teacher-dashboard/modules");
+    };
+  
+    // Loading component to be rendered when loading or no course data
+    const LoadingComponent = () => (
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl font-bold">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  
+    return {
+      isSidebarOpen,
+      setIsSidebarOpen,
+      courseData,
+      isLoading,
+      returnToModules,
+      LoadingComponent
+    };
+  }

@@ -3,9 +3,9 @@
 export default function HamburgerButton({ onClick }) {
   return (
     <button
-      className="fixed top-4 left-4 z-20 bg-gray-700 p-2 rounded-md text-white md:hidden"
+      className="fixed top-4 left-4 z-50 p-2 rounded-md bg-gray-700 text-white md:hidden hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
       onClick={onClick}
-      aria-label="Toggle navigation menu"
+      aria-label="Toggle menu"
     >
       <svg 
         xmlns="http://www.w3.org/2000/svg" 
@@ -17,6 +17,7 @@ export default function HamburgerButton({ onClick }) {
         strokeWidth="2" 
         strokeLinecap="round" 
         strokeLinejoin="round"
+        className="w-6 h-6"
       >
         <line x1="3" y1="12" x2="21" y2="12"></line>
         <line x1="3" y1="6" x2="21" y2="6"></line>

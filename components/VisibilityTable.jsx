@@ -1,20 +1,52 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useRouter } from "next/navigation";
 
-export default function VisibilityTable({ tableTitle, tableData, moniker }) {
+const VisibilityTable = forwardRef(({ tableTitle, tableData, moniker }, ref) => {
   const [showTable, setShowTable] = useState(false);
-  const [data, setData] = useState(tableData); // ✅ Track visibility state
+  const [data, setData] = useState([]);
   const router = useRouter();
 
-  // ✅ Toggle visibility function
+  // Parse the JSON data when the component loads or tableData changes
+  useEffect(() => {
+    if (typeof tableData === 'string') {
+      try {
+        // Parse the JSON string
+        const parsedData = JSON.parse(tableData);
+        setData(parsedData);
+      } catch (error) {
+        console.error("Error parsing JSON data:", error);
+        setData([]);
+      }
+    } else {
+      // If it's already an object (array), use it directly
+      setData(Array.isArray(tableData) ? tableData : []);
+    }
+  }, [tableData]);
+
+  // Toggle visibility function
   const toggleVisibility = (index) => {
     setData((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, visible: !item.visible } : item
-      )
+      prev.map((item, i) => {
+        if (i === index) {
+          return {
+            ...item,
+            visibility: item.visibility === "Yes" ? "No" : "Yes"
+          };
+        }
+        return item;
+      })
     );
   };
+
+  // Expose methods to parent component using useImperativeHandle
+  useImperativeHandle(ref, () => ({
+    // Return the current data
+    getUpdatedData: () => data,
+    
+    // Get JSON string of the data
+    getUpdatedJsonString: () => JSON.stringify(data)
+  }));
 
   return (
     <div className="w-full bg-gray-800 p-4 rounded-lg shadow-md m-4">
@@ -57,13 +89,14 @@ export default function VisibilityTable({ tableTitle, tableData, moniker }) {
                     <td className="border border-gray-600 px-4 py-2">{item.name}</td>
                     <td className="border border-gray-600 px-4 py-2">{item.description}</td>
 
-                    {/* ✅ Visibility Toggle */}
+                    {/* Visibility Toggle */}
                     <td className="border border-gray-600 px-4 py-2 text-center w-24">
                       <button
                         onClick={() => toggleVisibility(index)}
                         className="text-2xl transition-all"
+                        aria-label={`Toggle visibility for ${item.name}`}
                       >
-                        {item.visible ? (
+                        {item.visibility === "Yes" ? (
                           <span className="text-green-500">✅</span>
                         ) : (
                           <span className="text-red-500">❌</span>
@@ -79,4 +112,9 @@ export default function VisibilityTable({ tableTitle, tableData, moniker }) {
       </div>
     </div>
   );
-}
+});
+
+// Add display name for better debugging
+VisibilityTable.displayName = "VisibilityTable";
+
+export default VisibilityTable;
