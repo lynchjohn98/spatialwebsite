@@ -217,4 +217,50 @@ export async function retrieveQuizzes(payload: { id: any; }) {
   }
   return { success: true, data };
 }
+
+//For student who is joining a course, needs to use course join code
+//and provided student code
+export async function studentCourseJoin(payload: { studentJoinCode: string }) {
+  const supabase = await createClient();
   
+  try {
+    // Step 1: Get the student data and course_id in one query
+    const { data: student, error: studentError } = await supabase
+      .from("students")
+      .select("*, course_id")
+      .eq("student_join_code", payload.studentJoinCode)
+      .single();
+      
+    if (studentError) {
+      console.error("❌ Student lookup error:", studentError.message);
+      return { error: studentError.message };
+    }
+    
+    if (!student) {
+      return { error: "No student found with that join code." };
+    }
+    
+    // Step 2: Get course and settings data in a single query using the course_id
+    const { data, error } = await supabase
+      .rpc('get_student_course_data', { 
+        p_course_id: student.course_id 
+      });
+    
+    if (error) {
+      console.error("❌ Data retrieval error:", error.message);
+      return { error: error.message };
+    }
+    
+    return { 
+      success: true, 
+      data: {
+        student,
+        courseData: data
+      }
+    };
+    
+  } catch (error) {
+    console.error("❌ Unexpected error:", error);
+    return { error: "An unexpected error occurred." };
+  }
+}

@@ -3,11 +3,9 @@ import { useRouter } from "next/navigation";
 
 export default function ReturnButton({ destination = "/teacher-dashboard/modules", label = "Return to Modules" }) {
   const router = useRouter();
-
   const handleReturn = () => {
     router.push(destination);
   };
-
   return (
     <button
       onClick={handleReturn}

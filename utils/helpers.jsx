@@ -1,3 +1,7 @@
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 export function validateTeacherCode(inputtedCode) {
   if (inputtedCode === "1234") {
     console.log("Teeacher code is correct");
