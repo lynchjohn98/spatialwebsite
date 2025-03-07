@@ -7,6 +7,7 @@ import MainContent from "../../../components/MainContent";
 import VisibilityTable from "../../../components/VisibilityTable";
 import StudentTable from "../../../components/StudentTable";
 import { retrieveCourseSettings, updateCourseSettings } from "../../actions";
+import { addStudentToDatabase } from "../../actions";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
@@ -20,12 +21,11 @@ export default function Settings() {
   const [quizData, setQuizData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Create refs to access child component methods
+
   const studentTableRef = useRef();
   const moduleTableRef = useRef();
   const quizTableRef = useRef();
   
-  // Function to fetch course settings
   const fetchCourseSettings = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
@@ -36,13 +36,9 @@ export default function Settings() {
       const response = await retrieveCourseSettings({ id: parsedData.id });
       if (response.success) {
         const settings = response.data;
-
-        // Parse JSON fields immediately
         const parsedStudentSettings = JSON.parse(settings.student_settings || "{}");
         const parsedModuleSettings = JSON.parse(settings.module_settings || "[]");
         const parsedQuizSettings = JSON.parse(settings.quiz_settings || "[]");
-
-        // Set State
         setCourseSettings(settings);
         setStudentData(parsedStudentSettings);
         setModuleData(parsedModuleSettings);
@@ -61,7 +57,6 @@ export default function Settings() {
   useEffect(() => {
     fetchCourseSettings();
   }, []);
-
   const handleSaveChanges = async () => {
     if (!courseData || !courseSettings) {
       setSaveMessage({
@@ -70,24 +65,88 @@ export default function Settings() {
       });
       return;
     }
+    
     setIsSaving(true);
     setSaveMessage({ type: '', text: '' });
+    
     try {
       const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
       const updatedModuleData = moduleTableRef.current?.getUpdatedData() || moduleData;
       const updatedQuizData = quizTableRef.current?.getUpdatedData() || quizData;
+      
+      // Step 1: Update course_settings
       const payload = {
         courseId: courseData.id,
         studentSettings: JSON.stringify(updatedStudentData),
         moduleSettings: JSON.stringify(updatedModuleData),
         quizSettings: JSON.stringify(updatedQuizData)
       };
+      
       const result = await updateCourseSettings(payload);
+
+      const supabase = createClient();
+      
       if (result.success) {
+        // Step 2: First get existing students for this course to avoid constraint issues
+        const { data: existingStudents, error: fetchError } = await supabase
+          .from("students")
+          .select("id, student_join_code")
+          .eq("course_id", courseData.id);
+          
+        if (fetchError) {
+          console.error("Error fetching existing students:", fetchError);
+          throw fetchError;
+        }
+        
+        // Create lookup map for faster reference
+        const existingStudentMap = {};
+        existingStudents.forEach(student => {
+          existingStudentMap[student.student_join_code] = student.id;
+        });
+        
+        // Process students one by one to handle them differently based on if they exist
+        for (const student of updatedStudentData) {
+          // Skip if student doesn't have necessary data
+          if (!student.student_join_code || !student.first_name) {
+            continue;
+          }
+          
+          if (existingStudentMap[student.student_join_code]) {
+            // Update existing student
+            await supabase
+              .from("students")
+              .update({
+                first_name: student.first_name,
+                last_name: student.last_name,
+                gender: student.gender,
+                grade: student.grade || null,
+                other: student.other || null,
+                // Don't update join_date for existing students
+                remove_date: student.remove_date || null,
+              })
+              .eq("id", existingStudentMap[student.student_join_code]);
+          } else {
+            await supabase
+              .from("students")
+              .insert([{
+                student_join_code: student.student_join_code,
+                first_name: student.first_name,
+                last_name: student.last_name,
+                gender: student.gender,
+                grade: student.grade || null,
+                other: student.other || null,
+                join_date: student.join_date || new Date().toISOString(),
+                remove_date: student.remove_date || null,
+                course_id: courseData.id
+              }]);
+          }
+        }
+        
         setSaveMessage({
           type: 'success',
-          text: 'Course settings updated successfully!'
+          text: 'Course settings and student data updated successfully!'
         });
+        
         await fetchCourseSettings();
       } else {
         setSaveMessage({

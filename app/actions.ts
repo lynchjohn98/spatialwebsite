@@ -264,3 +264,38 @@ export async function studentCourseJoin(payload: { studentJoinCode: string }) {
     return { error: "An unexpected error occurred." };
   }
 }
+
+
+// In your actions.ts file
+export async function addStudentToDatabase(payload) {
+  const supabase = await createClient();
+  
+  // Insert the student into the students table
+  const { data, error } = await supabase
+    .from("students")
+    .upsert([
+      {
+        id: payload.id || undefined, // If there's an ID, update; otherwise insert
+        student_join_code: payload.student_join_code,
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        gender: payload.gender,
+        grade: payload.grade,
+        other: payload.other,
+        join_date: payload.join_date || new Date().toISOString(),
+        remove_date: payload.remove_date,
+        course_id: payload.course_id
+      }
+    ], 
+    { 
+      onConflict: 'student_join_code',  // Update if the join code already exists
+      ignoreDuplicates: false
+    });
+  
+  if (error) {
+    console.error("❌ Student insert error:", error.message);
+    return { error: error.message };
+  }
+  
+  return { success: true, data };
+}

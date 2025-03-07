@@ -5,10 +5,10 @@ import StudentSidebar from "../../components/StudentSidebar";
 
 export default function StudentDashboard() {
   const router = useRouter();
-const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-const [courseData, setCourseData] = useState(null);
-const [studentData, setStudentData] = useState(null);
-const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [courseData, setCourseData] = useState(null);
+  const [studentData, setStudentData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
 useEffect(() => {
   const checkWindowSize = () => {

@@ -231,7 +231,6 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
           </div>
         )}
 
-        {/* Sidebar Navigation */}
         <nav className="mt-4 space-y-3">
           <NavButton
             icon={
