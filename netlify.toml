@@ -3,7 +3,6 @@
   publish = ".next"
 
 [build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
+  NODE_VERSION = "18"
+  PYTHON_ENABLE = "false"
   SKIP_PYTHON_INSTALL = "true"
-
-  
