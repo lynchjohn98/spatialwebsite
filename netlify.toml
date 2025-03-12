@@ -1,0 +1,6 @@
+[build]
+  command = "NEXT_USE_LEGACY_TAILWIND_ENGINE=true npm run build"
+  publish = ".next"
+
+[build.environment]
+  NEXT_USE_LEGACY_TAILWIND_ENGINE = "true"
