@@ -14,7 +14,6 @@
   "@supabase/ssr": "^0.5.2",
   "@supabase/supabase-js": "^2.49.1",
   "@tailwindcss/postcss": "^4.0.9",
-  "@tailwindcss/oxide-linux-x64-gnu": "latest",
   "@tailwindcss/oxide-darwin-x64": "latest",
   "@tailwindcss/oxide-win32-x64-msvc": "latest",
   "next": "^15.2.0",
