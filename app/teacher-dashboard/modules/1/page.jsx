@@ -64,7 +64,6 @@ export default function ModulePage() {
         setIsSidebarOpen={setIsSidebarOpen}
         courseData={courseData}
       />
-
       <main
         className={`flex-1 p-6 transition-all duration-300 ${
           isSidebarOpen ? "lg:ml-1/4" : ""
@@ -99,7 +98,6 @@ export default function ModulePage() {
             Pre-Module: The Importance of Spatial Skills
           </h1>
 
-          {/* Learning Intentions section */}
           <section className="mb-8 bg-gray-800 rounded-lg p-6 shadow-md">
             <h2 className="text-xl font-bold mb-4 text-blue-300 border-b border-gray-700 pb-2">
               Learning Intentions
@@ -127,7 +125,6 @@ export default function ModulePage() {
             </ul>
           </section>
 
-          {/* Success Criteria section */}
           <section className="mb-8 bg-gray-800 rounded-lg p-6 shadow-md">
             <h2 className="text-xl font-bold mb-4 text-blue-300 border-b border-gray-700 pb-2">
               Success Criteria
@@ -160,7 +157,6 @@ export default function ModulePage() {
             </ul>
           </section>
 
-          {/* Let's Get Started section */}
           <section className="mb-8 bg-gray-800 rounded-lg p-6 shadow-md">
             <h2 className="text-xl font-bold mb-4 text-blue-300 border-b border-gray-700 pb-2">
               Let's Get Started

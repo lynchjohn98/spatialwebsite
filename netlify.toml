@@ -1,3 +1,7 @@
 [build]
-command = "npm ci && npm run build"
-publish = ".next"
+  command = "npm install && npm run build"
+  publish = ".next"
+
+[build.environment]
+  PYTHON_ENABLE = "false"
+  SKIP_PYTHON_INSTALL = "true"

@@ -258,7 +258,6 @@ export async function studentCourseJoin(payload: { studentJoinCode: string }) {
         courseData: data
       }
     };
-    
   } catch (error) {
     console.error("❌ Unexpected error:", error);
     return { error: "An unexpected error occurred." };
