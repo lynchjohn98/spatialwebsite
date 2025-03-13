@@ -46,6 +46,30 @@ function HamburgerButton({ onClick, isSidebarOpen }) {
 export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, courseData, studentData }) {
   const router = useRouter();
   const [activeRoute, setActiveRoute] = useState("");
+  
+  // Add more detailed console logging
+  console.log("Inside sidebar - courseData:", courseData);
+  console.log("Inside sidebar - studentData:", studentData);
+  console.log("School name value:", courseData?.school_name);
+  console.log("Teacher name value:", courseData?.teacher_name);
+  
+  // Parse courseData if it's a string
+  const [parsedCourseData, setParsedCourseData] = useState(null);
+  
+  useEffect(() => {
+    // Try to parse courseData if it's a string
+    if (courseData && typeof courseData === 'string') {
+      try {
+        const parsed = JSON.parse(courseData);
+        console.log("Parsed course data:", parsed);
+        setParsedCourseData(parsed);
+      } catch (error) {
+        console.error("Failed to parse course data:", error);
+      }
+    } else {
+      setParsedCourseData(courseData);
+    }
+  }, [courseData]);
 
   // Set active route based on current path
   useEffect(() => {
@@ -75,6 +99,23 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSidebarOpen, setIsSidebarOpen]);
+
+  // Determine which course data to use
+  const effectiveCourseData = parsedCourseData || courseData;
+
+  // Get school name safely
+  const schoolName = 
+    effectiveCourseData?.school_name || 
+    effectiveCourseData?.schoolName || 
+    (effectiveCourseData?.course?.school_name) || 
+    "School information unavailable";
+    
+  // Get teacher name safely
+  const teacherName =
+    effectiveCourseData?.teacher_name ||
+    effectiveCourseData?.teacherName ||
+    (effectiveCourseData?.course?.teacher_name) ||
+    "Teacher information unavailable";
 
   return (
     <>
@@ -178,26 +219,50 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
                 </div>
               </div>
 
-              {courseData && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">School</p>
-                  <div className="flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2 text-blue-400"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                      <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                    <h2 className="text-sm font-medium truncate">
-                      {courseData.school_name}
-                    </h2>
+              {effectiveCourseData && (
+                <>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Teacher</p>
+                    <div className="flex items-center">
+                      <svg
+                        className="w-4 h-4 mr-2 text-blue-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      </svg>
+                      <h2 className="text-sm font-medium truncate">
+                        {teacherName}
+                      </h2>
+                    </div>
                   </div>
-                </div>
+
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">School</p>
+                    <div className="flex items-center">
+                      <svg
+                        className="w-4 h-4 mr-2 text-blue-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                      </svg>
+                      <h2 className="text-sm font-medium truncate">
+                        {schoolName}
+                      </h2>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -265,6 +330,25 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
             label="Quizzes"
             route="/student-dashboard/quizzes"
             isActive={activeRoute === "/student-dashboard/quizzes"}
+            onClick={handleMobileNavClick}
+          />
+
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+            }
+            label="Grades"
+            route="/student-dashboard/grades"
+            isActive={activeRoute === "/student-dashboard/grades"}
             onClick={handleMobileNavClick}
           />
 

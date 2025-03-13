@@ -27,6 +27,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
       first_name: "",
       last_name: "",
       gender: "Other",
+      gender_custom: "Not Provided",
       other: "",
       student_join_code: generateStudentCode(),
     };
@@ -51,8 +52,21 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
   };
 
   useImperativeHandle(ref, () => ({
-    getUpdatedData: () => data,
-    getUpdatedJsonString: () => JSON.stringify(data),
+    getUpdatedData: () => {
+      // Process data before returning it
+      return data.map(student => ({
+        ...student,
+        // If gender is "Other", use the custom value in the final data
+        gender: student.gender === "Other" ? student.gender_custom || "Not Provided" : student.gender
+      }));
+    },
+    getUpdatedJsonString: () => {
+      const processedData = data.map(student => ({
+        ...student,
+        gender: student.gender === "Other" ? student.gender_custom || "Not Provided" : student.gender
+      }));
+      return JSON.stringify(processedData);
+    },
     addStudent,
     removeStudent
   }));
@@ -106,15 +120,27 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
                       />
                     </td>
                     <td className="border border-gray-600 px-2 py-2">
-                      <select
-                        value={student.gender || 'Other'}
-                        onChange={(e) => updateStudent(index, 'gender', e.target.value)}
-                        className="w-full bg-gray-700 text-white p-1 rounded"
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      <div className="space-y-2">
+                        <select
+                          value={student.gender || 'Other'}
+                          onChange={(e) => updateStudent(index, 'gender', e.target.value)}
+                          className="w-full bg-gray-700 text-white p-1 rounded"
+                        >
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        
+                        {student.gender === "Other" && (
+                          <input
+                            type="text"
+                            placeholder="Specify gender"
+                            value={student.gender_custom || ''}
+                            onChange={(e) => updateStudent(index, 'gender_custom', e.target.value)}
+                            className="w-full bg-gray-600 text-white p-1 rounded text-sm"
+                          />
+                        )}
+                      </div>
                     </td>
                     <td className="border border-gray-600 px-2 py-2">
                       <input

@@ -1,13 +1,11 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { generateStudentCode } from "../../../utils/helpers";
 import Sidebar from "../../../components/Sidebar";
-import MainContent from "../../../components/MainContent";
 import VisibilityTable from "../../../components/VisibilityTable";
 import StudentTable from "../../../components/StudentTable";
 import { retrieveCourseSettings, updateCourseSettings } from "../../actions";
-import { addStudentToDatabase } from "../../actions";
+import { createClient } from "../../../utils/supabase/supabase";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);

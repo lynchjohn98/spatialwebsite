@@ -2,7 +2,7 @@
 import { createClient } from "../utils/supabase/server";
 // generate a uuid for a new student for default course
 import { v4 as uuidv4, v4 } from "uuid";
-import { generateStudentCode } from "../utils/helpers";
+import { generateStudentCode } from "../utils/serverhelpers";
 
 // Example SSR function used for server side, use this with the test, page.jsx for inserting
 //a message for similar work
@@ -74,7 +74,6 @@ export async function generateDefaultModuleQuizInformation() {
   }
   return jsonData;
 }
-
 export async function generateDefaultStudent(courseId) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -82,7 +81,7 @@ export async function generateDefaultStudent(courseId) {
    .insert(
      [{
       id: v4(),
-      student_join_code: generateStudentCode(),
+      student_join_code: generateStudentCode(), // Call the function - don't just pass the reference
       first_name: "Example",
       last_name: "Student",
       gender: "Male",
@@ -104,24 +103,43 @@ export async function generateDefaultStudent(courseId) {
 
 export async function insertCourseSettings(allPayload) {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("course_settings")
-    .insert(
-      [{
-        course_id: allPayload.courseId,
-        student_settings: allPayload.studentSettings,
-        module_settings: allPayload.moduleSettings,
-        quiz_settings: allPayload.quizSettings,
-        created_at : new Date().toISOString(),
-        updated_at : new Date().toISOString()
-      }]
-    )
-  if (error) {
-    console.error("❌ Supabase Insert Error:", error.message);
-    return { error: error.message };
-  }
-  else {
+  
+  // Ensure we have default values for required fields to prevent null constraint violations
+  const studentSettings = allPayload.studentSettings || '{}';
+  const moduleSettings = allPayload.moduleSettings || '{}';
+  const quizSettings = allPayload.quizSettings || '{}';
+  
+  // Log the payload for debugging
+  console.log("Inserting course settings with payload:", {
+    courseId: allPayload.courseId,
+    studentSettings: typeof studentSettings === 'string' ? 'String of length ' + studentSettings.length : 'Not a string',
+    moduleSettings: typeof moduleSettings === 'string' ? 'String of length ' + moduleSettings.length : 'Not a string',
+    quizSettings: typeof quizSettings === 'string' ? 'String of length ' + quizSettings.length : 'Not a string'
+  });
+  
+  try {
+    const { data, error } = await supabase
+      .from("course_settings")
+      .insert(
+        [{
+          course_id: allPayload.courseId,
+          student_settings: studentSettings,
+          module_settings: moduleSettings,
+          quiz_settings: quizSettings,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }]
+      );
+      
+    if (error) {
+      console.error("❌ Supabase Insert Error:", error.message);
+      return { error: error.message };
+    }
+    
     return { success: true, data };
+  } catch (err) {
+    console.error("❌ Unexpected error inserting course settings:", err);
+    return { error: "An unexpected error occurred" };
   }
 }
 
@@ -142,22 +160,6 @@ export async function retrieveSupplementalCourseInformation(payload: { id: any; 
   return { success: true, data };
 }
 
-
-//Grab all course settings to setup visibility items
-export async function retrieveCourseSettings(payload: { id: any; }) {
-  console.log("Retrieving course settings", payload);
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("course_settings")
-    .select("*")
-    .eq("course_id", payload.id)
-    .single();
-  if (error) {
-    console.error("❌ Supabase Insert Error:", error.message);
-    return { error: error.message };
-  }
-  return { success: true, data };
-}
 
 // Update course information in backend
 export async function updateCourseSettings(payload: { courseId: any; studentSettings: any; moduleSettings: any; quizSettings: any; }) {
@@ -183,41 +185,89 @@ export async function updateCourseSettings(payload: { courseId: any; studentSett
   }
 }
 
-
-//Dedicated to modules page, this will retrieve only the modules settings for a course if a refresh is clicked
-//and if the user did not reset any information in the page
+// Fix for retrieving modules
 export async function retrieveModules(payload: { id: any; }) {
   console.log("Fetching modules", payload);
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("course_settings")
-    .select("module_settings")
-    .eq("course_id", payload.id)
-    .single();
-  if (error) {
-    console.error("❌ Supabase Insert Error:", error.message);
-    return { error: error.message };
+  try {
+    const { data, error } = await supabase
+      .from("course_settings")
+      .select("module_settings")
+      .eq("course_id", payload.id)
+      .maybeSingle(); // Use maybeSingle instead of single
+      
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    
+    if (!data) {
+      console.log("No module settings found for course ID:", payload.id);
+      return { success: true, data: { module_settings: [] } }; // Return empty default
+    }
+    
+    return { success: true, data };
+  } catch (err) {
+    console.error("❌ Error retrieving modules:", err);
+    return { error: "Failed to retrieve modules" };
   }
-  return { success: true, data };
 }
 
-//Dedicated to quizzes page, this will retrieve only the quizzes settings for a course if a refresh is clicked
-//and if the user did not reset any information in the page
+// Fix for retrieving quizzes
 export async function retrieveQuizzes(payload: { id: any; }) {
   console.log("Fetching quizzes", payload);
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("course_settings")
-    .select("quiz_settings")
-    .eq("course_id", payload.id)
-    .single();
-  if (error) {
-    console.error("❌ Supabase Insert Error:", error.message);
-    return { error: error.message };
+  try {
+    const { data, error } = await supabase
+      .from("course_settings")
+      .select("quiz_settings")
+      .eq("course_id", payload.id)
+      .maybeSingle(); // Use maybeSingle instead of single
+      
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    
+    if (!data) {
+      console.log("No quiz settings found for course ID:", payload.id);
+      return { success: true, data: { quiz_settings: [] } }; // Return empty default
+    }
+    
+    return { success: true, data };
+  } catch (err) {
+    console.error("❌ Error retrieving quizzes:", err);
+    return { error: "Failed to retrieve quizzes" };
   }
-  return { success: true, data };
 }
 
+// Fix for retrieving course settings
+export async function retrieveCourseSettings(payload: { id: any; }) {
+  console.log("Retrieving course settings", payload);
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from("course_settings")
+      .select("*")
+      .eq("course_id", payload.id)
+      .maybeSingle(); // Use maybeSingle instead of single
+      
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    
+    if (!data) {
+      console.log("No settings found for course ID:", payload.id);
+      return { success: true, data: null }; // Return null to indicate no settings found
+    }
+    
+    return { success: true, data };
+  } catch (err) {
+    console.error("❌ Error retrieving course settings:", err);
+    return { error: "Failed to retrieve course settings" };
+  }
+}
 //For student who is joining a course, needs to use course join code
 //and provided student code
 export async function studentCourseJoin(payload: { studentJoinCode: string }) {

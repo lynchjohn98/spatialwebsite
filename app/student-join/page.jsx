@@ -18,8 +18,8 @@ export default function StudentJoin() {
 
   const handleSubmit = async () => {
     setError("");
-    if (studentJoinCode.length != 6) {
-      setError("Please enter the 6 digit student course join code provided by your teacher. Your teacher may regenerate a new code if errors persist.");
+    if (studentJoinCode.length != 8) {
+      setError("Please enter the 8 digit student course join code provided by your teacher. Your teacher may regenerate a new code if errors persist.");
       return;
     }
     setIsLoading(true);  
@@ -69,7 +69,7 @@ export default function StudentJoin() {
             <h1 className="text-2xl font-bold mb-1 text-center">Join Course as Student</h1>
             
             <p className="text-center">
-              Enter the course join code and password you created during the course setup.
+              Enter your join code provided by your teacher.
             </p>
           </div>
           
@@ -93,7 +93,7 @@ export default function StudentJoin() {
                 autoComplete="off"
               />
               <p className="text-sm text-gray-400 mt-1">
-                Format: XXXXXX (A combination of six letters and numbers)
+                Format: XXXXXXXX (A combination of eight letters and numbers)
               </p>
             </div>
             <div className="pt-4">

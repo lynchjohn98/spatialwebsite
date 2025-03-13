@@ -7,6 +7,7 @@ import { validateTeacherCode } from "../../utils/helpers";
 import { generateDefaultModuleQuizInformation } from "../actions";
 import { generateDefaultStudent } from "../actions";
 
+
 export default function FinalizeCourse() {
   const router = useRouter();
   const [password, setPassword] = useState("");

@@ -2,11 +2,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+
 export function validateTeacherCode(inputtedCode) {
+  //Use environment teacher code
   if (inputtedCode === "1234") {
-    console.log("Teeacher code is correct");
+    console.log("Teecher code is correct");
     return true;
   } else {
+    console.log("Another ERROR");
     return false;
   }
 }
@@ -49,7 +52,7 @@ export function generateJoinCode() {
 }
 
 export function generateStudentCode(){
-    return Math.random().toString(36).substr(2, 6).toUpperCase(); // Example: "XK5D9A"
+    return Math.random().toString(36).substr(2, 8).toUpperCase(); // Example: "XK5D9A"
   };
 
 
