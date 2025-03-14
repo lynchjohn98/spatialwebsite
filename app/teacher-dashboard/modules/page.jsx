@@ -1,8 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import MainContent from "../../../components/MainContent";
-import HamburgerButton from "../../../components/HamburgerButton";
 import { retrieveModules } from "../../actions"; 
 import Sidebar from "../../../components/Sidebar";
 
@@ -123,9 +121,7 @@ export default function Modules() {
       />
       <main className={`flex-1 p-6 transition-all duration-300 ${isSidebarOpen ? 'lg:ml-1/4' : ''}`}>
         <div className="lg:hidden mb-6 pt-8">
-          
-          </div>
-        
+          </div> 
         <div className="w-full max-w-4xl mx-auto">
           <h1 className="text-2xl md:text-3xl font-bold mb-6">All Modules</h1>
           
@@ -141,18 +137,15 @@ export default function Modules() {
               Refresh
             </button>
           </div>
-          
           {lastUpdated && (
             <p className="text-sm text-gray-400 mb-4">
               Last updated: {new Date(lastUpdated).toLocaleString()}
             </p>
           )}
-          
           <div className="space-y-4">
             {moduleData && moduleData.length > 0 ? (
               (() => {
                 const visibleModules = moduleData.filter(module => module.visibility === "Yes");
-                
                 if (visibleModules.length === 0) {
                   return (
                     <div className="p-4 bg-gray-800 rounded-lg text-center">

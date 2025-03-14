@@ -3,18 +3,11 @@ import { NextResponse } from "next/server";
 import { updateSession } from './utils/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
-  // First, set up a basic response
+
   const response = NextResponse.next();
-  
-  // Clear Supabase tokens if needed (from your app/middleware.ts)
-  response.cookies.delete("sb:token");
+    response.cookies.delete("sb:token");
   response.cookies.delete("sb:refresh_token");
-  
-  // Update the session using the existing utility from utils/supabase/middleware
-  return await updateSession(request);
-  
-  // Note: We're no longer forcing redirects to /home or / based on auth status
-  // This allows you to freely navigate your application
+    return await updateSession(request);
 }
 
 export const config = {

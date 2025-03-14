@@ -272,25 +272,22 @@ export async function retrieveCourseSettings(payload: { id: any; }) {
 //and provided student code
 export async function studentCourseJoin(payload: { studentJoinCode: string }) {
   const supabase = await createClient();
-  
+  console.log("Running in local host");
   try {
-    // Step 1: Get the student data and course_id in one query
     const { data: student, error: studentError } = await supabase
       .from("students")
       .select("*, course_id")
       .eq("student_join_code", payload.studentJoinCode)
       .single();
-      
     if (studentError) {
       console.error("❌ Student lookup error:", studentError.message);
       return { error: studentError.message };
     }
-    
     if (!student) {
       return { error: "No student found with that join code." };
     }
-    
-    // Step 2: Get course and settings data in a single query using the course_id
+    console.log(student);
+     
     const { data, error } = await supabase
       .rpc('get_student_course_data', { 
         p_course_id: student.course_id 
@@ -346,5 +343,20 @@ export async function addStudentToDatabase(payload) {
     return { error: error.message };
   }
   
+  return { success: true, data };
+}
+
+
+export async function retrieveStudentData(payload) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+  .from("course_settings")
+  .select("student_settings")
+  .eq("course_id", payload.courseId)
+  .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
   return { success: true, data };
 }

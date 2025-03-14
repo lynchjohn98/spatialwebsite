@@ -7,31 +7,33 @@ function HamburgerButton({ onClick, isSidebarOpen }) {
   return (
     <button
       className={`fixed top-4 left-4 z-50 p-2 rounded-md transition-all duration-300 lg:hidden
-        ${isSidebarOpen 
-          ? 'bg-transparent' 
-          : 'bg-blue-600 shadow-lg hover:bg-blue-700'}`}
+        ${
+          isSidebarOpen
+            ? "bg-transparent"
+            : "bg-blue-600 shadow-lg hover:bg-blue-700"
+        }`}
       onClick={onClick}
-      aria-label={isSidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+      aria-label={
+        isSidebarOpen ? "Close navigation menu" : "Open navigation menu"
+      }
     >
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2" 
-        strokeLinecap="round" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
         strokeLinejoin="round"
       >
         {isSidebarOpen ? (
-          // X icon when sidebar is open
           <>
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </>
         ) : (
-          // Hamburger icon when sidebar is closed
           <>
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -43,17 +45,18 @@ function HamburgerButton({ onClick, isSidebarOpen }) {
   );
 }
 
-export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData }) {
+export default function Sidebar({
+  isSidebarOpen,
+  setIsSidebarOpen,
+  courseData,
+}) {
   const router = useRouter();
   const [activeRoute, setActiveRoute] = useState("");
-
-  // Set active route based on current path
   useEffect(() => {
     const path = window.location.pathname;
     setActiveRoute(path);
   }, []);
 
-  // Handle navigation with query params
   const handleNavigation = (route) => {
     if (courseData) {
       const queryString = new URLSearchParams(courseData).toString();
@@ -62,19 +65,13 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
       router.push(route);
     }
   };
-
-  // Close sidebar when clicking navigation links on mobile
   const handleMobileNavClick = (route) => {
     setActiveRoute(route);
     router.push(route);
-
-    // Only close on mobile/tablet
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
   };
-
-  // Add keyboard support for accessibility (close on Escape key)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && isSidebarOpen) {
@@ -85,17 +82,12 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSidebarOpen, setIsSidebarOpen]);
-
-  // Add the hamburger button for mobile
   return (
     <>
-      {/* Hamburger Menu Button - Only visible on mobile/tablet */}
-      <HamburgerButton 
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-        isSidebarOpen={isSidebarOpen} 
+      <HamburgerButton
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
       />
-
-      {/* Dark Overlay - Only on Mobile/Tablet */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
@@ -103,19 +95,19 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
           aria-hidden="true"
         ></div>
       )}
-
-      {/* Sidebar */}
       <aside
         className={`fixed lg:relative w-72 lg:w-1/4 min-h-screen bg-gray-800 p-6 transition-all duration-300 ease-in-out z-40
-          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${
+            isSidebarOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
+          }
           shadow-lg
         `}
         aria-hidden={!isSidebarOpen && window.innerWidth < 1024}
       >
-        {/* Sidebar Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
-            {/* Spatial Blocks Icon */}
             <div className="mr-3 text-blue-400">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +121,6 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
                 strokeLinejoin="round"
                 className="transform transition-transform duration-300 hover:rotate-12"
               >
-                {/* Cube stack icon */}
                 <path d="M7 9.5L12 12.5L17 9.5" />
                 <path d="M7 13.5L12 16.5L17 13.5" />
                 <path d="M12 5.5L17 8.5L12 11.5L7 8.5L12 5.5" />
@@ -151,7 +142,6 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
             <h1 className="text-xl font-bold">Spatial Thinking</h1>
           </div>
 
-          {/* Close Button - Only on Mobile/Tablet */}
           <button
             className="bg-gray-700 hover:bg-gray-600 p-2 rounded lg:hidden transition-colors duration-200"
             onClick={() => setIsSidebarOpen(false)}
@@ -219,11 +209,8 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
             </div>
           </div>
         )}
-
-        {/* Sidebar Navigation */}
         <nav className="mt-4 space-y-3">
-
-        <NavButton
+          <NavButton
             icon={
               <svg
                 width="20"
@@ -244,8 +231,6 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
             isActive={activeRoute === "/teacher-dashboard"}
             onClick={handleMobileNavClick}
           />
-
-
           <NavButton
             icon={
               <svg
@@ -267,7 +252,6 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
             isActive={activeRoute === "/teacher-dashboard/modules"}
             onClick={handleMobileNavClick}
           />
-
           <NavButton
             icon={
               <svg
@@ -287,7 +271,6 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
             isActive={activeRoute === "/teacher-dashboard/quizzes"}
             onClick={handleMobileNavClick}
           />
-
           <NavButton
             icon={
               <svg
@@ -305,6 +288,26 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
             label="Teacher Dashboard"
             route="/teacher-dashboard/settings"
             isActive={activeRoute === "/teacher-dashboard/settings"}
+            onClick={handleMobileNavClick}
+          />
+
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            }
+            label="Student Grades"
+            route="/teacher-dashboard/grades" // Change this from "/teacher-dashboard/settings"
+            isActive={activeRoute === "/teacher-dashboard/grades"}
             onClick={handleMobileNavClick}
           />
 
@@ -335,7 +338,6 @@ export default function Sidebar({ isSidebarOpen, setIsSidebarOpen, courseData })
   );
 }
 
-// Navigation Button Component
 function NavButton({ icon, label, route, isActive, onClick }) {
   return (
     <button

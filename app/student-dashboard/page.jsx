@@ -8,6 +8,8 @@ export default function StudentDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [courseData, setCourseData] = useState(null);
   const [studentData, setStudentData] = useState(null);
+  const [moduleData, setModuleData] = useState([]);
+  const [quizData, setQuizData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
 useEffect(() => {
@@ -20,33 +22,48 @@ useEffect(() => {
   };
   window.addEventListener("resize", checkWindowSize);
   checkWindowSize();
-
-  // Load both course and student data
   const loadData = () => {
     setIsLoading(true);
-    
     const storedCourseData = sessionStorage.getItem("courseData");
     const storedStudentData = sessionStorage.getItem("studentData");
-    
     if (storedCourseData && storedStudentData) {
       try {
         // Parse the courseData - should contain course object and settings
         const parsedCourseData = JSON.parse(storedCourseData);
         setCourseData(parsedCourseData);
-    
         const parsedStudentData = JSON.parse(storedStudentData);
         setStudentData(parsedStudentData);
+        
+        // Handle module settings
+        if (parsedCourseData.settings && parsedCourseData.settings.module_settings) {
+          let moduleSettings;
+          if (typeof parsedCourseData.settings.module_settings === 'string') {
+            moduleSettings = JSON.parse(parsedCourseData.settings.module_settings);
+          } else {
+            moduleSettings = parsedCourseData.settings.module_settings;
+          }
+          setModuleData(moduleSettings);
+        }
+        
+        // Handle quiz settings
+        if (parsedCourseData.settings && parsedCourseData.settings.quiz_settings) {
+          let quizSettings;
+          if (typeof parsedCourseData.settings.quiz_settings === 'string') {
+            quizSettings = JSON.parse(parsedCourseData.settings.quiz_settings);
+          } else {
+            quizSettings = parsedCourseData.settings.quiz_settings;
+          }
+          setQuizData(quizSettings);
+        }
         
         setIsLoading(false);
       } catch (error) {
         console.error("Error parsing session data:", error);
-        // Clear invalid data and redirect
         sessionStorage.removeItem("courseData");
         sessionStorage.removeItem("studentData");
         router.push("/student-join");
       }
     } else {
-      // Missing data, redirect to join page
       router.push("/student-join");
     }
   };
