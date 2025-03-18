@@ -347,12 +347,12 @@ export async function addStudentToDatabase(payload) {
 }
 
 
-export async function retrieveStudentData(payload) {
+export async function retrieveStudentData(payload : any) {
   const supabase = await createClient();
   const { data, error } = await supabase
   .from("course_settings")
   .select("student_settings")
-  .eq("course_id", payload.courseId)
+  .eq("course_id", payload)
   .single();
   if (error) {
     console.error("❌ Supabase Insert Error:", error.message);

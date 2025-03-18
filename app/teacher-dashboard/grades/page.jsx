@@ -22,16 +22,14 @@ export default function Grades() {
       if (storedData) {
         const parsedData = JSON.parse(storedData);
         setCourseData(parsedData);
-        const studentResponse = await retrieveStudentData(parsedData);
-        if (studentResponse.status === 200) {
+        console.log(parsedData);
+        const studentResponse = await retrieveStudentData(parsedData.id);
+        if (studentResponse.data) {
           setStudentData(studentResponse.data);
           console.log("Final data provided here:", studentData);
         } else {
-          router.push("/teacher-join");
+            console.log("studentResponse if did not work");
         }
-        
-      } else {
-        router.push("/teacher-join");
       }
     } catch (error) {
       console.error("Error loading course data:", error);
