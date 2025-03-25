@@ -7,6 +7,8 @@ export default function Help() {
   const [showTeacherGif, setShowTeacherGif] = useState(false);
   const [showStudentGif, setShowStudentGif] = useState(false);
 
+  const router = useRouter();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-900 text-white">
       <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center"> How does this platform work? </h1>
@@ -70,11 +72,14 @@ export default function Help() {
         </div>
       </div>
       
-      <div className="mt-8">
-        <p className="text-center text-gray-400">
-          All data is stored locally - no accounts required!
-        </p>
-      </div>
+      <div className="text-center">
+              <button
+                onClick={() => router.push("/")}
+                className="mt-10 text-blue-300 hover:text-blue-200 transition-colors text-sm"
+              >
+                Return to Home
+              </button>
+            </div>
     </div>
   );
 }

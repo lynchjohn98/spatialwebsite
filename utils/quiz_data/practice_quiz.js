@@ -5,38 +5,38 @@ export const quizData = {
         {
             id: "q1",
             type: "multiple-choice",
-            text: "Which statement best describes volumetric intersection?",
-            imageUrl: "/quiz-images/quiz1/q1.svg",
-            points: 5,
+            text: "What fruits are these?",
+            imageUrl: "/quiz_images/practice_quiz/problem1.jpg",
+            points: 1,
             options: [
-              { id: "a", text: "The total volume when two solids are placed side by side" },
-              { id: "b", text: "The volume shared by two overlapping solids", correct: true },
-              { id: "c", text: "The volume remaining after one solid is subtracted from another" },
-              { id: "d", text: "The volume created when one solid is rotated" }
+              { id: "a", text: "Apples", correct:true },
+              { id: "b", text: "Bananas",},
+              { id: "c", text: "Oranges" },
+              { id: "d", text: "Grapes" }
             ]
           },
           {
             id: "q2",
             type: "multiple-select",
-            text: "Select all operations that can be used to combine solids:",
-            imageUrl: "/quiz-images/quiz1/q2.svg",
-            points: 10,
+            text: "Select all the colors that match the fur of this cat.",
+            imageUrl: "/quiz_images/practice_quiz/problem2.jpg",
+            points: 2,
             options: [
-              { id: "a", text: "Union", correct: true },
-              { id: "b", text: "Intersection", correct: true },
-              { id: "c", text: "Subtraction", correct: true },
-              { id: "d", text: "Rotation", correct: false },
-              { id: "e", text: "Reflection", correct: false }
+              { id: "a", text: "Black", correct: true },
+              { id: "b", text: "Orange", correct: true },
+              { id: "c", text: "White", correct: true },
+              { id: "d", text: "Green", correct: false },
+              { id: "e", text: "Blue", correct: false }
             ]
           },
           {
             id: "q3",
             type: "text-input",
-            text: "What is the formula for calculating the volume of a cube with side length s?",
-            imageUrl: "/quiz-images/quiz1/q3.svg",
-            points: 5,
-            correctAnswer: "s^3",
-            alternateAnswers: ["s*s*s", "s³", "s cubed", "s**3"]
+            text: "What is the answer to this question? Please type numbers only.",
+            imageUrl: "/quiz_images/practice_quiz/problem3.jpg",
+            points: 1,
+            correctAnswer: "37",
+            alternateAnswers: ["3 7", "thiry-seven", "Thirty Seven", "37"]
           }
     ] 
 }
