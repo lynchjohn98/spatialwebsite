@@ -20,7 +20,7 @@ export const quizData = {
             type: "multiple-select",
             text: "Select all the colors that match the fur of this cat.",
             imageUrl: "/quiz_images/practice_quiz/problem2.jpg",
-            points: 2,
+            points: 3,
             options: [
               { id: "a", text: "Black", correct: true },
               { id: "b", text: "Orange", correct: true },

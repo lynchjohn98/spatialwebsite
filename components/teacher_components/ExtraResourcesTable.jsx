@@ -1,52 +1,19 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { supplementalMaterialInformation } from "../../utils/helpers";
 
 export default function ExtraResourcesTable({ tableTitle }) {
   const [showTable, setShowTable] = useState(false);
   const router = useRouter();
 
-  
-
-  // Hardcoded resources data
-  const resources = [
-    { 
-      name: "Spatial Visualization Guide", 
-      description: "A comprehensive PDF guide for learning spatial visualization techniques",
-      downloadUrl: "/resources/spatial-guide.pdf" 
-    },
-    { 
-      name: "3D Models Pack", 
-      description: "Collection of 3D models for practice and visualization exercises",
-      downloadUrl: "/resources/3d-models.zip" 
-    },
-    { 
-      name: "Workbook Exercises", 
-      description: "Printable workbook with practice exercises and solutions",
-      downloadUrl: "/resources/workbook.pdf" 
-    },
-    { 
-      name: "Video Tutorials", 
-      description: "Link to video tutorials explaining key spatial concepts",
-      downloadUrl: "https://example.com/tutorials" 
-    },
-    { 
-      name: "Research Papers", 
-      description: "Collection of academic papers on spatial visualization in education",
-      downloadUrl: "/resources/research-papers.zip" 
-    }
-  ];
-
-  // Handle download click
   const handleDownload = (url) => {
-    // For external links, open in new tab
-    if (url.startsWith('http')) {
+    if (url && url.startsWith('http')) {
       window.open(url, '_blank');
-    } else {
-      // For local files, trigger download
-      // In a real app, you might need to handle this differently
-      // depending on your file serving setup
+    } else if (url) {
       window.location.href = url;
+    } else {
+      console.error("Download URL is missing");
     }
   };
 
@@ -86,9 +53,9 @@ export default function ExtraResourcesTable({ tableTitle }) {
           <div className="max-h-[250px] overflow-y-auto">
             <table className="table-auto w-full border-collapse border border-gray-600">
               <tbody>
-                {resources.map((resource, index) => (
+                {supplementalMaterialInformation.map((resource, index) => (
                   <tr key={index} className="border border-gray-600 hover:bg-gray-700">
-                    <td className="border border-gray-600 px-4 py-2">{resource.name}</td>
+                    <td className="border border-gray-600 px-4 py-2">{resource.title}</td>
                     <td className="border border-gray-600 px-4 py-2">{resource.description}</td>
 
                     {/* Download button */}
@@ -96,14 +63,15 @@ export default function ExtraResourcesTable({ tableTitle }) {
                       <button
                         onClick={() => handleDownload(resource.downloadUrl)}
                         className="text-blue-400 hover:text-blue-300 transition-all"
-                        title={`Download ${resource.name}`}
+                        title={`Download ${resource.title}`}
+                        disabled={!resource.downloadUrl}
                       >
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
                           className="h-6 w-6 mx-auto" 
                           fill="none" 
                           viewBox="0 0 24 24" 
-                          stroke="currentColor"
+                          stroke={resource.downloadUrl ? "currentColor" : "#666"}
                         >
                           <path 
                             strokeLinecap="round" 

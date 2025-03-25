@@ -1,49 +1,69 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import StudentSidebar from "../../../components/StudentSidebar";
-
+import StudentSidebar from "../../../components/student_components/StudentSidebar";
+import StudentGradeTable from "../../../components/student_components/StudentGradeTable";
+import { fetchGradesStudent } from "../../actions";
 export default function Grades() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [courseData, setCourseData] = useState(null);
   const [studentData, setStudentData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [gradeData, setGradeData] = useState(null);
   useEffect(() => {
+    // Window size handling
     const checkWindowSize = () => {
-      if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(true);
-      } else {
-        setIsSidebarOpen(false);
-      }
+      setIsSidebarOpen(window.innerWidth >= 1024);
     };
     window.addEventListener("resize", checkWindowSize);
     checkWindowSize();
-    const loadData = () => {
+    
+    // Combined data loading function
+    const loadData = async () => {
       setIsLoading(true);
+      
+      // Get session data
       const storedCourseData = sessionStorage.getItem("courseData");
       const storedStudentData = sessionStorage.getItem("studentData");
-      if (storedCourseData && storedStudentData) {
-        try {
-          const parsedCourseData = JSON.parse(storedCourseData);
-          setCourseData(parsedCourseData);
-
-          const parsedStudentData = JSON.parse(storedStudentData);
-          setStudentData(parsedStudentData);
-
-          setIsLoading(false);
-        } catch (error) {
-          console.error("Error parsing session data:", error);
-          sessionStorage.removeItem("courseData");
-          sessionStorage.removeItem("studentData");
-          router.push("/student-join");
-        }
-      } else {
+      
+      if (!storedCourseData || !storedStudentData) {
         router.push("/student-join");
+        return;
+      }
+      
+      try {
+        // Parse session data
+        const parsedCourseData = JSON.parse(storedCourseData);
+        const parsedStudentData = JSON.parse(storedStudentData);
+        
+        setCourseData(parsedCourseData);
+        setStudentData(parsedStudentData);
+        
+        // Fetch grades using the loaded data
+        const gradesResponse = await fetchGradesStudent({ 
+          student_id: parsedStudentData.id,
+          course_id: parsedCourseData.id 
+        });
+        
+        if (gradesResponse.success) {
+          setGradeData(gradesResponse.data);
+        } else {
+          console.error("Error retrieving grades:", gradesResponse.error);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        sessionStorage.removeItem("courseData");
+        sessionStorage.removeItem("studentData");
+        router.push("/student-join");
+      } finally {
+        setIsLoading(false);
       }
     };
+    
     loadData();
+    
+    // Cleanup
     return () => window.removeEventListener("resize", checkWindowSize);
   }, [router]);
 
@@ -66,6 +86,11 @@ export default function Grades() {
         courseData={courseData}
         studentData={studentData}
       />
+      <main>
+
+        <StudentGradeTable gradesData={gradeData} /> 
+      </main>
+      
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { generateStudentCode } from "../utils/helpers";
+import { generateStudentCode } from "../../utils/helpers";
 
 const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
   console.log("Raw tableData:", tableData);

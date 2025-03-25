@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import StudentSidebar from "../../components/StudentSidebar";
+import StudentSidebar from "../../components/student_components/StudentSidebar";
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -28,13 +28,11 @@ useEffect(() => {
     const storedStudentData = sessionStorage.getItem("studentData");
     if (storedCourseData && storedStudentData) {
       try {
-        // Parse the courseData - should contain course object and settings
         const parsedCourseData = JSON.parse(storedCourseData);
         setCourseData(parsedCourseData);
         const parsedStudentData = JSON.parse(storedStudentData);
         setStudentData(parsedStudentData);
-        
-        // Handle module settings
+
         if (parsedCourseData.settings && parsedCourseData.settings.module_settings) {
           let moduleSettings;
           if (typeof parsedCourseData.settings.module_settings === 'string') {
@@ -45,7 +43,6 @@ useEffect(() => {
           setModuleData(moduleSettings);
         }
         
-        // Handle quiz settings
         if (parsedCourseData.settings && parsedCourseData.settings.quiz_settings) {
           let quizSettings;
           if (typeof parsedCourseData.settings.quiz_settings === 'string') {
@@ -54,8 +51,7 @@ useEffect(() => {
             quizSettings = parsedCourseData.settings.quiz_settings;
           }
           setQuizData(quizSettings);
-        }
-        
+        }  
         setIsLoading(false);
       } catch (error) {
         console.error("Error parsing session data:", error);
@@ -67,9 +63,7 @@ useEffect(() => {
       router.push("/student-join");
     }
   };
-  
   loadData();
-  
   return () => window.removeEventListener("resize", checkWindowSize);
 }, [router]);
 

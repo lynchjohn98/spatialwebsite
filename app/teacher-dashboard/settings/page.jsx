@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../../../components/Sidebar";
-import VisibilityTable from "../../../components/VisibilityTable";
-import StudentTable from "../../../components/StudentTable";
+import Sidebar from "../../../components/teacher_components/TeacherSidebar";
+import VisibilityTable from "../../../components/teacher_components/VisibilityTable";
+import StudentTable from "../../../components/teacher_components/StudentTable";
+import ExtraResourcesTable from "../../../components/teacher_components/ExtraResourcesTable";
 import { retrieveCourseSettings, updateCourseSettings } from "../../actions";
 import { createClient } from "../../../utils/supabase/supabase";
 
@@ -85,8 +86,7 @@ export default function Settings() {
       const supabase = createClient();
       
       if (result.success) {
-        // Step 2: First get existing students for this course to avoid constraint issues
-        const { data: existingStudents, error: fetchError } = await supabase
+       const { data: existingStudents, error: fetchError } = await supabase
           .from("students")
           .select("id, student_join_code")
           .eq("course_id", courseData.id);
@@ -96,21 +96,17 @@ export default function Settings() {
           throw fetchError;
         }
         
-        // Create lookup map for faster reference
         const existingStudentMap = {};
         existingStudents.forEach(student => {
           existingStudentMap[student.student_join_code] = student.id;
         });
-        
-        // Process students one by one to handle them differently based on if they exist
         for (const student of updatedStudentData) {
-          // Skip if student doesn't have necessary data
+
           if (!student.student_join_code || !student.first_name) {
             continue;
           }
           
           if (existingStudentMap[student.student_join_code]) {
-            // Update existing student
             await supabase
               .from("students")
               .update({
@@ -119,7 +115,6 @@ export default function Settings() {
                 gender: student.gender,
                 grade: student.grade || null,
                 other: student.other || null,
-                // Don't update join_date for existing students
                 remove_date: student.remove_date || null,
               })
               .eq("id", existingStudentMap[student.student_join_code]);
@@ -217,6 +212,10 @@ export default function Settings() {
           tableData={quizData}
           moniker={"Quiz"}
         />
+        <ExtraResourcesTable
+          tableTitle={"Extra Resources"}
+        />
+        
         
         <div className="mt-3 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
           <button 

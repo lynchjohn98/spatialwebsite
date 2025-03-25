@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import ResponsiveButton from "../components/ResponsiveButton";
+import ResponsiveButton from "../components/page_blocks/ResponsiveButton";
 
 export default function Home() {
   const router = useRouter();

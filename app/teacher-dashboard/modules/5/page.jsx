@@ -1,10 +1,10 @@
 "use client";
 import { useModulePage } from "../../../../utils/helpers";
-import Sidebar from "../../../../components/Sidebar";
-import ReturnButton from "../../../../components/ReturnButton";
-import LearningIntentions from "../../../../components/LearningIntentions";
-import SuccessCriteria from "../../../../components/SuccessCriteria";
-import GetStarted from "../../../../components/GetStarted";
+import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
+import ReturnButton from "../../../../components/page_blocks/ReturnButton";
+import LearningIntentions from "../../../../components/module_blocks/LearningIntentions";
+import SuccessCriteria from "../../../../components/module_blocks/SuccessCriteria";
+import GetStarted from "../../../../components/module_blocks/GetStarted";
 
 export default function Page() {
   const {

@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../../components/Sidebar";
-import HamburgerButton from "../../components/HamburgerButton";
+import Sidebar from "../../components/teacher_components/TeacherSidebar";
+import HamburgerButton from "../../components/page_blocks/HamburgerButton";
 import { retrieveModules } from "../actions"; 
 
 export default function TeacherDashboard() {

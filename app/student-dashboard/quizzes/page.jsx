@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { retrieveQuizzes } from "../../actions";
-import StudentSidebar from "../../../components/StudentSidebar";
+import StudentSidebar from "../../../components/student_components/StudentSidebar";
 
 export default function Quizzes() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -14,6 +14,10 @@ export default function Quizzes() {
   const router = useRouter();
 
   useEffect(() => {
+    const storedCourseData = sessionStorage.getItem("courseData");
+    const storedStudentData = sessionStorage.getItem("studentData");
+    setCourseData(JSON.parse(storedCourseData));
+    setStudentData(JSON.parse(storedStudentData));
     const checkWindowSize = () => {
       if (window.innerWidth >= 1024) {
         setIsSidebarOpen(true);
@@ -59,8 +63,6 @@ export default function Quizzes() {
     setIsLoading(true);
     const storedCourseData = sessionStorage.getItem("courseData");
     const storedStudentData = sessionStorage.getItem("studentData");
-    const storedQuizData = sessionStorage.getItem("quizData");
-    const storedTimestamp = sessionStorage.getItem("quizDataTimestamp");
     if (!storedCourseData || !storedStudentData) {
       setIsLoading(false);
       router.push("/student-join");

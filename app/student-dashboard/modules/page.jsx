@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { retrieveModules } from "../../actions";
-import StudentSidebar from "../../../components/StudentSidebar";
+import StudentSidebar from "../../../components/student_components/StudentSidebar";
 
 export default function Modules() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

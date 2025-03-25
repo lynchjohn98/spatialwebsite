@@ -360,3 +360,73 @@ export async function retrieveStudentData(payload : any) {
   }
   return { success: true, data };
 }
+
+//Function to submit quiz data into the backend
+export async function submitQuizData(payload: any) {
+  const supabase = await createClient();
+  console.log("Inside submitQuizData function", payload);
+
+  const {data, error} = await supabase
+    .from("grades")
+    .insert(
+      {
+        quiz_id: payload.quiz_id,
+        student_id: payload.student_id,
+        score: payload.score,
+        answers: payload.answers,
+        attempt_number: 1,
+        time_start: payload.time_start,
+        time_end: payload.time_end,
+        course_id: payload.course_id
+      }
+    )
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  else {
+    console.log ("Inserted quiz data", data);
+    return { success: true, data };
+  }
+}
+
+
+//Fecth grades for student dashboard
+export async function fetchGradesStudent(payload: any) {
+  const supabase = await createClient();
+  
+  const { data, error } = await supabase
+    .from("grades")
+    .select(`
+      *,
+      quizzes:quiz_id(id, name, description)
+    `)
+    .eq("student_id", payload.student_id);
+    
+  if (error) {
+    console.error("❌ Supabase Query Error:", error.message);
+    return { error: error.message };
+  }
+  
+  return { success: true, data };
+}
+
+
+
+//Grades Dashboard for student, retrieve all information regarding grades for each student in the course
+export async function fetchGradesTeacher(payload: any) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("grades")
+    .select(`
+      *,
+      quizzes:quiz_id(id, name, description, total_score),
+      student:student_id(id, first_name, last_name)
+    `)
+    .eq("course_id", payload);
+    if (error) {
+    console.error("❌ Supabase Query Error:", error.message);
+    return { error: error.message };
+  }
+  return { success: true, data };
+}
