@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-   "netlify-build": "npm run build"
+   "netlify-build": "next build"
     },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.10.0",
