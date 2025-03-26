@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "netlify-build": "NODE_ENV=production postcss --config postcss.config.js ./styles/globals.css -o ./styles/tailwind.css && next build"
-  },
+   "netlify-build": "NODE_ENV=production postcss --config postcss.config.js ./app/globals.css -o ./app/tailwind.css && next build"
+    },
   "dependencies": {
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/auth-ui-react": "^0.4.7",
