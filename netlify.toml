@@ -1,6 +1,7 @@
 [build]
   command = "npm install && npm run build"
   publish = ".next"
+  JEKYLL_ENV=production jekyll build
 
 [build.environment]
   PYTHON_ENABLE = "false"
