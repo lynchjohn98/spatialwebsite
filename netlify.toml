@@ -3,10 +3,6 @@
   publish = ".next"
   JEKYLL_ENV=production jekyll build
 
-[build.environment]
-  PYTHON_ENABLE = "false"
-  SKIP_PYTHON_INSTALL = "true"
-
 [[redirects]]
 from = '/_next/image/*'
 query = { q = ':quality', url = ':url', w = ':width' }
