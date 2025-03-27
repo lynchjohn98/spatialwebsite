@@ -57,6 +57,9 @@ export default function TeacherJoin() {
       });
       
       if (result.error) {
+        console.error("Error joining course:", result.error);
+        console.log(result);
+        console.log(result.error);
         setError("Invalid credentials. Access denied.");
       } else {
         sessionStorage.setItem("courseData", JSON.stringify(result.data));
