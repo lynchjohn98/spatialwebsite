@@ -46,20 +46,28 @@ export async function insertNewCourse(payload) {
 
 export async function retrieveTeacherCourse(payload) {
   const supabase = await createClient();
-  //Retrieve course with join code and teacher password
-  const { data, error } = await supabase
-    .from("courses")
-    .select("*")
-    .eq("course_join_code", payload.joinCode)
-    .eq("teacher_course_password", payload.password)
-    .single();
-  if (error) {
-    console.error("❌ Supabase Insert Error:", error.message);
-    return { error: error.message };
-  } 
-  return { success: true, data };
+  try {
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .eq("course_join_code", payload.joinCode)
+      .eq("teacher_course_password", payload.password);
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    if (!data || data.length === 0) {
+      return { error: "No course found with these credentials. Please check your join code and password." };
+    } 
+    if (data.length > 1) {
+      console.warn("Multiple courses found with the same credentials. Using the first one.");
+    }
+    return { success: true, data: data[0] };
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
 }
-
 export async function generateDefaultModuleQuizInformation() {
   const supabase = await createClient();
   const { data: modules, error: moduleError } = await supabase
