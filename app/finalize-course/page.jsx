@@ -184,7 +184,7 @@ export default function FinalizeCourse() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-lg font-medium mb-2">
-                      Create Teacher Password
+                      Create Your Teacher Password
                     </label>
                     <input
                       type="password"
@@ -196,7 +196,7 @@ export default function FinalizeCourse() {
                   
                   <div>
                     <label className="block text-lg font-medium mb-2">
-                      Confirm Teacher Password
+                      Confirm Your Teacher Password
                     </label>
                     <input
                       type="password"
@@ -209,7 +209,7 @@ export default function FinalizeCourse() {
                 
                 <div className="pt-2">
                   <label className="block text-lg font-medium mb-2">
-                    Course Join Code
+                    Your Course Join Code
                   </label>
                   <div className="flex space-x-2">
                     <input
@@ -230,7 +230,7 @@ export default function FinalizeCourse() {
                 
                 <div>
                   <label className="block text-lg font-medium mb-2">
-                    Course Creation Password
+                    Admin Course Creation Password
                   </label>
                   <input
                     type="password"
