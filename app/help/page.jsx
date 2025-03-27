@@ -13,7 +13,7 @@ export default function Help() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-900 text-white">
       <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center"> How does this platform work? </h1>
       <p className="text-xl mb-8 text-center">
-      This platform is an accountless spatial learning tool that requires teachers to remember a course-code and their created password. No accounts are required!
+      Spatial Thinking is an accountless platform to help students learn about spatial thinking.
       </p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">

@@ -94,7 +94,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
                 <th className="border border-gray-600 px-4 py-2">First Name</th>
                 <th className="border border-gray-600 px-4 py-2">Last Name</th>
                 <th className="border border-gray-600 px-4 py-2">Gender</th>
-                <th className="border border-gray-600 px-4 py-2">Other</th>
+                <th className="border border-gray-600 px-4 py-2">Notes / Details </th>
                 <th className="border border-gray-600 px-4 py-2">Join Code</th>
                 <th className="border border-gray-600 px-4 py-2 w-20">Actions</th>
               </tr>
