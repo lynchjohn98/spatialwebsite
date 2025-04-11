@@ -40,9 +40,14 @@ export default function Help() {
                 objectFit="contain"
                 priority
               />
-              <href className="absolute top-0 left-0 w-full h-full bg-black opacity-50">
-              https://youtu.be/uypPQMhM6lw
-              </href>
+              <a 
+                href="https://youtu.be/uypPQMhM6lw" 
+                className="absolute top-0 left-0 w-full h-full bg-black opacity-50 flex items-center justify-center text-white hover:opacity-75 transition-opacity"
+                target="_blank" 
+                rel="noopener noreferrer"
+              >
+                Watch Video
+              </a>
             </div>
           )}
         </div>
