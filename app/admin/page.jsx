@@ -27,7 +27,7 @@ export default function AdminPage() {
     setIsLoading(true);
     setError("");
     
-    const adminPasscode = "SpatialAdmin2024"; 
+    const adminPasscode = "1234"; 
     
     if (passcode === adminPasscode) {
       sessionStorage.setItem("adminAuthorized", "true");
