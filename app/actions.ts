@@ -398,8 +398,6 @@ export async function submitQuizData(payload: any) {
   }
 }
 
-
-//Fecth grades for student dashboard
 export async function fetchGradesStudent(payload: any) {
   const supabase = await createClient();
   
@@ -420,8 +418,6 @@ export async function fetchGradesStudent(payload: any) {
 }
 
 
-
-//Grades Dashboard for student, retrieve all information regarding grades for each student in the course
 export async function fetchGradesTeacher(payload: any) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -437,4 +433,75 @@ export async function fetchGradesTeacher(payload: any) {
     return { error: error.message };
   }
   return { success: true, data };
+}
+
+
+export async function loadAllAdminData() {
+  const supabase = await createClient();
+  
+  try {
+    const { data: coursesData, error: coursesError } = await supabase
+      .from("courses")
+      .select("*");
+    
+    if (coursesError) {
+      console.error("❌ Supabase Courses Query Error:", coursesError.message);
+      return { error: coursesError.message };
+    }
+    
+    const { data: studentsData, error: studentsError } = await supabase
+      .from("students")
+      .select("*");
+    
+    if (studentsError) {
+      console.error("❌ Supabase Students Query Error:", studentsError.message);
+      return { error: studentsError.message };
+    }
+    
+    const { data: settingsData, error: settingsError } = await supabase
+      .from("course_settings")
+      .select("*");
+    
+    if (settingsError) {
+      console.error("❌ Supabase Settings Query Error:", settingsError.message);
+      return { error: settingsError.message };
+    }
+    
+    const { count: courseCount, error: courseCountError } = await supabase
+      .from("courses")
+      .select("*", { count: "exact", head: true });
+      
+    if (courseCountError) {
+      console.error("❌ Course Count Error:", courseCountError.message);
+      return { error: courseCountError.message };
+    }
+    
+    const { count: studentCount, error: studentCountError } = await supabase
+      .from("students")
+      .select("*", { count: "exact", head: true });
+      
+    if (studentCountError) {
+      console.error("❌ Student Count Error:", studentCountError.message);
+      return { error: studentCountError.message };
+    }
+    
+    const uniqueSchools = new Set(coursesData.map(course => course.school_name));
+    
+    return { 
+      success: true, 
+      data: {
+        courses: coursesData,
+        students: studentsData,
+        settings: settingsData,
+        stats: {
+          courseCount,
+          studentCount,
+          schoolCount: uniqueSchools.size
+        }
+      }
+    };
+  } catch (error) {
+    console.error("❌ Unexpected Error:", error);
+    return { error: "An unexpected error occurred" };
+  }
 }
