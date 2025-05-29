@@ -43,6 +43,37 @@ export const schools = [
   "St Mogues",
 ];
 
+// School to number mapping for username generation
+export const schoolNumbers = {
+"Ard Scoil Mhuire": 11,
+"Ardscoil Phadraig": 12,
+"Athlone Community College": 13,
+"Belmayne ETSS": 14,
+"Bremore ETSS": 15,
+"Carndonagh Community School": 16,
+"Colaiste Bride Enniscorthy": 17,
+"Colaiste ghlor na Mara": 18,
+"Colaiste Mhuire Askeaton": 19,
+"Colaiste Na Trocaire": 20,
+"Drogheda Grammar School": 21,
+"Gallen Community School": 22,
+"Lusk Community College": 23,
+"Malahide Community School": 24,
+"Old Bawn Community School": 25,
+"Patrician High School": 26,
+"Portumna Community School": 27,
+"Royal and Prior Comprehensive": 28,
+"Sancta Maria College": 29,
+"Santa Sabina Dominican College": 30,
+"St Columbas Comprehensive": 31,
+"St Josephs Castlebar": 32,
+"St Josephs Secondary School Rush": 33,
+"St Kevins Community College": 34,
+"St Mogues": 35,
+};
+
+
+
 export function generateJoinCode() {
   return (
     Math.random().toString(36).substring(2, 6).toUpperCase() +
@@ -52,12 +83,23 @@ export function generateJoinCode() {
 }
 
 export function generateStudentCode(){
+
     return Math.random().toString(36).substr(2, 8).toUpperCase(); // Example: "XK5D9A"
-  };
+};
 
+export function generateStudentUsername(studentName, teacherName, schoolName) {
+  const studentPart = studentName
+    ? studentName.toLowerCase().slice(-3).replace(/[^a-z]/g, '')
+    : 'stu';
+  const teacherLastName = teacherName ? teacherName.split(' ').pop() : 'teacher';
+  const teacherPart = teacherLastName
+    ? teacherLastName.toLowerCase().slice(-3).replace(/[^a-z]/g, '')
+    : 'te';
+  const schoolNumber = schoolNumbers[schoolName] || Math.floor(Math.random() * 89) + 10; // 10-99 range
+  return `${studentPart}${teacherPart}${schoolNumber}`.toUpperCase();
+}
 
-
-
+//if needed, a random suffix can be added to the username: const randomSuffix = Math.floor(Math.random() * 99);
   //Teacher module page generator:
   export function useModulePage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);

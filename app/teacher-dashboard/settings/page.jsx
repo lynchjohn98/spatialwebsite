@@ -133,8 +133,7 @@ export default function Settings() {
                 course_id: courseData.id
               }]);
           }
-        }
-        
+        }    
         setSaveMessage({
           type: 'success',
           text: 'Course settings and student data updated successfully!'
@@ -194,11 +193,14 @@ export default function Settings() {
             {saveMessage.text}
           </div>
         )}
-
+        
+        
         <StudentTable
           ref={studentTableRef}
           tableTitle={"Student Information"}
           tableData={studentData}
+          teacherName={courseData?.teacher_name}
+          schoolName={courseData?.school_name}
         />
         <VisibilityTable
           ref={moduleTableRef}

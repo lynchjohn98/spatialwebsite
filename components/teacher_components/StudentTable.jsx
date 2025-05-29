@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { generateStudentCode } from "../../utils/helpers";
+import { generateStudentUsername } from "../../utils/helpers";
 
-const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
+
+const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, schoolName }, ref) => {
   console.log("Raw tableData:", tableData);
 
   const [data, setData] = useState([]);
@@ -12,13 +13,25 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
     if (typeof tableData === 'string') {
       try {
         const parsedData = JSON.parse(tableData);
-        setData(Array.isArray(parsedData) ? parsedData : [parsedData]);
+        // Clean up any existing "Other" gender values to "Not Disclosed"
+        const cleanedData = Array.isArray(parsedData) ? parsedData : [parsedData];
+        const updatedData = cleanedData.map(student => ({
+          ...student,
+          gender: student.gender === 'Other' ? 'Not Disclosed' : student.gender || 'Not Disclosed'
+        }));
+        setData(updatedData);
       } catch (error) {
         console.error("Error parsing JSON data:", error);
         setData([]);
       }
     } else {
-      setData(Array.isArray(tableData) ? tableData : tableData ? [tableData] : []);
+      const cleanedData = Array.isArray(tableData) ? tableData : tableData ? [tableData] : [];
+      // Clean up any existing "Other" gender values to "Not Disclosed"
+      const updatedData = cleanedData.map(student => ({
+        ...student,
+        gender: student.gender === 'Other' ? 'Not Disclosed' : student.gender || 'Not Disclosed'
+      }));
+      setData(updatedData);
     }
   }, [tableData]);
 
@@ -26,19 +39,32 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
     const newStudent = {
       first_name: "",
       last_name: "",
-      gender: "Other",
-      gender_custom: "Not Provided",
+      gender: "Not Disclosed",
       other: "",
-      student_join_code: generateStudentCode(),
+      student_join_code: "", // Will be generated when last name is entered
     };
     setData([...data, newStudent]);
   };
 
   const updateStudent = (index, field, value) => {
     setData(prevData => 
-      prevData.map((student, i) => 
-        i === index ? { ...student, [field]: value } : student
-      )
+      prevData.map((student, i) => {
+        if (i === index) {
+          const updatedStudent = { ...student, [field]: value };
+          
+          // Auto-generate username when last name is entered or changed
+          if (field === 'last_name' && value.trim() && teacherName && schoolName) {
+            updatedStudent.student_join_code = generateStudentUsername(
+              value.trim(),
+              teacherName,
+              schoolName
+            );
+          }
+          
+          return updatedStudent;
+        }
+        return student;
+      })
     );
   };
 
@@ -46,27 +72,21 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
     setData(prevData => prevData.filter((_, i) => i !== index));
   };
 
-  const regenerateJoinCode = (index) => {
-    const newCode = generateStudentCode();
-    updateStudent(index, 'student_join_code', newCode);
+  const regenerateUsername = (index) => {
+    const student = data[index];
+    if (student.last_name && teacherName && schoolName) {
+      const newUsername = generateStudentUsername(
+        student.last_name,
+        teacherName,
+        schoolName
+      );
+      updateStudent(index, 'student_join_code', newUsername);
+    }
   };
 
   useImperativeHandle(ref, () => ({
-    getUpdatedData: () => {
-      // Process data before returning it
-      return data.map(student => ({
-        ...student,
-        // If gender is "Other", use the custom value in the final data
-        gender: student.gender === "Other" ? student.gender_custom || "Not Provided" : student.gender
-      }));
-    },
-    getUpdatedJsonString: () => {
-      const processedData = data.map(student => ({
-        ...student,
-        gender: student.gender === "Other" ? student.gender_custom || "Not Provided" : student.gender
-      }));
-      return JSON.stringify(processedData);
-    },
+    getUpdatedData: () => data,
+    getUpdatedJsonString: () => JSON.stringify(data),
     addStudent,
     removeStudent
   }));
@@ -94,8 +114,8 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
                 <th className="border border-gray-600 px-4 py-2">First Name</th>
                 <th className="border border-gray-600 px-4 py-2">Last Name</th>
                 <th className="border border-gray-600 px-4 py-2">Gender</th>
-                <th className="border border-gray-600 px-4 py-2">Notes / Details </th>
-                <th className="border border-gray-600 px-4 py-2">Join Code</th>
+                <th className="border border-gray-600 px-4 py-2">Notes / Details</th>
+                <th className="border border-gray-600 px-4 py-2">Username</th>
                 <th className="border border-gray-600 px-4 py-2 w-20">Actions</th>
               </tr>
             </thead>
@@ -109,6 +129,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
                         value={student.first_name || ''}
                         onChange={(e) => updateStudent(index, 'first_name', e.target.value)}
                         className="w-full bg-gray-700 text-white p-1 rounded"
+                        placeholder="Enter first name"
                       />
                     </td>
                     <td className="border border-gray-600 px-2 py-2">
@@ -117,30 +138,24 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
                         value={student.last_name || ''}
                         onChange={(e) => updateStudent(index, 'last_name', e.target.value)}
                         className="w-full bg-gray-700 text-white p-1 rounded"
+                        placeholder="Enter last name"
                       />
+                      {student.last_name && !student.student_join_code && (
+                        <p className="text-xs text-yellow-400 mt-1">
+                          Username will generate when you enter the last name
+                        </p>
+                      )}
                     </td>
                     <td className="border border-gray-600 px-2 py-2">
-                      <div className="space-y-2">
-                        <select
-                          value={student.gender || 'Other'}
-                          onChange={(e) => updateStudent(index, 'gender', e.target.value)}
-                          className="w-full bg-gray-700 text-white p-1 rounded"
-                        >
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        
-                        {student.gender === "Other" && (
-                          <input
-                            type="text"
-                            placeholder="Specify gender"
-                            value={student.gender_custom || ''}
-                            onChange={(e) => updateStudent(index, 'gender_custom', e.target.value)}
-                            className="w-full bg-gray-600 text-white p-1 rounded text-sm"
-                          />
-                        )}
-                      </div>
+                      <select
+                        value={student.gender || 'Not Disclosed'}
+                        onChange={(e) => updateStudent(index, 'gender', e.target.value)}
+                        className="w-full bg-gray-700 text-white p-1 rounded"
+                      >
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Not Disclosed">Not Disclosed</option>
+                      </select>
                     </td>
                     <td className="border border-gray-600 px-2 py-2">
                       <input
@@ -148,33 +163,36 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
                         value={student.other || ''}
                         onChange={(e) => updateStudent(index, 'other', e.target.value)}
                         className="w-full bg-gray-700 text-white p-1 rounded"
+                        placeholder="Additional notes"
                       />
                     </td>
                     <td className="border border-gray-600 px-2 py-2">
                       <div className="flex items-center">
-                        <span className="bg-blue-900 px-2 py-1 rounded font-mono text-sm">
-                          {student.student_join_code}
+                        <span className="bg-blue-900 px-2 py-1 rounded font-mono text-sm flex-1 mr-2">
+                          {student.student_join_code || 'Enter last name first'}
                         </span>
-                        <button
-                          onClick={() => regenerateJoinCode(index)}
-                          className="ml-2 p-1 rounded-full bg-gray-600 hover:bg-blue-600 transition-colors"
-                          title="Regenerate join code"
-                        >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            className="h-4 w-4" 
-                            fill="none" 
-                            viewBox="0 0 24 24" 
-                            stroke="currentColor"
+                        {student.last_name && (
+                          <button
+                            onClick={() => regenerateUsername(index)}
+                            className="p-1 rounded-full bg-gray-600 hover:bg-blue-600 transition-colors"
+                            title="Regenerate username"
                           >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-                            />
-                          </svg>
-                        </button>
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              className="h-4 w-4" 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                strokeWidth={2} 
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                              />
+                            </svg>
+                          </button>
+                        )}
                       </div>
                     </td>
                     <td className="border border-gray-600 px-2 py-2 text-center">
@@ -202,8 +220,10 @@ const StudentTable = forwardRef(({ tableTitle, tableData }, ref) => {
           </table>
         </div>
         
-        {/* Add Student Button - Outside of the scrollable area */}
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex justify-between items-center">
+          <div className="text-sm text-gray-400">
+            
+          </div>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             onClick={addStudent}

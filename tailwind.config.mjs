@@ -31,5 +31,4 @@ export default {
   plugins: [],
 };
 
-export default config;
 

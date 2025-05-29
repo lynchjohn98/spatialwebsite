@@ -413,9 +413,9 @@ export async function fetchGradesStudent(payload: any) {
     console.error("❌ Supabase Query Error:", error.message);
     return { error: error.message };
   }
-  
   return { success: true, data };
 }
+
 
 
 export async function fetchGradesTeacher(payload: any) {
