@@ -1,6 +1,5 @@
 //blank template
-import { insertNewCourse } from "@/app/actions";
-import { useState } from "react";   
+"use client";
 import { useRouter } from "next/navigation";
 
 export default function Training() {

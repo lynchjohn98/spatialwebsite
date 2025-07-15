@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { fetchGradesTeacher } from "../../actions";
 import Sidebar from "../../../components/teacher_components/TeacherSidebar";
 
-
-
 export default function Grades() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [courseData, setCourseData] = useState(null);

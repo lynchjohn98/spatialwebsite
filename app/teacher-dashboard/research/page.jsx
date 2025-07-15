@@ -1,7 +1,5 @@
 //blank template
-"use client";
-import { insertNewCourse } from "@/app/actions";
-import { useState } from "react";   
+"use client"; 
 import { useRouter } from "next/navigation";
 
 export default function Research() {
