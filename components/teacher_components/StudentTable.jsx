@@ -2,18 +2,13 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { generateStudentUsername } from "../../utils/helpers";
 
-
 const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, schoolName }, ref) => {
-  console.log("Raw tableData:", tableData);
-
   const [data, setData] = useState([]);
   const [showTable, setShowTable] = useState(false);
-
   useEffect(() => {
     if (typeof tableData === 'string') {
       try {
         const parsedData = JSON.parse(tableData);
-        // Clean up any existing "Other" gender values to "Not Disclosed"
         const cleanedData = Array.isArray(parsedData) ? parsedData : [parsedData];
         const updatedData = cleanedData.map(student => ({
           ...student,
@@ -26,7 +21,6 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, schoolNam
       }
     } else {
       const cleanedData = Array.isArray(tableData) ? tableData : tableData ? [tableData] : [];
-      // Clean up any existing "Other" gender values to "Not Disclosed"
       const updatedData = cleanedData.map(student => ({
         ...student,
         gender: student.gender === 'Other' ? 'Not Disclosed' : student.gender || 'Not Disclosed'
@@ -114,9 +108,9 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, schoolNam
                 <th className="border border-gray-600 px-4 py-2">First Name</th>
                 <th className="border border-gray-600 px-4 py-2">Last Name</th>
                 <th className="border border-gray-600 px-4 py-2">Gender</th>
-                <th className="border border-gray-600 px-4 py-2">Notes / Details</th>
-                <th className="border border-gray-600 px-4 py-2">Username</th>
-                <th className="border border-gray-600 px-4 py-2 w-20">Actions</th>
+                <th className="border border-gray-600 px-4 py-2">Age</th>
+                <th className="border border-gray-600 px-4 py-2">ESL</th>
+                <th className="border border-gray-600 px-4 py-2 w-20">Remove</th>
               </tr>
             </thead>
             <tbody>

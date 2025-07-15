@@ -174,7 +174,7 @@ export default function Quizzes() {
                 if (visibleQuizzes.length === 0) {
                   return (
                     <div className="p-4 bg-gray-800 rounded-lg text-center">
-                      <p>No visible modules available at this time.</p>
+                      <p>No visible quizzes available at this time.</p>
                     </div>
                   );
                 }
@@ -191,7 +191,7 @@ export default function Quizzes() {
               })()
             ) : (
               <div className="p-4 bg-gray-800 rounded-lg text-center">
-                <p>No modules available. Please check your course settings.</p>
+                <p>No quizzes available. Please check your course settings.</p>
               </div>
             )}
           </div>

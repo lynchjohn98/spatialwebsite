@@ -3,12 +3,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AdminDashboard from "../../components/teacher_components/AdminDashboard";
 
+
+// AdminPage component for handling admin access and dashboard
 export default function AdminPage() {
   const [passcode, setPasscode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
 
   // Check for existing admin authorization
   useEffect(() => {
@@ -22,6 +25,8 @@ export default function AdminPage() {
     setPasscode(e.target.value);
     if (error) setError("");
   };
+
+
 
   const handleSubmit = () => {
     setIsLoading(true);
@@ -38,6 +43,7 @@ export default function AdminPage() {
     
     setIsLoading(false);
   };
+
 
   const handleLogout = () => {
     sessionStorage.removeItem("adminAuthorized");

@@ -25,6 +25,7 @@ export default function TeacherDashboard() {
     checkWindowSize();
 
     const storedData = sessionStorage.getItem("courseData");
+    console.log(storedData);
     if (storedData) {
       try {
         setCourseData(JSON.parse(storedData));
@@ -163,6 +164,9 @@ export default function TeacherDashboard() {
               </li>
             </ul>
           </div>
+          <p>
+            
+          </p>
         </div>
       </main>
     </div>

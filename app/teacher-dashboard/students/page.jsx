@@ -12,18 +12,12 @@ export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
-  const router = useRouter();
   const [courseData, setCourseData] = useState(null);
   const [courseSettings, setCourseSettings] = useState(null);
   const [studentData, setStudentData] = useState([]);
-  const [moduleData, setModuleData] = useState([]);
-  const [quizData, setQuizData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-
   const studentTableRef = useRef();
-  const moduleTableRef = useRef();
-  const quizTableRef = useRef();
+
   
   const fetchCourseSettings = async () => {
     setIsLoading(true);
@@ -31,17 +25,12 @@ export default function Settings() {
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       setCourseData(parsedData);
-
       const response = await retrieveCourseSettings({ id: parsedData.id });
       if (response.success) {
         const settings = response.data;
         const parsedStudentSettings = JSON.parse(settings.student_settings || "{}");
-        const parsedModuleSettings = JSON.parse(settings.module_settings || "[]");
-        const parsedQuizSettings = JSON.parse(settings.quiz_settings || "[]");
         setCourseSettings(settings);
         setStudentData(parsedStudentSettings);
-        setModuleData(parsedModuleSettings);
-        setQuizData(parsedQuizSettings);
       } else {
         console.error("Error retrieving course settings:", response.error);
         setSaveMessage({
@@ -64,48 +53,34 @@ export default function Settings() {
       });
       return;
     }
-    
     setIsSaving(true);
     setSaveMessage({ type: '', text: '' });
-    
     try {
       const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
-      const updatedModuleData = moduleTableRef.current?.getUpdatedData() || moduleData;
-      const updatedQuizData = quizTableRef.current?.getUpdatedData() || quizData;
-      
       // Step 1: Update course_settings
       const payload = {
         courseId: courseData.id,
-        studentSettings: JSON.stringify(updatedStudentData),
-        moduleSettings: JSON.stringify(updatedModuleData),
-        quizSettings: JSON.stringify(updatedQuizData)
-      };
-      
+        studentSettings: JSON.stringify(updatedStudentData)
+      };  
       const result = await updateCourseSettings(payload);
-
       const supabase = createClient();
-      
       if (result.success) {
        const { data: existingStudents, error: fetchError } = await supabase
           .from("students")
           .select("id, student_join_code")
           .eq("course_id", courseData.id);
-          
         if (fetchError) {
           console.error("Error fetching existing students:", fetchError);
           throw fetchError;
         }
-        
         const existingStudentMap = {};
         existingStudents.forEach(student => {
           existingStudentMap[student.student_join_code] = student.id;
         });
         for (const student of updatedStudentData) {
-
           if (!student.student_join_code || !student.first_name) {
             continue;
           }
-          
           if (existingStudentMap[student.student_join_code]) {
             await supabase
               .from("students")
@@ -138,7 +113,6 @@ export default function Settings() {
           type: 'success',
           text: 'Course settings and student data updated successfully!'
         });
-        
         await fetchCourseSettings();
       } else {
         setSaveMessage({
@@ -176,16 +150,16 @@ export default function Settings() {
         courseData={courseData}
       />
       <div className="flex-1 p-6 overflow-auto">
-        <div className="max-w-3xl mx-auto mb-6 p-4 bg-gray-800 rounded-lg shadow-md text-center">
-          <p className="text-lg">
-            This is your course settings page. The student table will allow you to input information regarding the students in your course and provide them their join codes. The module and quiz visibility tables will allow you to toggle the visibility of modules and quizzes for your students.
-          </p>
-          <p className="mt-3 font-bold text-yellow-300">
-            Please make sure to always press SUBMIT CHANGES at the bottom when you are done making changes. Your changes WILL NOT save until you press SUBMIT CHANGES.
-          </p>
-        </div>
+        <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-4">Student Management </h1>
+            <p className="text-xl mb-4 text-blue-300">
+                           Use this page to add, remove, and edit your students information.
+            </p>
+            <p className="mb-6">
+              A unique student ID is generated after adding a student. You will share this code with your students so they can join the course.
+            </p>
+          </div>
 
-        {/* Show save message if present */}
         {saveMessage.text && (
           <div className={`mb-4 p-3 rounded-lg text-center font-bold ${
             saveMessage.type === 'success' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'
@@ -195,23 +169,13 @@ export default function Settings() {
         )}
         
         
-        <VisibilityTable
-          ref={moduleTableRef}
-          tableTitle={"Module Visibility"}
-          tableData={moduleData}
-          moniker={"Module"}
-        />
-        <VisibilityTable
-          ref={quizTableRef}
-          tableTitle={"Quiz Visibility"}
-          tableData={quizData}
-          moniker={"Quiz"}
-        />
-        <ExtraResourcesTable
-          tableTitle={"Extra Resources"}
-        />
-        
-        
+        <StudentTable
+          ref={studentTableRef}
+          tableTitle={"My Students"}
+          tableData={studentData}
+          teacherName={courseData?.course_teacher_name}
+          schoolName={courseData?.course_county}
+        />  
         <div className="mt-3 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
           <button 
             className={`${

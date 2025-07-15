@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { validateTeacherCode, schools } from "../../utils/helpers";
+import { validateTeacherCode, schools, counties } from "../../utils/helpers";
 
 export default function CreateCourse() {
   const [teacherCode, setTeacherCode] = useState("");
@@ -9,19 +9,42 @@ export default function CreateCourse() {
   const router = useRouter();
 
   const [name, setName] = useState("");
-  const [school, setSchool] = useState("");
-  const [classType, setClassType] = useState("");
-  const [customSchool, setCustomSchool] = useState("");
+  const [county, setCounty] = useState("");
+  const [urbanicity, setUrbanicity] = useState("");
+  const [schoolGender, setSchoolGender] = useState("");
+  const [deis, setDeis] = useState("");
+  const [schoolLanguage, setSchoolLanguage] = useState("");
+  const [courseResearch, setCourseResearch] = useState("");
+  const [courseResearchType, setCourseResearchType] = useState("");
 
   const handleNext = () => {
-    const finalSchoolName = school === "other" ? customSchool : school;
-    if (!name || !finalSchoolName || !classType) {
+    const isResearchTypeRequired =
+      courseResearch === "true" && !courseResearchType;
+    if (
+      !name ||
+      !county ||
+      !urbanicity ||
+      !schoolGender ||
+      !deis ||
+      !schoolLanguage ||
+      !courseResearch ||
+      isResearchTypeRequired
+    ) {
       alert("Please fill in all fields before proceeding.");
       return;
     }
     sessionStorage.setItem(
       "courseData",
-      JSON.stringify({ name, school: finalSchoolName, classType })
+      JSON.stringify({
+        name,
+        county,
+        urbanicity,
+        schoolGender,
+        deis,
+        schoolLanguage,
+        courseResearch,
+        courseResearchType,
+      })
     );
     router.push("/finalize-course");
   };
@@ -32,12 +55,14 @@ export default function CreateCourse() {
         <h1 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
           Create Your New Course
         </h1>
-        
-        <div className="space-y-6">
+        <p className="text-lg mb-4 text-center">
+          In the following form, please enter your school's details.
+        </p>
 
+        <div className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="teacherName" className="block text-lg font-medium">
-              Enter Your Name
+              Enter Your Name:
             </label>
             <input
               id="teacherName"
@@ -49,84 +74,159 @@ export default function CreateCourse() {
               tabIndex={1}
             />
           </div>
-          
-          <div className="space-y-2">
-            <label htmlFor="school" className="block text-lg font-medium">
-              Select Your School
+
+          <div className="space-y-x">
+            <label htmlFor="county" className="block text-lg font-medium">
+              Select County:
             </label>
             <select
-              id="school"
-              value={school}
-              onChange={(e) => setSchool(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              id="county"
+              value={county}
+              onChange={(e) => setCounty(e.target.value)}
+              className="w-full mt-1 px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
               tabIndex={2}
             >
-              <option value="">-- Choose a School --</option>
-              {schools.map((school, index) => (
-                <option key={index} value={school}>
-                  {school}
+              <option value="">-- Choose a County --</option>
+              {counties.map((county, index) => (
+                <option key={index} value={county}>
+                  {county}
                 </option>
               ))}
-              <option value="other" >Other (Type Below)</option>
             </select>
           </div>
-          
-          {school === "other" && (
+          <div className="space-y-2">
+            <label htmlFor="urbanicity" className="block text-lg font-medium">
+              Select Urbanicity:
+            </label>
+            <select
+              id="urbanicity"
+              value={urbanicity}
+              onChange={(e) => setUrbanicity(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              tabIndex={3}
+            >
+              <option value="">-- Choose Urbanicity --</option>
+              <option value="Urban">Urban</option>
+              <option value="Suburban">Suburban</option>
+              <option value="Rural">Rural</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="schoolGender" className="block text-lg font-medium">
+              Select School Gender:
+            </label>
+            <select
+              id="schoolGender"
+              value={schoolGender}
+              onChange={(e) => setSchoolGender(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              tabIndex={4}
+            >
+              <option value="">-- Choose School Gender --</option>
+              <option value="Male">All Male</option>
+              <option value="Female">All Female</option>
+              <option value="Mixed">Mixed</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="deis" className="block text-lg font-medium">
+              Select DEIS Status:
+            </label>
+            <select
+              id="deis"
+              value={deis}
+              onChange={(e) => setDeis(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              tabIndex={5}
+            >
+              <option value="">-- Choose DEIS Status --</option>
+              <option value="DEIS">DEIS</option>
+              <option value="Non-DEIS">Non-DEIS</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="schoolLanguage"
+              className="block text-lg font-medium"
+            >
+              Select School Language:
+            </label>
+            <select
+              id="schoolLanguage"
+              value={schoolLanguage}
+              onChange={(e) => setSchoolLanguage(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              tabIndex={6}
+            >
+              <option value="">-- Choose School Language --</option>
+              <option value="Irish">Irish</option>
+              <option value="English">English</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="courseResearch"
+              className="block text-lg font-medium"
+            >
+              Is this course part of the research project?
+            </label>
+            <select
+              id="courseResearch"
+              value={courseResearch}
+              onChange={(e) => setCourseResearch(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              tabIndex={6}
+            >
+              <option value="">-- Choose Research Status --</option>
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+          {courseResearch === "true" && (
             <div className="space-y-2">
-              <label htmlFor="customSchool" className="block text-lg font-medium">
-                Enter Your School Name
+              <label className="block text-lg font-medium">
+                Select Your Research Group:
               </label>
-              <input
-                id="customSchool"
-                type="text"
-                placeholder="Type your school name..."
-                value={customSchool}
-                onChange={(e) => setCustomSchool(e.target.value)}
-                className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                tabIndex={3}
-              />
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  className={`flex-1 px-4 py-3 rounded font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    courseResearchType === "Experimental"
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "bg-gray-300 text-black hover:bg-gray-400"
+                  }`}
+                  onClick={() => setCourseResearchType("Experimental")}
+                  tabIndex={7}
+                >
+                  Experimental
+                </button>
+
+                <button
+                  type="button"
+                  className={`flex-1 px-4 py-3 rounded font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    courseResearchType === "Control"
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "bg-gray-300 text-black hover:bg-gray-400"
+                  }`}
+                  onClick={() => setCourseResearchType("Control")}
+                  tabIndex={8}
+                >
+                  Control
+                </button>
+              </div>
             </div>
           )}
-          
-          <div className="space-y-2">
-            <label className="block text-lg font-medium">
-              Select Your Class Type
-            </label>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                className={`flex-1 px-4 py-2 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  classType === "Experimental"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-300 text-black hover:bg-gray-400"
-                }`}
-                onClick={() => setClassType("Experimental")}
-                tabIndex={4}
-              >
-                Experimental
-              </button>
 
-              <button
-                type="button"
-                className={`flex-1 px-4 py-2 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  classType === "Control"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-300 text-black hover:bg-gray-400"
-                }`}
-                onClick={() => setClassType("Control")}
-                tabIndex={5}
-              >
-                Control
-              </button>
-            </div>
-          </div>
-          
           {/* Next Button */}
           <div className="pt-4">
             <button
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2 focus:ring-offset-gray-900"
               onClick={handleNext}
-              tabIndex={6}
+              tabIndex={7}
             >
               Next
             </button>

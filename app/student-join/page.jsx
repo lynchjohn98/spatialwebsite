@@ -19,7 +19,7 @@ export default function StudentJoin() {
   const handleSubmit = async () => {
     setError("");
     if (studentJoinCode.length != 8) {
-      setError("Please enter the 8 digit student course join code provided by your teacher. Your teacher may regenerate a new code if errors persist.");
+      setError("Please enter the username provided by your instructor.");
       return;
     }
     setIsLoading(true);  
@@ -82,7 +82,7 @@ export default function StudentJoin() {
             
             <div>
               <label className="block text-lg font-medium mb-2">
-                Enter Your Student Join Code
+                Enter Your Username
               </label>
               <input
                 type="text"

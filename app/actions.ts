@@ -26,10 +26,15 @@ export async function insertNewCourse(payload) {
     .insert(
       [{
         course_join_code: payload.joinCode,
-        teacher_name: payload.name,
-        school_name: payload.school,
-        teacher_course_password: payload.password,
-        course_type: payload.classType,
+        course_teacher_name: payload.name,
+        course_teacher_password: payload.password,
+        course_county: payload.county,
+        course_urbanicity: payload.urbanicity,
+        course_gender: payload.schoolGender,
+        course_deis: payload.deis,
+        course_language: payload.schoolLanguage,
+        course_research: payload.courseResearch,
+        course_research_type: payload.courseResearchType,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }]
@@ -40,6 +45,7 @@ export async function insertNewCourse(payload) {
     console.error("❌ Supabase Insert Error:", error.message);
     return { error: error.message };
   } 
+  console.log("Inserted new course", data);
   return { success: true, courseId: data.id };
 }
 
@@ -51,7 +57,7 @@ export async function retrieveTeacherCourse(payload) {
       .from("courses")
       .select("*")
       .eq("course_join_code", payload.joinCode)
-      .eq("teacher_course_password", payload.password);
+      .eq("course_teacher_password", payload.password);
     if (error) {
       console.error("❌ Supabase Query Error:", error.message);
       return { error: error.message };

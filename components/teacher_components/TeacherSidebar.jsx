@@ -182,13 +182,12 @@ export default function Sidebar({
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                   <h2 className="text-sm font-medium truncate">
-                    {courseData.teacher_name}
+                    {courseData.course_teacher_name}
                   </h2>
                 </div>
               </div>
-
               <div>
-                <p className="text-xs text-gray-400 mb-1">School</p>
+                <p className="text-xs text-gray-400 mb-1">School County </p>
                 <div className="flex items-center">
                   <svg
                     className="w-4 h-4 mr-2 text-blue-400"
@@ -198,14 +197,38 @@ export default function Sidebar({
                     stroke="currentColor"
                     strokeWidth="2"
                   >
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    <polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2"></polygon>
+                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                    <line x1="16" y1="6" x2="16" y2="22"></line>
                   </svg>
                   <h2 className="text-sm font-medium truncate">
-                    {courseData.school_name}
+                    {courseData.course_county}
                   </h2>
                 </div>
               </div>
+              {courseData.course_research && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Course Type</p>
+                  <div className="flex items-center">
+                    <svg
+                      className="w-4 h-4 mr-2 text-blue-400"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="M21 21l-4.35-4.35"></path>
+                      <path d="M8 11h6"></path>
+                      <path d="M11 8v6"></path>
+                    </svg>
+                    <h2 className="text-sm font-medium truncate">
+                      {courseData.course_research_type}
+                    </h2>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -229,6 +252,64 @@ export default function Sidebar({
             label="Homepage"
             route="/teacher-dashboard/"
             isActive={activeRoute === "/teacher-dashboard"}
+            onClick={handleMobileNavClick}
+          />
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            }
+            label="Manage Students"
+            route="/teacher-dashboard/students"
+            isActive={activeRoute === "/teacher-dashboard/students"}
+            onClick={handleMobileNavClick}
+          />
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            }
+            label="Course Settings"
+            route="/teacher-dashboard/settings"
+            isActive={activeRoute === "/teacher-dashboard/settings"}
+            onClick={handleMobileNavClick}
+          />
+
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            }
+            label="Student Grades"
+            route="/teacher-dashboard/grades" // Change this from "/teacher-dashboard/settings"
+            isActive={activeRoute === "/teacher-dashboard/grades"}
             onClick={handleMobileNavClick}
           />
           <NavButton
@@ -271,45 +352,7 @@ export default function Sidebar({
             isActive={activeRoute === "/teacher-dashboard/quizzes"}
             onClick={handleMobileNavClick}
           />
-          <NavButton
-            icon={
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            }
-            label="Teacher Dashboard"
-            route="/teacher-dashboard/settings"
-            isActive={activeRoute === "/teacher-dashboard/settings"}
-            onClick={handleMobileNavClick}
-          />
-
-          <NavButton
-            icon={
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            }
-            label="Student Grades"
-            route="/teacher-dashboard/grades" // Change this from "/teacher-dashboard/settings"
-            isActive={activeRoute === "/teacher-dashboard/grades"}
-            onClick={handleMobileNavClick}
-          />
+          
 
           <div className="pt-2 mt-6 border-t border-gray-700"></div>
 
