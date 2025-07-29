@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
+import Sidebar from "../../../../../components/teacher_components/TeacherSidebar";
 
 export default function ModulePage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
