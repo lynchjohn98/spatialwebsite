@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import StudentSidebar from "../../../components/student_components/StudentSidebar";
-import StudentGradeTable from "../../../components/student_components/StudentGradeTable";
-import { fetchGradesStudent } from "../../actions";
+import StudentSidebar from "../../../../components/student_components/StudentSidebar";
+import StudentGradeTable from "../../../../components/student_components/StudentGradeTable";
+import { fetchGradesStudent } from "../../../services/actions";
+
 export default function Grades() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
