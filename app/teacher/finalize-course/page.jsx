@@ -1,11 +1,11 @@
 "use client";
-import { insertCourseSettings, insertNewCourse } from "../actions";
+import { insertCourseSettings, insertNewCourse } from "../../services/actions";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { generateJoinCode } from "../../utils/helpers";
-import { validateTeacherCode } from "../../utils/helpers";
-import { generateDefaultModuleQuizInformation } from "../actions";
-import { generateDefaultStudent } from "../actions";
+import { generateJoinCode } from "../../../utils/helpers";
+import { validateTeacherCode } from "../../../utils/helpers";
+import { generateDefaultModuleQuizInformation } from "../../services/actions";
+import { generateDefaultStudent } from "../../services/actions";
 
 export default function FinalizeCourse() {
   const router = useRouter();

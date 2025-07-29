@@ -1,14 +1,14 @@
 "use client";
-import { retrieveTeacherCourse } from "../actions";
+import { retrieveTeacherCourse } from "../../services/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 
 export default function TeacherJoin() {
   const [joinCode, setJoinCode] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   const router = useRouter();
 
   const handleJoinCodeChange = (e) => {
@@ -26,18 +26,14 @@ export default function TeacherJoin() {
         value = combinedValue.substring(0, 4) + '-' + combinedValue.substring(4, 8);
       }
     }
-    
-    // Limit to 9 characters (4 + dash + 4)
     if (value.length <= 9) {
       setJoinCode(value);
     }
   };
 
   const handleSubmit = async () => {
-    // Clear any previous errors
     setError("");
-    
-    // Basic validation
+
     if (joinCode.length < 9 || !joinCode.includes('-')) {
       setError("Please enter a complete course join code");
       return;
@@ -63,7 +59,7 @@ export default function TeacherJoin() {
         setError("Invalid credentials. Access denied.");
       } else {
         sessionStorage.setItem("courseData", JSON.stringify(result.data));
-        router.push("/teacher-dashboard");
+        router.push("/teacher/dashboard");
       }
     } catch (error) {
       console.error("Error joining course:", error);

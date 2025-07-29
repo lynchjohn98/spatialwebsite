@@ -49,6 +49,7 @@ export default function Sidebar({
   isSidebarOpen,
   setIsSidebarOpen,
   courseData,
+  teacherData,
 }) {
   const router = useRouter();
   const [activeRoute, setActiveRoute] = useState("");

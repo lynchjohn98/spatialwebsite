@@ -1,5 +1,9 @@
+
+// This filename 
 export const quizData = {
     "id": 17,
+    title: "Practice Quiz",
+    "timeLimit": 30, // 10 minutes, all time limits are in seconds
     "description": "A mock quiz to ensure all application settings are working.",
     "questions": [
         {

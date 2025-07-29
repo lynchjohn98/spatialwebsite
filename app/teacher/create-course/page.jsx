@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { validateTeacherCode, schools, counties } from "../../utils/helpers";
+import { validateTeacherCode, schools, counties } from "../../../utils/helpers";
 
 export default function CreateCourse() {
   const [teacherCode, setTeacherCode] = useState("");

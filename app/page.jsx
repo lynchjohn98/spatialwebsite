@@ -21,40 +21,28 @@ export default function Home() {
             />
           </div>
         </div>
+
+      <div className="w-full flex flex-col sm:flex-row sm:justify-center gap-4 mb-4">
         
-        <div className="w-full flex flex-col sm:flex-row sm:justify-center gap-4 mb-4">
-          <div className="w-full sm:w-1/2">
+        <div className="w-full sm:w-1/2">
             <ResponsiveButton 
-              label="Join Course As Student" 
-              onClick={() => router.push("/student-join")} 
+              label="For Teachers" 
+              onClick={() => router.push("/teacher")} 
             />
-          </div>
-          
-          <div className="w-full sm:w-1/2">
+        </div>
+
+         <div className="w-full sm:w-1/2">
             <ResponsiveButton 
-              label="Join Course as Teacher" 
-              onClick={() => router.push("/teacher-join")} 
+              label="For Students" 
+              onClick={() => router.push("/student-join")} 
             />
           </div>
         </div>
 
-        <div className="w-full flex justify-center mb-4">
-          <div className="w-full sm:w-2/3">
-            <ResponsiveButton 
-              label="Create New Course" 
-              onClick={() => router.push("/create-course")} 
-            />
-          </div>
-        </div>
+
+        
    
-        <div className="w-full flex justify-center">
-          <div className="w-full sm:w-1/3">
-            <ResponsiveButton 
-              label="Need Help?" 
-              onClick={() => router.push("/help")} 
-            />
-          </div>
-        </div>
+        
       </div>
     </div>
   );

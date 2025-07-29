@@ -199,4 +199,5 @@ export default function Quizzes() {
       </main>
     </div>
   );
+  
 }

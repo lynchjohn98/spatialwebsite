@@ -1,16 +1,13 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "../../components/teacher_components/TeacherSidebar";
-import HamburgerButton from "../../components/page_blocks/HamburgerButton";
-import { retrieveModules } from "../actions"; 
+import Sidebar from "../../../components/teacher_components/TeacherSidebar";
+import HamburgerButton from "../../../components/page_blocks/HamburgerButton";
+import { retrieveModules } from "../../services/actions"
 
 export default function TeacherDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [courseData, setCourseData] = useState(null);
-  const [moduleData, setModuleData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
