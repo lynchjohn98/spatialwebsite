@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createTeacherAccount } from "../../services/teacher_server";
-import { loginTeacherAccount } from "../../services/teacher_server";
+import { createTeacherAccount } from "../../services/teacher_actions";
+import { loginTeacherAccount } from "../../services/teacher_actions";
 import ResponsiveButton from "../../../components/page_blocks/ResponsiveButton";
 
 export default function TeacherCreatePage() {
@@ -14,6 +14,7 @@ export default function TeacherCreatePage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [trainingStatus, setTrainingStatus] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -57,6 +58,7 @@ export default function TeacherCreatePage() {
         name: name.trim(),
         username: username.trim(),
         password,
+        training_complete: trainingStatus,
       });
 
       if (response.error) {
@@ -66,6 +68,7 @@ export default function TeacherCreatePage() {
           const result = await loginTeacherAccount({
             username,
             password,
+            
           });
 
           if (result.error) {
@@ -270,6 +273,25 @@ export default function TeacherCreatePage() {
                 Passwords do not match
               </p>
             )}
+          </div>
+
+          <div>
+            I have already completed the teacher training:
+            <div>
+              <label className="inline-flex items-center ml-2">
+                <input
+                  type="checkbox"
+                  className="form-checkbox h-5 w-5 text-blue-600"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      sessionStorage.setItem("teacherTrainingCompleted", "true");
+                      setTrainingStatus(true);
+                    }
+                  }}
+                />
+                <span className="ml-2 text-sm">Yes</span>
+              </label>
+            </div>
           </div>
 
           <div className="flex justify-center mt-8">

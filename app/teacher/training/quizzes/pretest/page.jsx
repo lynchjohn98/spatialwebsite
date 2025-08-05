@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
 import { quizData } from "../../../../../utils/quiz_data/practice_quiz"; 
-import { submitTeacherQuiz } from "../../../../services/teacher_server";
+import { submitTeacherQuiz } from "../../../../services/teacher_actions";
 
 export default function PretestPage() {
   
@@ -32,7 +32,6 @@ export default function PretestPage() {
         teacherData: teacherData,
         quizData: results
       };
-      //Specifically state the quiz that was completed for the backend, this time it was the practice mock quiz
       payload.teacherData.practicequiz_complete = true;
       await submitTeacherQuiz(payload);
     } catch (error) {
@@ -87,7 +86,6 @@ export default function PretestPage() {
             >
               Start Quiz
             </button>        
-
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ export async function createTeacherAccount(payload) {
           name: payload.name,
           username: payload.username,
           password: payload.password,
-          training_complete: false,
+          training_complete: payload.training_complete || false,
           pretest_complete: false,
           posttest_complete: false,
           premodule_training: false,
@@ -63,21 +63,48 @@ export async function loginTeacherAccount(payload) {
   }
 }
 
-export async function updateTeacherAccount(payload) {
+export async function getTeacherData(payload) {
+  console.log("Inside getTeacherData with ID:", payload);
   const supabase = await createClient();
   try {
-    const { teacher, quiz } = payload;
-    console.log("Teacher data:", teacher);  
-    console.log("Quiz data:", quiz);
     const { data, error } = await supabase
-        .from("teachers")
-        .select("*")
-        .eq("id", teacher.id);
+      .from("teachers")
+      .select("*")
+      .eq("id", payload.id)
+      .single();
     if (error) {
-      console.error("❌ Supabase Update Error in updateTeacherAccount:", error.message);
+      console.error("❌ Supabase Select Error in getTeacherData:", error.message);
       return { error: error.message };
     }
     return { success: true, data };
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
+export async function updateTeacherAccount(payload) {
+  const supabase = await createClient();
+  try {
+    const teacherData = payload.teacher || payload;
+    const { id, created_at, ...updatedFields } = teacherData;
+    
+    const finalUpdates = {
+      ...updatedFields,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabase
+      .from("teachers")
+      .update(finalUpdates)
+      .eq("id", id)
+      .select();
+
+    if (error) {
+      console.error("❌ Supabase Update Error:", error.message);
+      return { error: error.message };
+    }
+    return { success: true, data: data[0] };
   } catch (err) {
     console.error("❌ Unexpected error:", err);
     return { error: "An unexpected error occurred. Please try again." };
@@ -88,60 +115,19 @@ export async function submitTeacherQuiz(payload) {
     const supabase = await createClient();
     try {
         const { teacherData, quizData } = payload;
-        console.log("Teacher data:", teacherData);
-        console.log("Quiz data:", quizData);
-        
-        // First, get the quiz information to determine the type
-        const { data: quiz, error: quizFetchError } = await supabase
-            .from("quizzes")
-            .select("*")
-            .eq("id", quizData.quizId)
-            .single();
-
-        if (quizFetchError || !quiz) {
-            console.error("❌ Quiz not found:", quizFetchError?.message);
-            return { error: "Quiz not found" };
-        }
-
-        // Determine which completion field to update
-        const getQuizFieldMapping = (quizName) => {
-            const name = quizName.toLowerCase();
-            
-            if (name.includes('practice')) {
-                return 'practicequiz_complete';
-            } else if (name.includes('pre-test') || name.includes('pretest')) {
-                return 'pretest_complete';
-            } else if (name.includes('post-test') || name.includes('posttest')) {
-                return 'posttest_complete';
-            } else {
-                return null; // Handle unknown quiz types
-            }
-        };
-
-        const completionField = getQuizFieldMapping(quiz.name);
-        
-        if (!completionField) {
-            console.error(`❌ Unknown quiz type: ${quiz.name}`);
-            return { error: `Unknown quiz type: ${quiz.name}` };
-        }
-
-        // Update teacher completion status
-        const updateFields = {
-            [completionField]: true,
-            updated_at: new Date().toISOString()
-        };
-
         const { data, error } = await supabase
             .from("teachers")
-            .update(updateFields)
-            .eq("id", teacherData.id);
-            
+            .update(
+              {
+                pretest_complete: teacherData.pretest_complete,
+                updated_at: new Date().toISOString()
+              }
+            )
+            .eq("id", teacherData.id);      
         if (error) {
             console.error("❌ Supabase Update Error in submitTeacherQuiz:", error.message);
             return { error: error.message };
         }
-        
-        // Insert quiz results into teacher_grades
         const { data: quizDataResponse, error: quizError } = await supabase
             .from("teacher_grades")
             .insert([
@@ -160,8 +146,6 @@ export async function submitTeacherQuiz(payload) {
             console.error("❌ Supabase Insert Error in teacher_grades:", quizError.message);
             return { error: quizError.message };
         }
-        
-        console.log("✅ Quiz submission successful for:", quiz.name);
         return { success: true, data, quizData: quizDataResponse };
     } catch (err) {
         console.error("❌ Unexpected error:", err);

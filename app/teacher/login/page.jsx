@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { loginTeacherAccount } from "../../services/teacher_server";
+import { loginTeacherAccount } from "../../services/teacher_actions";
 import ResponsiveButton from "../../../components/page_blocks/ResponsiveButton";
 
 export default function TeacherMainPage() {
@@ -32,11 +32,7 @@ export default function TeacherMainPage() {
         setError("Invalid credentials. Please try again.");
       } else {
         sessionStorage.setItem("teacherData", JSON.stringify(result.data));
-        if (result.data.training_complete === false) {
-          router.push("/teacher/training");
-        } else {
-          router.push("/teacher/homepage");
-        }
+        router.push("/teacher/homepage");
       }
     } catch (error) {
       console.error("Unexpected error:", error);
@@ -46,7 +42,16 @@ export default function TeacherMainPage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen w-full px-4 bg-gray-900 text-white">
+        <p className="text-lg">Logging in...</p>
+      </div>
+    );
+  }
+
   return (
+    
     <div className="flex flex-col items-center justify-center min-h-screen w-full px-4 bg-gray-900 text-white">
       <div className="w-full max-w-md sm:max-w-2xl">
         <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-center">

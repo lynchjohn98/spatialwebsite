@@ -11,6 +11,7 @@ export default function TeacherMainPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+
   const handleAdminCodeSubmit = async () => {
     setError("");
     if (!adminCode.trim()) {
@@ -20,6 +21,7 @@ export default function TeacherMainPage() {
     }
     if (validateTeacherCode(adminCode.trim())) {
       setIsAuthenticated(true);
+      sessionStorage.setItem("isAdminAuthenticated", "true");
       setError("");
     } else {
       setError("Invalid admin passcode. Access denied.");
@@ -37,13 +39,9 @@ export default function TeacherMainPage() {
     setShowPassword(!showPassword);
   };
 
-  const resetAuthentication = () => {
-    setIsAuthenticated(false);
-    setAdminCode("");
-    setError("");
-  };
+  const storedAuth = sessionStorage.getItem("isAdminAuthenticated");
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !storedAuth) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen w-full px-4 bg-gray-900 text-white">
         <div className="w-full max-w-md">

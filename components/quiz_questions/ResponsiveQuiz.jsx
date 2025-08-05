@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Menu, X, Maximize2, Clock, AlertTriangle } from 'lucide-react';
-
+import { useRouter } from "next/navigation";
 export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
  
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -12,6 +12,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   const [showWarning, setShowWarning] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false); // NEW STATE
+  const router = useRouter();
 
   if (!quizData || !quizData.questions || quizData.questions.length === 0) {
     return (
@@ -245,10 +246,10 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
             </div>
           </div>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => router.push('/teacher/training')}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
           >
-            Take Quiz Again
+            Return to Training Page
           </button>
         </div>
       </div>
@@ -522,9 +523,9 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="max-w-4xl mx-auto p-6">
-            <div className="bg-gray-800 rounded-lg p-6 mb-6">
+            <div className="bg-gray-800 rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-xl font-semibold">

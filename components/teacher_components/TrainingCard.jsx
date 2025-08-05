@@ -1,4 +1,3 @@
-// TrainingCard.js
 "use client"
 import { useRouter } from "next/navigation";
 
@@ -12,16 +11,23 @@ export default function TrainingCard({
 }) {
   const router = useRouter();
 
+  const handleClick = () => {
+    // Only navigate if not completed
+    if (!isCompleted) {
+      router.push(href);
+    }
+  };
+
   return (
     <div 
       className={`
-        relative p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:scale-[1.02]
+        relative p-4 rounded-lg border transition-all duration-200
         ${isCompleted 
-          ? 'bg-green-900/30 border-green-500 shadow-md shadow-green-500/10' 
-          : 'bg-gray-800/50 border-gray-600 hover:border-blue-400 hover:bg-gray-700/50'
+          ? 'bg-green-900/30 border-green-500 shadow-md shadow-green-500/10 cursor-default' 
+          : 'bg-gray-800/50 border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 cursor-pointer hover:scale-[1.02]'
         }
       `}
-      onClick={() => router.push(href)}
+      onClick={handleClick}
     >
       {/* Completion Badge */}
       {isCompleted && (
@@ -44,18 +50,27 @@ export default function TrainingCard({
         </p>
         
         <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center text-gray-400">
-            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-            </svg>
-            {estimatedTime}
-          </div>
-          
-          <span className={`font-medium ${isCompleted ? 'text-green-400' : 'text-blue-400'}`}>
-            {isCompleted ? '✓ Complete' : 'Start →'}
-          </span>
-        </div>
+  {/* Only show clock and time if estimatedTime exists */}
+  {estimatedTime && (
+    <div className="flex items-center text-gray-400">
+      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+      </svg>
+      {estimatedTime}
+    </div>
+  )}
+  
+  {/* This will be pushed to the right when no time is shown */}
+  <span className={`font-medium ${isCompleted ? 'text-green-400' : 'text-blue-400'} ${!estimatedTime ? 'ml-auto' : ''}`}>
+    {isCompleted ? '✓ Complete' : 'Start →'}
+  </span>
+</div>
       </div>
+
+      {/* Optional: Overlay to make it clear it's disabled */}
+      {isCompleted && (
+        <div className="absolute inset-0 bg-transparent pointer-events-none" />
+      )}
     </div>
   );
 }
