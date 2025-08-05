@@ -6,7 +6,7 @@ import MultipleChoice from "../../../../components/quiz_questions/MultipleChoice
 import MultipleSelect from "../../../../components/quiz_questions/MultipleSelect";
 import TextInput from "../../../../components/quiz_questions/TextInput";
 import { useRouter } from "next/navigation";
-import { submitQuizData } from "../../../actions";
+import { submitQuizData } from "../../../../services/actions";
 
 export default function PracticeQuiz() {
   const router = useRouter();
