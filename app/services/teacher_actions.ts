@@ -4,10 +4,9 @@ import { v4 as uuidv4, v4 } from "uuid";
 import { generateStudentCode } from "../../utils/serverhelpers";
 
 
-//Generates a new teacher account with the premade trainings set to false
-
 export async function createTeacherAccount(payload) {
   const supabase = await createClient();
+  console.log("Creating teacher account with payload:", payload);
   try {
     const { data, error } = await supabase
       .from("teachers")
@@ -17,12 +16,12 @@ export async function createTeacherAccount(payload) {
           name: payload.name,
           username: payload.username,
           password: payload.password,
-          training_complete: payload.training_complete || false,
-          pretest_complete: false,
-          posttest_complete: false,
-          premodule_training: false,
-          module1_training: false,
-          module2_training: false,
+          training_complete: payload.training_complete,
+          pretest_complete: payload.pretest_complete,
+          posttest_complete: payload.posttest_complete,
+          premodule_training: payload.premodule_training,
+          module1_training: payload.module1_training,
+          module2_training: payload.module2_training,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
@@ -151,4 +150,48 @@ export async function submitTeacherQuiz(payload) {
         console.error("❌ Unexpected error:", err);
         return { error: "An unexpected error occurred. Please try again." };
     }
+}
+
+
+export async function getAllTeacherCourses(payload) {
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .eq("course_teacher_id", payload.id)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error("❌ Supabase Select Error:", error.message);
+      return { error: error.message };
+    }
+    return { success: true, data };
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
+}
+
+export async function retrieveTeacherCourse(payload) {
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .eq("course_join_code", payload.joinCode)
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    if (!data || data.length === 0) {
+      return { error: "No course found with these credentials. Please check your join code and password." };
+    } 
+    if (data.length > 1) {
+      console.warn("Multiple courses found with the same credentials. Using the first one.");
+    }
+    return { success: true, data: data[0] };
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
 }

@@ -1,14 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { validateTeacherCode, schools, counties } from "../../../utils/helpers";
+import { counties } from "../../../utils/helpers";
+import { getTeacherData } from "../../services/teacher_actions";
 
 export default function CreateCourse() {
-  const [teacherCode, setTeacherCode] = useState("");
-  const [message, setMessage] = useState("");
   const router = useRouter();
-
-  const [name, setName] = useState("");
   const [county, setCounty] = useState("");
   const [urbanicity, setUrbanicity] = useState("");
   const [schoolGender, setSchoolGender] = useState("");
@@ -16,12 +13,40 @@ export default function CreateCourse() {
   const [schoolLanguage, setSchoolLanguage] = useState("");
   const [courseResearch, setCourseResearch] = useState("");
   const [courseResearchType, setCourseResearchType] = useState("");
+  const [teacherData, setTeacherData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTeacherData = async () => {
+      try {
+        const storedData = JSON.parse(sessionStorage.getItem("teacherData"));
+        if (!storedData?.id) {
+          console.error("No teacher ID found in sessionStorage");
+          setIsLoading(false);
+          return;
+        }
+        const result = await getTeacherData(storedData);
+        if (result.success && result.data) {
+          const freshData = result.data;
+          setTeacherData(freshData);
+          sessionStorage.setItem("teacherData", JSON.stringify(freshData));
+        } else {
+          setTeacherData(storedData);
+        }
+      } catch (error) {
+        console.error("Error loading teacher data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadTeacherData();
+    
+  }, []);
 
   const handleNext = () => {
     const isResearchTypeRequired =
       courseResearch === "true" && !courseResearchType;
     if (
-      !name ||
       !county ||
       !urbanicity ||
       !schoolGender ||
@@ -36,7 +61,7 @@ export default function CreateCourse() {
     sessionStorage.setItem(
       "courseData",
       JSON.stringify({
-        name,
+        name: teacherData.name,
         county,
         urbanicity,
         schoolGender,
@@ -46,8 +71,16 @@ export default function CreateCourse() {
         courseResearchType,
       })
     );
-    router.push("/finalize-course");
+    router.push("/teacher/finalize-course");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen w-full px-4 bg-gray-900 text-white">
+        <p className="text-lg">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-full px-4 bg-gray-900 text-white">
@@ -55,6 +88,7 @@ export default function CreateCourse() {
         <h1 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
           Create Your New Course
         </h1>
+
         <p className="text-lg mb-4 text-center">
           In the following form, please enter your school's details.
         </p>
@@ -62,16 +96,15 @@ export default function CreateCourse() {
         <div className="space-y-6">
           <div className="space-y-2">
             <label htmlFor="teacherName" className="block text-lg font-medium">
-              Enter Your Name:
+              Teacher Name:
             </label>
             <input
               id="teacherName"
-              className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-2 rounded bg-gray-100 text-gray-700 border border-gray-300 cursor-not-allowed"
+              value={teacherData?.name || name}
+              readOnly
               type="text"
-              placeholder="Your full name"
-              tabIndex={1}
+              tabIndex={-1}
             />
           </div>
 

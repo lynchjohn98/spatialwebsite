@@ -116,6 +116,11 @@ export default function StudentJoin() {
               >
                 Return to Home
               </button>
+
+              <ul className="list-disc pl-6 space-y-2 mt-2">
+                      <li>Checking my answers with my partner.</li>
+                      <li>Checking my answers with my teacher.</li>
+                    </ul>
             </div>
           </div>
         </div>
@@ -123,4 +128,6 @@ export default function StudentJoin() {
     </div>
   );
 }
+
+
 

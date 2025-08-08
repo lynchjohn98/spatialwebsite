@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useEffect } from "react";
 import ExpandableVideo from "../../../../components/module_blocks/ExpandableVideo";
+import ExpandableWebpage from "../../../../components/module_blocks/ExpandableWebpage";
 import {
   updateTeacherAccount,
   getTeacherData,
@@ -13,7 +14,9 @@ export default function TeacherTraining() {
   const [isModule1Completed, setIsModule1Completed] = useState(false);
   const [teacherData, setTeacherData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [workbookCompleted, setWorkbookCompleted] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  
   useEffect(() => {
     const loadTeacherData = async () => {
       try {
@@ -28,6 +31,9 @@ export default function TeacherTraining() {
           const freshData = result.data;
           setTeacherData(freshData);
           setIsModule1Completed(freshData.module1_training || false);
+          // Load saved workbook and quiz status from sessionStorage
+          setWorkbookCompleted(sessionStorage.getItem("module1_workbook_completed") === "true");
+          setQuizCompleted(sessionStorage.getItem("module1_quiz_completed") === "true");
           sessionStorage.setItem("teacherData", JSON.stringify(freshData));
         } else {
           setTeacherData(storedData);
@@ -48,7 +54,7 @@ export default function TeacherTraining() {
       setIsModule1Completed(true);
       const result = await updateTeacherAccount({
         id: teacherData.id,
-        module1_training: true
+        module1_training: true,
       });
 
       if (result.success) {
@@ -63,6 +69,21 @@ export default function TeacherTraining() {
       console.error("Error completing pre-module:", error);
       setIsModule1Completed(false);
     }
+  };
+
+  const handleWorkbookToggle = (checked) => {
+    setWorkbookCompleted(checked);
+    if (checked) {
+      sessionStorage.setItem("module1_workbook_completed", "true");
+    } else {
+      sessionStorage.removeItem("module1_workbook_completed");
+    }
+  };
+
+  const handleQuizStart = () => {
+    // Navigate to quiz page or open quiz modal
+    // You can modify this URL to match your quiz route
+    router.push("/teacher/training/module1/quiz");
   };
 
   if (isLoading) {
@@ -103,7 +124,7 @@ export default function TeacherTraining() {
 
             {/* Optional: Progress indicator or module info */}
             <div className="hidden sm:block text-sm text-gray-400">
-            Module 1: Combining Solid Objects
+              Module 1: Combining Solid Objects
             </div>
           </div>
         </div>
@@ -127,11 +148,10 @@ export default function TeacherTraining() {
                 Learning Intentions
               </h2>
 
-     
-
               <div className="space-y-6">
                 <p className="italic text-lg text-gray-300 bg-gray-700/30 p-4 rounded-lg border-l-4 border-blue-400">
-                  Today, we are learning how 3D shapes can be combined to form a single object.
+                  Today, we are learning how 3D shapes can be combined to form a
+                  single object.
                 </p>
 
                 <div>
@@ -139,9 +159,15 @@ export default function TeacherTraining() {
                     By the end of this module, I will be able to:
                   </p>
                   <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                    <li>Record, define and explain the keywords of the module.</li>
-                    <li>Match two objects with the appropriate combined solid.</li>
-                    <li>Identify the volume of interference from a combined solid.</li>
+                    <li>
+                      Record, define and explain the keywords of the module.
+                    </li>
+                    <li>
+                      Match two objects with the appropriate combined solid.
+                    </li>
+                    <li>
+                      Identify the volume of interference from a combined solid.
+                    </li>
                     <li>Make a sketch of a composite solid.</li>
                   </ul>
                 </div>
@@ -162,9 +188,160 @@ export default function TeacherTraining() {
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
               <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
                 Mini-Lecture
+              </h2>
 
-                </h2>
-              </section>
+              <ExpandableWebpage
+                url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/174463571"
+                title="Module 1: Developing Spatial Thinking Teaching & Learning Video Resources"
+              />
+            </section>
+
+            <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
+                Review the Getting Started Videos:
+              </h2>
+
+              <ul className="mb-6 space-y-4">
+                <ExpandableWebpage
+                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113618"
+                  title="Module 1: Video 1"
+                />
+                <ExpandableWebpage
+                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113638"
+                  title="Module 1: Video 2"
+                />
+                <ExpandableWebpage
+                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030415"
+                  title="Module 1: Video 3"
+                />
+                <ExpandableWebpage
+                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030413"
+                  title="Module 1: Video 4"
+                />
+              </ul>
+            </section>
+
+            <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
+                Review the Interactive Software
+              </h2>
+              
+              <ExpandableWebpage
+                url="https://www.higheredservices.org/HES01/Module_2/module_2_theme_1.html"
+                title="Module 1: Interactive Software"
+              />
+            </section>
+
+             {/* Workbook Activities Section with Checkbox */}
+             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
+                Complete the Workbook Activities
+              </h2>
+              
+              <div className="space-y-4">
+                <p className="text-gray-300 mb-4">
+                  Download and complete the Module 1 workbook activities. These exercises will help reinforce 
+                  your understanding of combining solid objects and spatial visualization.
+                </p>
+                
+                {/* Checkbox for workbook completion */}
+                <label 
+                  htmlFor="workbook-completed" 
+                  className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
+                >
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      id="workbook-completed"
+                      type="checkbox"
+                      className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                      checked={workbookCompleted}
+                      onChange={(e) => handleWorkbookToggle(e.target.checked)}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-200">
+                      I have completed all workbook activities
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Check this box once you've finished all exercises in the Module 1 workbook
+                    </p>
+                  </div>
+                </label>
+
+                {workbookCompleted && (
+                  <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Workbook activities marked as complete!</span>
+                  </div>
+                )}
+              </div>
+             </section>
+
+             {/* Module 1 Quiz Section with Link */}
+             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
+              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
+                Complete the Module 1 Quiz
+              </h2>
+              
+              <div className="space-y-4">
+                <p className="text-gray-300 mb-4">
+                  Test your understanding of the module concepts by completing the quiz. 
+                  You'll need to score at least 80% to pass this module.
+                </p>
+                
+                <div className="bg-gray-700/30 p-6 rounded-lg">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-200 mb-2">Module 1 Assessment Quiz</h3>
+                      <ul className="text-sm text-gray-400 space-y-1">
+                        <li className="flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                          </svg>
+                          <span>Duration: 20 minutes</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                            <path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100 4h2a1 1 0 100 2 2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2z" clipRule="evenodd" />
+                          </svg>
+                          <span>10 questions</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span>Passing score: 80%</span>
+                        </li>
+                      </ul>
+                    </div>
+                    {quizCompleted && (
+                      <div className="flex items-center gap-2 text-green-400 text-sm">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span>Completed</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={handleQuizStart}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center group hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    {quizCompleted ? 'Retake Quiz' : 'Start Quiz'}
+                    <svg className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+             </section>
 
             {/* Success Criteria Section */}
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
@@ -189,11 +366,16 @@ export default function TeacherTraining() {
                     I have:
                   </p>
                   <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                    <li>Completed all the activities in my workbook.</li>
-                    <li>Used the software to investigate the combined solids.</li>
-                    <li>Verified the solutions for all the workbook activities by</li>
-                    <li>Checking my answers with my partner.</li>
-                    <li>Checking my answers with my teacher.</li>
+                    <li className={workbookCompleted ? "text-green-400" : ""}>
+                      Completed all the activities in my workbook.
+                    </li>
+                    <li>
+                      Used the software to investigate the combined solids.
+                    </li>
+                    <li>
+                      Verified the solutions for all the workbook activities.
+                    </li>
+                    
                   </ul>
                 </div>
 
@@ -214,10 +396,19 @@ export default function TeacherTraining() {
                     I can:
                   </p>
                   <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                    <li>Explain the words: volume of interference; join; cut; intersect; combined.</li>
+                    <li>
+                      Explain the words: volume of interference; join; cut;
+                      intersect; combined.
+                    </li>
                     <li>Classify a combining operation.</li>
-                    <li>Identify the correct volume of interference of two overlapping solids.</li>
-                    <li>Sketch the edges of a composite solid obtained from a combining operation.</li>
+                    <li>
+                      Identify the correct volume of interference of two
+                      overlapping solids.
+                    </li>
+                    <li>
+                      Sketch the edges of a composite solid obtained from a
+                      combining operation.
+                    </li>
                   </ul>
                   <div className="mt-6 pt-4 border-t border-gray-600">
                     <button
@@ -277,7 +468,7 @@ export default function TeacherTraining() {
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center group"
                 onClick={() => {
                   // Navigate to next module or complete action
-                  console.log("Continue to next section");
+                  router.push("/teacher/training/module2");
                 }}
               >
                 Continue to Module 2

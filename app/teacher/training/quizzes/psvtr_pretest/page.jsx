@@ -9,7 +9,6 @@ export default function PretestPage() {
   const router = useRouter();
   const [quizStarted, setQuizStarted] = useState(false);
   const [teacherData, setTeacherData] = useState(null);
-  const [showInstructions, setShowInstructions] = useState(true);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showAnswer1, setShowAnswer1] = useState(false);
   const [showAnswer2, setShowAnswer2] = useState(false);

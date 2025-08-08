@@ -371,9 +371,9 @@ export default function Sidebar({
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
             }
-            label="Back to Home"
+            label="Back to Teacher Homepage"
             route="/"
-            isActive={activeRoute === "/"}
+            isActive={activeRoute === "/teacher"}
             onClick={handleMobileNavClick}
           />
         </nav>
