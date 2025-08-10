@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { retrieveModules } from "../../actions"; 
+import { retrieveModules } from "../../../services/actions.ts"
 import Sidebar from "../../../components/teacher_components/TeacherSidebar";
 
 export default function Modules() {

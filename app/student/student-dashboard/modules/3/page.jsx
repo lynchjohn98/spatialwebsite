@@ -1,5 +1,5 @@
 "use client";
-import { useModulePage } from "../../../../utils/helpers";
+import { useModulePage } from "@/utils/helpers";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import ReturnButton from "../../../../components/page_blocks/ReturnButton";
 import LearningIntentions from "../../../../components/module_blocks/LearningIntentions";
