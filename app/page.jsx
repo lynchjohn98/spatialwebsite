@@ -34,7 +34,7 @@ export default function Home() {
          <div className="w-full sm:w-1/2">
             <ResponsiveButton 
               label="For Students" 
-              onClick={() => router.push("/student-join")} 
+              onClick={() => router.push("student/student-join")} 
             />
           </div>
         </div>
