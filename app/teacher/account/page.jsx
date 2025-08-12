@@ -1,6 +1,6 @@
 "use client";
 import { retrieveTeacherCourse } from "../../services/teacher_actions";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TeacherAccountPage() {
