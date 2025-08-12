@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { fetchGradesTeacher } from "../../actions";
-import Sidebar from "../../../components/teacher_components/TeacherSidebar";
+import { fetchGradesTeacher } from "../../../services/actions";
+import Sidebar from "../../../../components/teacher_components/Sidebar";
 
 export default function Grades() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
