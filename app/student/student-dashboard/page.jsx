@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import StudentSidebar from "../../components/student_components/StudentSidebar";
+import StudentSidebar from "../../../components/student_components/StudentSidebar"
 
 export default function StudentDashboard() {
   const router = useRouter();

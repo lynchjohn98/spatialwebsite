@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { retrieveModules } from "../../../services/actions.ts"
-import Sidebar from "../../../components/teacher_components/TeacherSidebar";
+import StudentSidebar from "../../../../components/student_components/StudentSidebar.jsx"
 
 export default function Modules() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -114,7 +114,7 @@ export default function Modules() {
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
-        <Sidebar
+        <StudentSidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         courseData={courseData}
