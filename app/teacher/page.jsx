@@ -279,8 +279,7 @@ export default function TeacherMainPage() {
                   Existing Teachers
                 </h3>
                 <p className="text-gray-400 mb-6 text-sm leading-relaxed">
-                  Access your teacher account and continue your spatial thinking
-                  journey
+                  Access your existing teacher account.
                 </p>
                 <div className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block">
                   Log Into Account
@@ -313,8 +312,7 @@ export default function TeacherMainPage() {
                   New Teachers
                 </h3>
                 <p className="text-gray-400 mb-6 text-sm leading-relaxed">
-                  Create your teacher account and start building spatial
-                  thinking skills
+                  Create your teacher account for use in the portal.
                 </p>
                 <div className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block">
                   Create Account

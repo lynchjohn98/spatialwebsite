@@ -16,6 +16,12 @@ export default function TeacherTraining() {
   const [isLoading, setIsLoading] = useState(true);
   const [workbookCompleted, setWorkbookCompleted] = useState(false);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
+
+  // New state for section checkboxes
+  const [miniLectureCompleted, setMiniLectureCompleted] = useState(false);
+  const [videosCompleted, setVideosCompleted] = useState(false);
+  const [softwareCompleted, setSoftwareCompleted] = useState(false);
   
   useEffect(() => {
     const loadTeacherData = async () => {
@@ -30,11 +36,20 @@ export default function TeacherTraining() {
         if (result.success && result.data) {
           const freshData = result.data;
           setTeacherData(freshData);
+          //Specific check if the quiz has been attempted at anypoint by the teacher
+          const hasAttemptedQuiz = freshData.teacher_grades?.some(grade => grade.quiz_id === 4) || false;
+          //Make this the max possible score of all attempts:
+          const maxQuizScore = hasAttemptedQuiz ? Math.max(...freshData.teacher_grades.filter(score => score.quiz_id === 4).map(score => score.score)) : 0;
+          setQuizScore(maxQuizScore);
           setIsModule1Completed(freshData.module1_training || false);
-          // Load saved workbook and quiz status from sessionStorage
+          // Load saved status from sessionStorage
           setWorkbookCompleted(sessionStorage.getItem("module1_workbook_completed") === "true");
-          setQuizCompleted(sessionStorage.getItem("module1_quiz_completed") === "true");
+          setQuizCompleted(sessionStorage.getItem("module1_quiz_completed") === "true" || hasAttemptedQuiz);
+          setMiniLectureCompleted(sessionStorage.getItem("module1_mini_lecture_completed") === "true");
+          setVideosCompleted(sessionStorage.getItem("module1_videos_completed") === "true");
+          setSoftwareCompleted(sessionStorage.getItem("module1_software_completed") === "true");
           sessionStorage.setItem("teacherData", JSON.stringify(freshData));
+
         } else {
           setTeacherData(storedData);
           setIsModule1Completed(storedData.module1_training || false);
@@ -77,6 +92,33 @@ export default function TeacherTraining() {
       sessionStorage.setItem("module1_workbook_completed", "true");
     } else {
       sessionStorage.removeItem("module1_workbook_completed");
+    }
+  };
+
+  const handleMiniLectureToggle = (checked) => {
+    setMiniLectureCompleted(checked);
+    if (checked) {
+      sessionStorage.setItem("module1_mini_lecture_completed", "true");
+    } else {
+      sessionStorage.removeItem("module1_mini_lecture_completed");
+    }
+  };
+
+  const handleVideosToggle = (checked) => {
+    setVideosCompleted(checked);
+    if (checked) {
+      sessionStorage.setItem("module1_videos_completed", "true");
+    } else {
+      sessionStorage.removeItem("module1_videos_completed");
+    }
+  };
+
+  const handleSoftwareToggle = (checked) => {
+    setSoftwareCompleted(checked);
+    if (checked) {
+      sessionStorage.setItem("module1_software_completed", "true");
+    } else {
+      sessionStorage.removeItem("module1_software_completed");
     }
   };
 
@@ -185,51 +227,159 @@ export default function TeacherTraining() {
               </div>
             </section>
 
+            {/* Mini-Lecture Section with Checkbox */}
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
               <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
                 Mini-Lecture
               </h2>
 
-              <ExpandableWebpage
-                url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/174463571"
-                title="Module 1: Developing Spatial Thinking Teaching & Learning Video Resources"
-              />
+              <div className="space-y-4">
+                <ExpandableWebpage
+                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/174463571"
+                  title="Module 1: Developing Spatial Thinking Teaching & Learning Video Resources"
+                />
+                
+                {/* Checkbox for mini-lecture completion */}
+                <label 
+                  htmlFor="mini-lecture-completed" 
+                  className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
+                >
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      id="mini-lecture-completed"
+                      type="checkbox"
+                      className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                      checked={miniLectureCompleted}
+                      onChange={(e) => handleMiniLectureToggle(e.target.checked)}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-200">
+                      I have completed the mini-lecture
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Check this box after reviewing the mini-lecture content
+                    </p>
+                  </div>
+                </label>
+
+                {miniLectureCompleted && (
+                  <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Mini-lecture marked as complete!</span>
+                  </div>
+                )}
+              </div>
             </section>
 
+            {/* Getting Started Videos Section with Checkbox */}
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
               <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
                 Review the Getting Started Videos:
               </h2>
 
-              <ul className="mb-6 space-y-4">
-                <ExpandableWebpage
-                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113618"
-                  title="Module 1: Video 1"
-                />
-                <ExpandableWebpage
-                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113638"
-                  title="Module 1: Video 2"
-                />
-                <ExpandableWebpage
-                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030415"
-                  title="Module 1: Video 3"
-                />
-                <ExpandableWebpage
-                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030413"
-                  title="Module 1: Video 4"
-                />
-              </ul>
+              <div className="space-y-4">
+                <ul className="mb-6 space-y-4">
+                  <ExpandableWebpage
+                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113618"
+                    title="Module 1: Video 1"
+                  />
+                  <ExpandableWebpage
+                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113638"
+                    title="Module 1: Video 2"
+                  />
+                  <ExpandableWebpage
+                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030415"
+                    title="Module 1: Video 3"
+                  />
+                  <ExpandableWebpage
+                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030413"
+                    title="Module 1: Video 4"
+                  />
+                </ul>
+
+                {/* Checkbox for videos completion */}
+                <label 
+                  htmlFor="videos-completed" 
+                  className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
+                >
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      id="videos-completed"
+                      type="checkbox"
+                      className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                      checked={videosCompleted}
+                      onChange={(e) => handleVideosToggle(e.target.checked)}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-200">
+                      I have completed all getting started videos
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Check this box after reviewing all four videos
+                    </p>
+                  </div>
+                </label>
+
+                {videosCompleted && (
+                  <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>All videos marked as complete!</span>
+                  </div>
+                )}
+              </div>
             </section>
 
+            {/* Interactive Software Section with Checkbox */}
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
               <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
                 Review the Interactive Software
               </h2>
               
-              <ExpandableWebpage
-                url="https://www.higheredservices.org/HES01/Module_2/module_2_theme_1.html"
-                title="Module 1: Interactive Software"
-              />
+              <div className="space-y-4">
+                <ExpandableWebpage
+                  url="https://www.higheredservices.org/HES01/Module_2/module_2_theme_1.html"
+                  title="Module 1: Interactive Software"
+                />
+
+                {/* Checkbox for software completion */}
+                <label 
+                  htmlFor="software-completed" 
+                  className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
+                >
+                  <div className="flex items-center h-5 mt-0.5">
+                    <input
+                      id="software-completed"
+                      type="checkbox"
+                      className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                      checked={softwareCompleted}
+                      onChange={(e) => handleSoftwareToggle(e.target.checked)}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-200">
+                      I have completed the interactive software review
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Check this box after exploring the interactive software
+                    </p>
+                  </div>
+                </label>
+
+                {softwareCompleted && (
+                  <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>Interactive software marked as complete!</span>
+                  </div>
+                )}
+              </div>
             </section>
 
              {/* Workbook Activities Section with Checkbox */}
@@ -286,46 +436,9 @@ export default function TeacherTraining() {
               </h2>
               
               <div className="space-y-4">
-                <p className="text-gray-300 mb-4">
-                  Test your understanding of the module concepts by completing the quiz. 
-                  You'll need to score at least 80% to pass this module.
-                </p>
-                
+            
                 <div className="bg-gray-700/30 p-6 rounded-lg">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-200 mb-2">Module 1 Assessment Quiz</h3>
-                      <ul className="text-sm text-gray-400 space-y-1">
-                        <li className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                          </svg>
-                          <span>Duration: 20 minutes</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                            <path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100 4h2a1 1 0 100 2 2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2z" clipRule="evenodd" />
-                          </svg>
-                          <span>10 questions</span>
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span>Passing score: 80%</span>
-                        </li>
-                      </ul>
-                    </div>
-                    {quizCompleted && (
-                      <div className="flex items-center gap-2 text-green-400 text-sm">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        <span>Completed</span>
-                      </div>
-                    )}
-                  </div>
+                  
                   
                   <button
                     onClick={handleQuizStart}
@@ -339,11 +452,26 @@ export default function TeacherTraining() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
+
+                  
+
+
                 </div>
+                <div className="flex items-start justify-between mb-4">
+                   
+                    {quizCompleted && (
+                      <div className="flex items-center gap-2 text-green-400 text-sm">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span> Quiz attempt completed. You scored {quizScore} out of 39 total points. </span>
+                      </div>
+                    )}
+                  </div>
               </div>
              </section>
 
-            {/* Success Criteria Section */}
+            {/* Success Criteria Section - Updated with dynamic green text */}
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
               <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
                 Success Criteria
@@ -365,17 +493,31 @@ export default function TeacherTraining() {
                     </svg>
                     I have:
                   </p>
-                  <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                    <li className={workbookCompleted ? "text-green-400" : ""}>
+                  <ul className="list-disc pl-6 space-y-3 leading-relaxed">
+                    <li className={workbookCompleted ? "text-green-400" : "text-gray-300"}>
                       Completed all the activities in my workbook.
+                      {workbookCompleted && (
+                        <svg className="w-4 h-4 ml-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </li>
-                    <li>
+                    <li className={softwareCompleted ? "text-green-400" : "text-gray-300"}>
                       Used the software to investigate the combined solids.
+                      {softwareCompleted && (
+                        <svg className="w-4 h-4 ml-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </li>
-                    <li>
+                    <li className={workbookCompleted ? "text-green-400" : "text-gray-300"}>
                       Verified the solutions for all the workbook activities.
+                      {workbookCompleted && (
+                        <svg className="w-4 h-4 ml-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </li>
-                    
                   </ul>
                 </div>
 
@@ -395,19 +537,41 @@ export default function TeacherTraining() {
                     </svg>
                     I can:
                   </p>
-                  <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                    <li>
+                  <ul className="list-disc pl-6 space-y-3 leading-relaxed">
+                    <li className={(miniLectureCompleted && videosCompleted) ? "text-green-400" : "text-gray-300"}>
                       Explain the words: volume of interference; join; cut;
                       intersect; combined.
+                      {(miniLectureCompleted && videosCompleted) && (
+                        <svg className="w-4 h-4 ml-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </li>
-                    <li>Classify a combining operation.</li>
-                    <li>
+                    <li className={(miniLectureCompleted && videosCompleted && softwareCompleted) ? "text-green-400" : "text-gray-300"}>
+                      Classify a combining operation.
+                      {(miniLectureCompleted && videosCompleted && softwareCompleted) && (
+                        <svg className="w-4 h-4 ml-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </li>
+                    <li className={(workbookCompleted && softwareCompleted) ? "text-green-400" : "text-gray-300"}>
                       Identify the correct volume of interference of two
                       overlapping solids.
+                      {(workbookCompleted && softwareCompleted) && (
+                        <svg className="w-4 h-4 ml-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </li>
-                    <li>
+                    <li className={(workbookCompleted && miniLectureCompleted) ? "text-green-400" : "text-gray-300"}>
                       Sketch the edges of a composite solid obtained from a
                       combining operation.
+                      {(workbookCompleted && miniLectureCompleted) && (
+                        <svg className="w-4 h-4 ml-2 inline" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </li>
                   </ul>
                   <div className="mt-6 pt-4 border-t border-gray-600">

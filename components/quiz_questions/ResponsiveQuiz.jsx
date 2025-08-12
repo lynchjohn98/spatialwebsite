@@ -92,87 +92,75 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   };
 
   const calculateResults = () => {
-    let totalScore = 0;
-    let maxScore = 0;
-    const questionResults = [];
+  let totalScore = 0;
+  let maxScore = 0;
+  const questionResults = [];
 
-    quizData.questions.forEach((question) => {
-      maxScore += question.points;
-      let questionScore = 0;
-      const userAnswer = answers[question.id];
+  quizData.questions.forEach((question) => {
+    let questionScore = 0;
+    let questionMaxScore = question.points;
 
-      if (question.type === "multiple-choice") {
-        const correctOption = question.options.find((opt) => opt.correct);
-        if (userAnswer === correctOption?.id) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "multiple-select") {
-        const correctAnswers = question.options
-          .filter((opt) => opt.correct)
-          .map((opt) => opt.id);
-        const userAnswers = userAnswer || [];
+    const userAnswer = answers[question.id];
 
-        const isCorrect =
-          correctAnswers.length === userAnswers.length &&
-          correctAnswers.every((ans) => userAnswers.includes(ans));
+    if (question.type === "multiple-choice") {
+      const correctOption = question.options.find((opt) => opt.correct);
+      if (userAnswer === correctOption?.id) {
+        questionScore = question.points;
+      }
+    } else if (question.type === "multiple-select") {
+      const correctAnswers = question.options
+        .filter((opt) => opt.correct)
+        .map((opt) => opt.id);
+      const userAnswers = userAnswer || [];
+
+      const isCorrect =
+        correctAnswers.length === userAnswers.length &&
+        correctAnswers.every((ans) => userAnswers.includes(ans));
+
+      if (isCorrect) {
+        questionScore = question.points;
+      }
+    } else if (question.type === "text-input") {
+      const userText = (userAnswer || "").toLowerCase().trim();
+      const correctAnswers = [
+        question.correctAnswer,
+        ...(question.alternateAnswers || []),
+      ].map((ans) => ans.toLowerCase().trim());
+
+      if (correctAnswers.includes(userText)) {
+        questionScore = question.points;
+      }
+    } else if (question.type === "multiple-subselect") {
+      const multiPartAnswers = userAnswer || {};
+      let correctCount = 0;
+
+      question.parts.forEach((part) => {
+        const partAnswer = multiPartAnswers[part.id];
+        const isCorrect = partAnswer && partAnswer === part.correct;
 
         if (isCorrect) {
-          questionScore = question.points;
+          correctCount += 1;
         }
-      } else if (question.type === "text-input") {
-        const userText = (userAnswer || "").toLowerCase().trim();
-        const correctAnswers = [
-          question.correctAnswer,
-          ...(question.alternateAnswers || []),
-        ].map((ans) => ans.toLowerCase().trim());
-
-        if (correctAnswers.includes(userText)) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "multiple-subselect") {
-        const multiPartAnswers = userAnswer || {};
-        let correctCount = 0;
-
-        question.parts.forEach((part) => {
-          const partAnswer = multiPartAnswers[part.id];
-
-          const isCorrect = partAnswer && partAnswer === part.correct;
-
-          if (isCorrect) {
-            correctCount += 1;
-          }
-        });
-
-        questionScore = correctCount;
-        maxScore += question.parts.length - question.points; // Adjust maxScore if needed
-
-        totalScore += questionScore;
-
-        questionResults.push({
-          questionId: question.id,
-          score: questionScore,
-          maxScore: question.parts.length,
-          correct: questionScore > 0,
-        });
-      }
-
-      totalScore += questionScore;
-
-      questionResults.push({
-        questionId: question.id,
-        score: questionScore,
-        maxScore:
-          question.type === "multiple-subselect"
-            ? question.parts.length
-            : question.points,
-        correct: questionScore > 0,
       });
+
+      questionScore = correctCount;
+      questionMaxScore = question.parts.length;
+    }
+    totalScore += questionScore;
+    maxScore += questionMaxScore;
+
+    questionResults.push({
+      questionId: question.id,
+      score: questionScore,
+      maxScore: questionMaxScore,
+      correct: questionScore > 0,
     });
+  });
 
-    console.log("FINAL OUTPUT: ", totalScore, maxScore, questionResults);
+  console.log("FINAL OUTPUT: ", totalScore, maxScore, questionResults);
 
-    return { totalScore, maxScore, questionResults };
-  };
+  return { totalScore, maxScore, questionResults };
+};
 
   // Force submit without checking completion (used for timer expiry)
   const forceSubmit = useCallback(() => {

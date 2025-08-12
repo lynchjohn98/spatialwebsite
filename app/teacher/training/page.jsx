@@ -26,6 +26,7 @@ export default function TeacherTraining() {
           const freshData = result.data;
           setTeacherData(freshData);
           sessionStorage.setItem("teacherData", JSON.stringify(freshData));
+          console.log("Teacher data loaded successfully:", freshData);
         } else {
           setTeacherData(storedData);
         }

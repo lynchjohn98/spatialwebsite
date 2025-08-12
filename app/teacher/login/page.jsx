@@ -20,16 +20,14 @@ export default function TeacherMainPage() {
     }
 
     setIsLoading(true);
-
     try {
       const result = await loginTeacherAccount({
         username,
         password,
       });
-
       if (result.error) {
         console.error("Login error:", result.error);
-        setError("Invalid credentials. Please try again.");
+        setError("Incorrect password. Please try again.");
       } else {
         sessionStorage.setItem("teacherData", JSON.stringify(result.data));
         router.push("/teacher/homepage");

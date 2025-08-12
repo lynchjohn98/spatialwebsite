@@ -27,7 +27,6 @@ export default function AdminPage() {
   };
 
 
-
   const handleSubmit = () => {
     setIsLoading(true);
     setError("");

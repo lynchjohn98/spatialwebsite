@@ -1,7 +1,7 @@
 export const quizData = {
   id: 4,
   title: "Module 1 Quiz: Combining Solids",
-  timeLimit: 2000, // 10 minutes, all time limits are in seconds
+  timeLimit: 6000, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description:
     "Review the combination of solids in the images and answer the questions.",
   questions: [

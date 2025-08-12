@@ -28,12 +28,12 @@ export async function createTeacherAccount(payload) {
       ])
       .select("*")
       .single();
-    
+
     if (error) {
       console.error("❌ Supabase Insert Error:", error.message);
       return { error: "An error occurred while creating the teacher account. The username " + payload.username + " is already taken. Please choose a different username." };
     }
-    
+
     return { success: true, data };
   } catch (err) {
     console.error("❌ Unexpected error:", err);
@@ -68,9 +68,13 @@ export async function getTeacherData(payload) {
   try {
     const { data, error } = await supabase
       .from("teachers")
-      .select("*")
+      .select(`
+    *,
+    teacher_grades(*)
+  `)
       .eq("id", payload.id)
       .single();
+
     if (error) {
       console.error("❌ Supabase Select Error in getTeacherData:", error.message);
       return { error: error.message };
@@ -87,7 +91,7 @@ export async function updateTeacherAccount(payload) {
   try {
     const teacherData = payload.teacher || payload;
     const { id, created_at, ...updatedFields } = teacherData;
-    
+
     const finalUpdates = {
       ...updatedFields,
       updated_at: new Date().toISOString()
@@ -111,45 +115,45 @@ export async function updateTeacherAccount(payload) {
 }
 
 export async function submitTeacherQuiz(payload) {
-    const supabase = await createClient();
-    try {
-        const { teacherData, quizData } = payload;
-        const { data, error } = await supabase
-            .from("teachers")
-            .update(
-              {
-                pretest_complete: teacherData.pretest_complete,
-                updated_at: new Date().toISOString()
-              }
-            )
-            .eq("id", teacherData.id);      
-        if (error) {
-            console.error("❌ Supabase Update Error in submitTeacherQuiz:", error.message);
-            return { error: error.message };
+  const supabase = await createClient();
+  try {
+    const { teacherData, quizData } = payload;
+    const { data, error } = await supabase
+      .from("teachers")
+      .update(
+        {
+          pretest_complete: teacherData.pretest_complete,
+          updated_at: new Date().toISOString()
         }
-        const { data: quizDataResponse, error: quizError } = await supabase
-            .from("teacher_grades")
-            .insert([
-                {
-                    created_at: new Date().toISOString(),
-                    teacher_id: teacherData.id,
-                    quiz_id: quizData.quizId,
-                    score: quizData.results.totalScore,
-                    submitted_answers: quizData.answers,
-                    time_submitted: new Date().toISOString(),
-                    time_taken: quizData.timeSpent,
-                }
-            ]);
-            
-        if (quizError) {
-            console.error("❌ Supabase Insert Error in teacher_grades:", quizError.message);
-            return { error: quizError.message };
-        }
-        return { success: true, data, quizData: quizDataResponse };
-    } catch (err) {
-        console.error("❌ Unexpected error:", err);
-        return { error: "An unexpected error occurred. Please try again." };
+      )
+      .eq("id", teacherData.id);
+    if (error) {
+      console.error("❌ Supabase Update Error in submitTeacherQuiz:", error.message);
+      return { error: error.message };
     }
+    const { data: quizDataResponse, error: quizError } = await supabase
+      .from("teacher_grades")
+      .insert([
+        {
+          created_at: new Date().toISOString(),
+          teacher_id: teacherData.id,
+          quiz_id: quizData.quizId,
+          score: quizData.results.totalScore,
+          submitted_answers: quizData.answers,
+          time_submitted: new Date().toISOString(),
+          time_taken: quizData.timeSpent,
+        }
+      ]);
+
+    if (quizError) {
+      console.error("❌ Supabase Insert Error in teacher_grades:", quizError.message);
+      return { error: quizError.message };
+    }
+    return { success: true, data, quizData: quizDataResponse };
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
+  }
 }
 
 
@@ -185,7 +189,7 @@ export async function retrieveTeacherCourse(payload) {
     }
     if (!data || data.length === 0) {
       return { error: "No course found with these credentials. Please check your join code and password." };
-    } 
+    }
     if (data.length > 1) {
       console.warn("Multiple courses found with the same credentials. Using the first one.");
     }
