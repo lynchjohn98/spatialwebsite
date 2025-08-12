@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { retrieveQuizzes } from "../../../services/actions";
-import Sidebar from "../../../components/teacher_components/TeacherSidebar";
+import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 
 export default function Quizzes() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
