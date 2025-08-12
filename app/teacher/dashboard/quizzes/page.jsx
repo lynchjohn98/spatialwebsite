@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { retrieveQuizzes } from "../../actions";
+import { retrieveQuizzes } from "../../../services/actions";
 import Sidebar from "../../../components/teacher_components/TeacherSidebar";
 
 export default function Quizzes() {
