@@ -1,6 +1,5 @@
 "use client";
 import GetStarted from "@/components/module_blocks/GetStarted";
-import GetStarted from "@/components/module_blocks/GetStarted";
 import LearningIntentions from "@/components/module_blocks/LearningIntentions";
 import SuccessCriteria from "@/components/module_blocks/SuccessCriteria";
 import ReturnButton from "@/components/page_blocks/ReturnButton";

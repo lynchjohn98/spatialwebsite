@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import StudentTable from "../../../../components/teacher_components/StudentTable";
-import { retrieveCourseSettings, updateCourseSettings } from "../../services/actions";
+import { retrieveCourseSettings, updateCourseSettings } from "../../../services/actions";
 import { createClient } from "../../../../utils/supabase/supabase";
 
 export default function Settings() {
