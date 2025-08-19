@@ -131,6 +131,7 @@ export default function Module2Quiz() {
                 </span>
                 <span className="text-white font-medium">
                   {quizData.questions.reduce((sum, q) => sum + q.points, 0)}
+                  {quizData.questions.length > 1 ? " points" : " point"}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -200,7 +201,7 @@ export default function Module2Quiz() {
               <div className="space-y-6">
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4">
                   <p className="text-gray-200 leading-relaxed">
-                    Please read the following instructions before taking the quiz. This quiz consists of <span className="font-semibold text-white">25 questions</span> that are multiple choice and multiple select.
+                    Please read the following instructions before taking the quiz. This quiz consists of <span className="font-semibold text-white">15 questions</span> that are multiple choice and multiple select.
                   </p>
                 </div>
 
@@ -208,10 +209,10 @@ export default function Module2Quiz() {
                 <div className="space-y-3">
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/combineSolids_q1.png", "Combining Solids Example 1")}
+                    onClick={() => handleImageClick("/quiz_images/surfaces_solids/surfacesSolids_question1.png", "Surfaces and Solids Example 1")}
                   >
                     <img
-                      src="/quiz_images/combining_solids/combineSolids_q1.png"
+                      src="/quiz_images/surfaces_solids/surfacesSolids_question1.png"
                       alt="Combining Solids Example 1"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
@@ -224,8 +225,7 @@ export default function Module2Quiz() {
 
                   <div className="bg-gray-700/30 rounded-lg p-4">
                     <p className="text-gray-200 font-medium">
-                      The objects on the left are to be combined, with the result shown on the right. Select if the cut, join, or intersect operation was performed.
-                    </p>
+                  Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.  </p>
                   </div>
 
                   <button
@@ -246,8 +246,8 @@ export default function Module2Quiz() {
                     ) : (
                       <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
                         <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> The cut operation was performed.
-                          The resulting shape is a removed area where the two objects overlapped. These types of questions will be multiple choice.
+                      
+                          The answers are A and C. 
                         </p>
                       </div>
                     )}
@@ -258,17 +258,16 @@ export default function Module2Quiz() {
                 <div className="space-y-3">
                   <div className="bg-gray-700/30 rounded-lg p-4">
                     <p className="text-gray-200 font-medium">
-                      For the two overlapping objects shown on the left below, select the combining operation that was performed to obtain each of the three objects shown on the right.
-                    </p>
+                  Indicate the axis about which the 2-D shape was revolved around to obtain the given solid.   </p>
                   </div>
 
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/combineSolids_q10.png", "Combining Solids Example 2")}
+                    onClick={() => handleImageClick("/quiz_images/surfaces_solids/surfacesSolids_question7_a.png", "Surfaces and Solids Example 2")}
                   >
                     <img
-                      src="/quiz_images/combining_solids/combineSolids_q10.png"
-                      alt="Combining Solids Example 2"
+                      src="/quiz_images/surfaces_solids/surfacesSolids_question7_a.png"
+                      alt="Surfaces and Solids Example 2"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
@@ -296,8 +295,8 @@ export default function Module2Quiz() {
                     ) : (
                       <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
                         <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> There are three answers. For A, the operation is cut (Object 1 cuts Object 2). For B, the operation is join (Object 1 joins Object 2). For C, the operation is intersect (Object 1 intersects Object 2). These types of questions will be multiple select.
-                        </p>
+                       The object was revolved about the X axis.   </p>
+                       These types of questions may also involve the degrees of rotation (90, 180, 270, 360), and the axis of rotation.
                       </div>
                     )}
                   </button>

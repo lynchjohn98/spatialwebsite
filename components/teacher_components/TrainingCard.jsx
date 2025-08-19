@@ -13,9 +13,9 @@ export default function TrainingCard({
 
   const handleClick = () => {
     // Only navigate if not completed
-    if (!isCompleted) {
+
       router.push(href);
-    }
+    
   };
 
   return (
@@ -23,7 +23,7 @@ export default function TrainingCard({
       className={`
         relative p-4 rounded-lg border transition-all duration-200
         ${isCompleted 
-          ? 'bg-green-900/30 border-green-500 shadow-md shadow-green-500/10 cursor-default' 
+          ? 'bg-green-900/30 border-green-500 hover:border-green-900 hover:bg-green-700/50 shadow-md shadow-green-500/10 cursor-pointer hover:scale-[1.02]' 
           : 'bg-gray-800/50 border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 cursor-pointer hover:scale-[1.02]'
         }
       `}

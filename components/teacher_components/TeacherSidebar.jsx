@@ -53,6 +53,7 @@ export default function Sidebar({
 }) {
   const router = useRouter();
   const [activeRoute, setActiveRoute] = useState("");
+  console.log("Course Data in Sidebar:", courseData);
   useEffect(() => {
     const path = window.location.pathname;
     setActiveRoute(path);
@@ -251,8 +252,8 @@ export default function Sidebar({
               </svg>
             }
             label="Homepage"
-            route="/teacher-dashboard/"
-            isActive={activeRoute === "/teacher-dashboard"}
+            route="/teacher/dashboard/"
+            isActive={activeRoute === "/teacher/dashboard"}
             onClick={handleMobileNavClick}
           />
           <NavButton
@@ -270,8 +271,8 @@ export default function Sidebar({
               </svg>
             }
             label="Manage Students"
-            route="/teacher-dashboard/students"
-            isActive={activeRoute === "/teacher-dashboard/students"}
+            route="/teacher/dashboard/students"
+            isActive={activeRoute === "/teacher/dashboard/students"}
             onClick={handleMobileNavClick}
           />
           <NavButton
@@ -289,8 +290,8 @@ export default function Sidebar({
               </svg>
             }
             label="Course Settings"
-            route="/teacher-dashboard/settings"
-            isActive={activeRoute === "/teacher-dashboard/settings"}
+            route="/teacher/dashboard/settings"
+            isActive={activeRoute === "/teacher/dashboard/settings"}
             onClick={handleMobileNavClick}
           />
 
@@ -309,8 +310,8 @@ export default function Sidebar({
               </svg>
             }
             label="Student Grades"
-            route="/teacher-dashboard/grades" // Change this from "/teacher-dashboard/settings"
-            isActive={activeRoute === "/teacher-dashboard/grades"}
+            route="/teacher/dashboard/grades" // Change this from "/teacher-dashboard/settings"
+            isActive={activeRoute === "/teacher/dashboard/grades"}
             onClick={handleMobileNavClick}
           />
           <NavButton
@@ -330,8 +331,8 @@ export default function Sidebar({
               </svg>
             }
             label="Modules"
-            route="/teacher-dashboard/modules"
-            isActive={activeRoute === "/teacher-dashboard/modules"}
+            route="/teacher/dashboard/modules"
+            isActive={activeRoute === "/teacher/dashboard/modules"}
             onClick={handleMobileNavClick}
           />
           <NavButton
@@ -349,10 +350,35 @@ export default function Sidebar({
               </svg>
             }
             label="Quizzes"
-            route="/teacher-dashboard/quizzes"
-            isActive={activeRoute === "/teacher-dashboard/quizzes"}
+            route="/teacher/dashboard/quizzes"
+            isActive={activeRoute === "/teacher/dashboard/quizzes"}
             onClick={handleMobileNavClick}
           />
+          {courseData.course_research && (
+       
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            }
+            label="Research"
+            route="/teacher/dashboard/research"
+            isActive={activeRoute === "/teacher/dashboard/research"}
+            onClick={handleMobileNavClick}
+          />
+          )}
+
+          
+          
           
 
           <div className="pt-2 mt-6 border-t border-gray-700"></div>
@@ -372,11 +398,13 @@ export default function Sidebar({
               </svg>
             }
             label="Back to Teacher Homepage"
-            route="/"
-            isActive={activeRoute === "/teacher"}
+            route="/teacher/homepage"
+            isActive={activeRoute === "/teacher/homepage"}
             onClick={handleMobileNavClick}
           />
         </nav>
+
+     
       </aside>
     </>
   );

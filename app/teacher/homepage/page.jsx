@@ -28,6 +28,7 @@ export default function TeacherHomePage() {
           setTeacherData(freshData);
           sessionStorage.setItem("teacherData", JSON.stringify(freshData));
           setPretestComplete(freshData.pretest_complete);
+          console.log("training", freshData);
           setTrainingComplete(freshData.training_complete);
         } else {
           setTeacherData(storedData);
@@ -199,9 +200,9 @@ export default function TeacherHomePage() {
 
             {status === 'all-complete' && (
               <div className="bg-green-900/30 border border-green-500 rounded-lg p-4 text-center">
-                <h3 className="text-green-300 font-semibold mb-2">🎉 All Set!</h3>
+                
                 <p className="text-green-200 text-sm leading-relaxed">
-                  Congratulations! You've completed both pretest and training. You now have full access to all teacher features.
+                  Training completed. 
                 </p>
               </div>
             )}
@@ -292,27 +293,7 @@ export default function TeacherHomePage() {
               </p>
             </div>
           )}
-
-          {/* Training Reminder */}
-          {pretestComplete && !trainingComplete && (
-            <div className="bg-blue-900/20 border border-blue-400 rounded-lg p-4 text-center mt-6">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-                <span className="text-blue-300 font-medium">Training Reminder</span>
-              </div>
-              <p className="text-blue-200 text-sm mb-3">
-                Don't forget to complete your teacher training modules to get the most out of the platform.
-              </p>
-              <button
-                onClick={() => router.push("/teacher/training")}
-                className="text-blue-300 hover:text-blue-200 text-sm underline"
-              >
-                Continue Training →
-              </button>
-            </div>
-          )}
+   
         </div>
       </div>
 

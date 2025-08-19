@@ -64,7 +64,7 @@ export default function Settings() {
       if (result.success) {
        const { data: existingStudents, error: fetchError } = await supabase
           .from("students")
-          .select("id, student_join_code")
+          .select("id, student_username")
           .eq("course_id", courseData.id);
         if (fetchError) {
           console.error("Error fetching existing students:", fetchError);
@@ -72,13 +72,13 @@ export default function Settings() {
         }
         const existingStudentMap = {};
         existingStudents.forEach(student => {
-          existingStudentMap[student.student_join_code] = student.id;
+          existingStudentMap[student.student_username] = student.id;
         });
         for (const student of updatedStudentData) {
-          if (!student.student_join_code || !student.first_name) {
+          if (!student.student_username || !student.first_name) {
             continue;
           }
-          if (existingStudentMap[student.student_join_code]) {
+          if (existingStudentMap[student.student_username]) {
             await supabase
               .from("students")
               .update({
@@ -89,12 +89,12 @@ export default function Settings() {
                 other: student.other || null,
                 remove_date: student.remove_date || null,
               })
-              .eq("id", existingStudentMap[student.student_join_code]);
+              .eq("id", existingStudentMap[student.student_username]);
           } else {
             await supabase
               .from("students")
               .insert([{
-                student_join_code: student.student_join_code,
+                student_username: student.student_username,
                 first_name: student.first_name,
                 last_name: student.last_name,
                 gender: student.gender,
@@ -151,10 +151,9 @@ export default function Settings() {
             <h1 className="text-2xl md:text-3xl font-bold mb-4">Student Management </h1>
             <p className="text-xl mb-4 text-blue-300">
                            Use this page to add, remove, and edit your students information.
+                           Once you enter a student's first and last name, a unique username will be generated for them to join the course.
             </p>
-            <p className="mb-6">
-              A unique student ID is generated after adding a student. You will share this code with your students so they can join the course.
-            </p>
+           
           </div>
 
         {saveMessage.text && (

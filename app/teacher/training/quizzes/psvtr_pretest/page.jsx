@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
-import { quizData } from "../../../../../utils/quiz_data/psvtr_quiz";
+import { quizData } from "../../../../../utils/quiz_data/psvtr_pre_quiz";
 import { submitTeacherQuiz } from "../../../../services/teacher_actions";
 
 export default function PretestPage() {

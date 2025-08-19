@@ -100,7 +100,7 @@ export default function TeacherTraining() {
 
       {/* Main Content */}
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] w-full px-4">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-8">
+        <h1 className="text-3xl sm:text-4xl mt-2 font-bold mb-8">
           Spatial Thinking Teacher Training
         </h1>
         
@@ -170,9 +170,9 @@ export default function TeacherTraining() {
                 moduleId="posttest"
                 title="Post-Test: Assessing Your Spatial Skills"
                 description="A quick assessment to gauge your current spatial skills."
-                isCompleted={teacherData?.posttest || false}
+                isCompleted={teacherData?.posttest_complete || false}
                 estimatedTime="20 minutes"
-                href="/teacher/training/quizzes/pretest"
+                href="/teacher/training/quizzes/psvtr_posttest"
                 disabled={!isPretestComplete}
                 onRestrictedClick={handleRestrictedAccess}
               />

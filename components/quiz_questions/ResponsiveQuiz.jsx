@@ -92,75 +92,99 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   };
 
   const calculateResults = () => {
-  let totalScore = 0;
-  let maxScore = 0;
-  const questionResults = [];
+    let totalScore = 0;
+    let maxScore = 0;
+    const questionResults = [];
 
-  quizData.questions.forEach((question) => {
-    let questionScore = 0;
-    let questionMaxScore = question.points;
+    quizData.questions.forEach((question) => {
+      let questionScore = 0;
+      let questionMaxScore = question.points;
 
-    const userAnswer = answers[question.id];
+      const userAnswer = answers[question.id];
 
-    if (question.type === "multiple-choice") {
-      const correctOption = question.options.find((opt) => opt.correct);
-      if (userAnswer === correctOption?.id) {
-        questionScore = question.points;
-      }
-    } else if (question.type === "multiple-select") {
-      const correctAnswers = question.options
-        .filter((opt) => opt.correct)
-        .map((opt) => opt.id);
-      const userAnswers = userAnswer || [];
+      if (question.type === "multiple-choice") {
+        const correctOption = question.options.find((opt) => opt.correct);
+        if (userAnswer === correctOption?.id) {
+          questionScore = question.points;
+        }
+      } else if (question.type === "multiple-select") {
+        const correctAnswers = question.options
+          .filter((opt) => opt.correct)
+          .map((opt) => opt.id);
+        const userAnswers = userAnswer || [];
 
-      const isCorrect =
-        correctAnswers.length === userAnswers.length &&
-        correctAnswers.every((ans) => userAnswers.includes(ans));
-
-      if (isCorrect) {
-        questionScore = question.points;
-      }
-    } else if (question.type === "text-input") {
-      const userText = (userAnswer || "").toLowerCase().trim();
-      const correctAnswers = [
-        question.correctAnswer,
-        ...(question.alternateAnswers || []),
-      ].map((ans) => ans.toLowerCase().trim());
-
-      if (correctAnswers.includes(userText)) {
-        questionScore = question.points;
-      }
-    } else if (question.type === "multiple-subselect") {
-      const multiPartAnswers = userAnswer || {};
-      let correctCount = 0;
-
-      question.parts.forEach((part) => {
-        const partAnswer = multiPartAnswers[part.id];
-        const isCorrect = partAnswer && partAnswer === part.correct;
+        const isCorrect =
+          correctAnswers.length === userAnswers.length &&
+          correctAnswers.every((ans) => userAnswers.includes(ans));
 
         if (isCorrect) {
-          correctCount += 1;
+          questionScore = question.points;
         }
+      } else if (question.type === "text-input") {
+        const userText = (userAnswer || "").toLowerCase().trim();
+        const correctAnswers = [
+          question.correctAnswer,
+          ...(question.alternateAnswers || []),
+        ].map((ans) => ans.toLowerCase().trim());
+
+        if (correctAnswers.includes(userText)) {
+          questionScore = question.points;
+        }
+      } else if (question.type === "multiple-subselect") {
+        const multiPartAnswers = userAnswer || {};
+        let correctCount = 0;
+
+        question.parts.forEach((part) => {
+          const partAnswer = multiPartAnswers[part.id];
+          const isCorrect = partAnswer && partAnswer === part.correct;
+
+          if (isCorrect) {
+            correctCount += 1;
+          }
+        });
+
+        questionScore = correctCount;
+        questionMaxScore = question.parts.length;
+      } 
+
+      else if (question.type === "multiple-parts-subselect") {
+        const multiPartAnswers = userAnswer || {};
+        let correctCount = 0;
+        let totalSubQuestions = 0;
+
+        question.parts.forEach((part) => {
+          console.log("Evaluating part:", part);
+          const partAnswers = multiPartAnswers[part.id] || {};
+
+          part.subQuestions.forEach((subQuestion) => {
+            totalSubQuestions += 1;
+            const subAnswer = partAnswers[subQuestion.id];
+            const isCorrect = subAnswer && subAnswer === subQuestion.correct;
+            console.log("Inside here:", subAnswer, isCorrect);
+            if (isCorrect) {
+              correctCount += 1;
+            }
+          });
+        });
+
+        questionScore = correctCount;
+        questionMaxScore = totalSubQuestions;
+      }
+
+      
+      totalScore += questionScore;
+      maxScore += questionMaxScore;
+
+      questionResults.push({
+        questionId: question.id,
+        score: questionScore,
+        maxScore: questionMaxScore,
+        correct: questionScore > 0,
       });
-
-      questionScore = correctCount;
-      questionMaxScore = question.parts.length;
-    }
-    totalScore += questionScore;
-    maxScore += questionMaxScore;
-
-    questionResults.push({
-      questionId: question.id,
-      score: questionScore,
-      maxScore: questionMaxScore,
-      correct: questionScore > 0,
     });
-  });
 
-  console.log("FINAL OUTPUT: ", totalScore, maxScore, questionResults);
-
-  return { totalScore, maxScore, questionResults };
-};
+    return { totalScore, maxScore, questionResults };
+  };
 
   // Force submit without checking completion (used for timer expiry)
   const forceSubmit = useCallback(() => {
@@ -299,11 +323,54 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   }
 
   const renderQuestionContent = () => {
-    const userAnswer = answers[currentQ.id];
+  const userAnswer = answers[currentQ.id];
 
-    switch (currentQ.type) {
-      case "multiple-choice":
-        return (
+  switch (currentQ.type) {
+    case "multiple-choice":
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {currentQ.options.map((option) => (
+            <button
+              key={option.id}
+              onClick={() =>
+                handleAnswerSelect(currentQ.id, option.id, currentQ.type)
+              }
+              className={`
+                p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]
+                ${
+                  userAnswer === option.id
+                    ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/25 text-white"
+                    : "bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600 text-white"
+                }
+              `}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className={`
+                  w-4 h-4 rounded-full border-2 flex items-center justify-center
+                  ${
+                    userAnswer === option.id
+                      ? "border-white bg-white"
+                      : "border-gray-400"
+                  }
+                `}
+                >
+                  {userAnswer === option.id && (
+                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                  )}
+                </div>
+                <span className="font-medium">{option.text}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      );
+
+    case "multiple-select":
+      const selectedAnswers = userAnswer || [];
+      return (
+        <div className="space-y-3">
+          <p className="text-sm text-blue-400 mb-4">Select all that apply:</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {currentQ.options.map((option) => (
               <button
@@ -314,7 +381,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
                 className={`
                   p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]
                   ${
-                    userAnswer === option.id
+                    selectedAnswers.includes(option.id)
                       ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/25 text-white"
                       : "bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600 text-white"
                   }
@@ -323,16 +390,16 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
                 <div className="flex items-center gap-3">
                   <div
                     className={`
-                    w-4 h-4 rounded-full border-2 flex items-center justify-center
+                    w-4 h-4 rounded border-2 flex items-center justify-center
                     ${
-                      userAnswer === option.id
+                      selectedAnswers.includes(option.id)
                         ? "border-white bg-white"
                         : "border-gray-400"
                     }
                   `}
                   >
-                    {userAnswer === option.id && (
-                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    {selectedAnswers.includes(option.id) && (
+                      <div className="text-blue-600 text-xs font-bold">✓</div>
                     )}
                   </div>
                   <span className="font-medium">{option.text}</span>
@@ -340,143 +407,224 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
               </button>
             ))}
           </div>
-        );
+        </div>
+      );
 
-      case "multiple-select":
-        const selectedAnswers = userAnswer || [];
-        return (
-          <div className="space-y-3">
-            <p className="text-sm text-blue-400 mb-4">Select all that apply:</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {currentQ.options.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() =>
-                    handleAnswerSelect(currentQ.id, option.id, currentQ.type)
-                  }
-                  className={`
-                    p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]
-                    ${
-                      selectedAnswers.includes(option.id)
-                        ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/25 text-white"
-                        : "bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600 text-white"
-                    }
-                  `}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`
-                      w-4 h-4 rounded border-2 flex items-center justify-center
-                      ${
-                        selectedAnswers.includes(option.id)
-                          ? "border-white bg-white"
-                          : "border-gray-400"
-                      }
-                    `}
-                    >
-                      {selectedAnswers.includes(option.id) && (
-                        <div className="text-blue-600 text-xs font-bold">✓</div>
-                      )}
-                    </div>
-                    <span className="font-medium">{option.text}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        );
-
-      case "multiple-subselect":
-        const multiPartAnswers = userAnswer || {};
-        return (
+    case "multiple-subselect":
+      const multiPartAnswers = userAnswer || {};
+      return (
+        <div className="space-y-4">
+          <p className="text-sm text-blue-400 mb-4">
+            Select an answer for each part:
+          </p>
           <div className="space-y-4">
-            <p className="text-sm text-blue-400 mb-4">
-              Select an answer for each part:
-            </p>
-            <div className="space-y-4">
-              {currentQ.parts.map((part) => (
-                <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
-                  <div className="flex items-center gap-4 mb-3">
-                    <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
-                      {part.label}
+            {currentQ.parts.map((part) => (
+              <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
+                    {part.label}
+                  </span>
+                  {part.description && (
+                    <span className="text-gray-300 text-sm">
+                      {part.description}
                     </span>
-                    {part.description && (
-                      <span className="text-gray-300 text-sm">
-                        {part.description}
-                      </span>
-                    )}
+                  )}
 
-                    <select
-                      value={multiPartAnswers[part.id] || ""}
-                      onChange={(e) => {
-                        const newAnswers = {
-                          ...multiPartAnswers,
-                          [part.id]: e.target.value,
-                        };
-                        handleAnswerSelect(
-                          currentQ.id,
-                          newAnswers,
-                          currentQ.type
-                        );
-                      }}
-                      className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
-                    >
-                      <option value="" className="text-gray-400">
-                        Select an option...
+                  <select
+                    value={multiPartAnswers[part.id] || ""}
+                    onChange={(e) => {
+                      const newAnswers = {
+                        ...multiPartAnswers,
+                        [part.id]: e.target.value,
+                      };
+                      handleAnswerSelect(
+                        currentQ.id,
+                        newAnswers,
+                        currentQ.type
+                      );
+                    }}
+                    className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
+                  >
+                    <option value="" className="text-gray-400">
+                      Select an option...
+                    </option>
+                    {currentQ.options.map((option) => (
+                      <option
+                        key={option.id}
+                        value={option.id}
+                        className="text-white"
+                      >
+                        {option.text}
                       </option>
-                      {currentQ.options.map((option) => (
-                        <option
-                          key={option.id}
-                          value={option.id}
-                          className="text-white"
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-xs text-gray-400 mt-2">
+            All parts must be answered to complete this question
+          </div>
+        </div>
+      );
+
+    case "text-input":
+      return (
+        <div className="space-y-4">
+          <div className="bg-gray-700 p-4 rounded-lg">
+            <label
+              htmlFor="text-answer"
+              className="block text-sm text-gray-300 mb-2"
+            >
+              Your Answer:
+            </label>
+            <input
+              id="text-answer"
+              type="text"
+              value={userAnswer || ""}
+              onChange={(e) =>
+                handleAnswerSelect(currentQ.id, e.target.value, currentQ.type)
+              }
+              placeholder="Type your answer here..."
+              className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+            />
+            {currentQ.alternateAnswers && (
+              <p className="text-xs text-gray-400 mt-2">
+                Note: Multiple answer formats may be accepted
+              </p>
+            )}
+          </div>
+        </div>
+      );
+
+    case "multiple-parts-subselect":
+      const multiplePartsAnswers = userAnswer || {}; // Changed variable name to avoid conflict
+      
+      return (
+        <div className="space-y-4">
+          <p className="text-sm text-blue-400 mb-4">
+            Select answers for each part:
+          </p>
+          <div className="space-y-6">
+            {currentQ.parts.map((part) => (
+              <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
+                {/* Part Header with Label */}
+                <div className="flex items-center gap-4 mb-4">
+                  <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
+                    {part.label}
+                  </span>
+                  {part.description && (
+                    <span className="text-gray-300 text-sm">
+                      {part.description}
+                    </span>
+                  )}
+                </div>
+
+                {/* Image and Sub-questions Layout */}
+                <div className="flex flex-col lg:flex-row gap-6">
+                  {/* Image Section */}
+                  {part.imageUrl && (
+                    <div className="flex-shrink-0">
+                      <div className="bg-gray-800 p-3 rounded-lg">
+                        <img 
+                          src={part.imageUrl} 
+                          alt={`Part ${part.label}`}
+                          className="max-w-full h-auto max-w-xs"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sub-questions Section */}
+                  <div className="flex-grow space-y-3">
+                    {part.subQuestions?.map((subQuestion) => (
+                      <div key={subQuestion.id} className="flex items-center gap-3 flex-wrap">
+                        <label className="text-sm font-medium text-gray-300 min-w-[80px]">
+                          {subQuestion.label}
+                        </label>
+                        
+                        <select
+                          value={multiplePartsAnswers[part.id]?.[subQuestion.id] || ""}
+                          onChange={(e) => {
+                            const newAnswers = {
+                              ...multiplePartsAnswers,
+                              [part.id]: {
+                                ...multiplePartsAnswers[part.id],
+                                [subQuestion.id]: e.target.value,
+                              }
+                            };
+                            handleAnswerSelect(
+                              currentQ.id,
+                              newAnswers,
+                              currentQ.type
+                            );
+                          }}
+                          className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer min-w-[120px]"
                         >
-                          {option.text}
-                        </option>
-                      ))}
-                    </select>
+                          <option value="" className="text-gray-400">
+                            [ Select ]
+                          </option>
+                          {(subQuestion.options || currentQ.globalOptions || currentQ.options)?.map((option) => (
+                            <option
+                              key={option.id}
+                              value={option.id}
+                              className="text-white"
+                            >
+                              {option.text}
+                            </option>
+                          ))}
+                        </select>
+
+                        
+                      </div>
+                    )) || (
+                      // Fallback for simple single dropdown per part (backward compatibility)
+                      <div className="flex items-center gap-3">
+                        <select
+                          value={multiplePartsAnswers[part.id] || ""}
+                          onChange={(e) => {
+                            const newAnswers = {
+                              ...multiplePartsAnswers,
+                              [part.id]: e.target.value,
+                            };
+                            handleAnswerSelect(
+                              currentQ.id,
+                              newAnswers,
+                              currentQ.type
+                            );
+                          }}
+                          className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
+                        >
+                          <option value="" className="text-gray-400">
+                            Select an option...
+                          </option>
+                          {currentQ.options.map((option) => (
+                            <option
+                              key={option.id}
+                              value={option.id}
+                              className="text-white"
+                            >
+                              {option.text}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="text-xs text-gray-400 mt-2">
-              All parts must be answered to complete this question
-            </div>
+              </div>
+            ))}
           </div>
-        );
-
-      case "text-input":
-        return (
-          <div className="space-y-4">
-            <div className="bg-gray-700 p-4 rounded-lg">
-              <label
-                htmlFor="text-answer"
-                className="block text-sm text-gray-300 mb-2"
-              >
-                Your Answer:
-              </label>
-              <input
-                id="text-answer"
-                type="text"
-                value={userAnswer || ""}
-                onChange={(e) =>
-                  handleAnswerSelect(currentQ.id, e.target.value, currentQ.type)
-                }
-                placeholder="Type your answer here..."
-                className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-              />
-              {currentQ.alternateAnswers && (
-                <p className="text-xs text-gray-400 mt-2">
-                  Note: Multiple answer formats may be accepted
-                </p>
-              )}
-            </div>
+          <div className="text-xs text-gray-400 mt-2">
+            All parts must be answered to complete this question
           </div>
-        );
+        </div>
+      );
 
-      default:
-        return <div>Unknown question type: {currentQ.type}</div>;
-    }
-  };
+    default:
+      return <div>Unknown question type</div>;
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
@@ -689,7 +837,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
             onClick={() => setShowSidebar(false)}
           ></div>
         )}
- 
+
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="max-w-4xl mx-auto p-4 sm:p-6">

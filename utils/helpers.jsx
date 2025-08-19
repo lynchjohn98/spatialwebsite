@@ -43,35 +43,35 @@ export function validateTeacherCode(inputtedCode) {
 //   "St Mogues",
 // ];
 
-// // School to number mapping for username generation
-// export const schoolNumbers = {
-// "Ard Scoil Mhuire": 11,
-// "Ardscoil Phadraig": 12,
-// "Athlone Community College": 13,
-// "Belmayne ETSS": 14,
-// "Bremore ETSS": 15,
-// "Carndonagh Community School": 16,
-// "Colaiste Bride Enniscorthy": 17,
-// "Colaiste ghlor na Mara": 18,
-// "Colaiste Mhuire Askeaton": 19,
-// "Colaiste Na Trocaire": 20,
-// "Drogheda Grammar School": 21,
-// "Gallen Community School": 22,
-// "Lusk Community College": 23,
-// "Malahide Community School": 24,
-// "Old Bawn Community School": 25,
-// "Patrician High School": 26,
-// "Portumna Community School": 27,
-// "Royal and Prior Comprehensive": 28,
-// "Sancta Maria College": 29,
-// "Santa Sabina Dominican College": 30,
-// "St Columbas Comprehensive": 31,
-// "St Josephs Castlebar": 32,
-// "St Josephs Secondary School Rush": 33,
-// "St Kevins Community College": 34,
-// "St Mogues": 35,
-// "Test School:": 36, // Example for a test school
-// };
+// School to number mapping for username generation
+export const schoolNumbers = {
+"Ard Scoil Mhuire": 11,
+"Ardscoil Phadraig": 12,
+"Athlone Community College": 13,
+"Belmayne ETSS": 14,
+"Bremore ETSS": 15,
+"Carndonagh Community School": 16,
+"Colaiste Bride Enniscorthy": 17,
+"Colaiste ghlor na Mara": 18,
+"Colaiste Mhuire Askeaton": 19,
+"Colaiste Na Trocaire": 20,
+"Drogheda Grammar School": 21,
+"Gallen Community School": 22,
+"Lusk Community College": 23,
+"Malahide Community School": 24,
+"Old Bawn Community School": 25,
+"Patrician High School": 26,
+"Portumna Community School": 27,
+"Royal and Prior Comprehensive": 28,
+"Sancta Maria College": 29,
+"Santa Sabina Dominican College": 30,
+"St Columbas Comprehensive": 31,
+"St Josephs Castlebar": 32,
+"St Josephs Secondary School Rush": 33,
+"St Kevins Community College": 34,
+"St Mogues": 35,
+"Test School:": 36, // Example for a test school
+};
 
 // Counties for teachers to pick from
 export const counties = [
@@ -92,6 +92,7 @@ export const counties = [
   "Kilkenny",
   "Laois",
   "Leitrim",
+  "Limerick",
   "Longford",
   "Louth",
   "Mayo",
@@ -107,6 +108,41 @@ export const counties = [
   "Wexford",
   "Wicklow",
   ];
+
+export const countyNumbers = {
+    "Antrim": 1,
+    "Armagh": 2,
+    "Carlow": 3,
+    "Cavan": 4,
+    "Clare": 5,
+    "Cork": 6,
+    "Derry": 7,
+    "Donegal": 8,
+    "Down": 9,
+    "Dublin": 10,
+    "Fermanagh": 11,
+    "Galway": 12,
+    "Kerry": 13,
+    "Kildare": 14,
+    "Kilkenny": 15,
+    "Laois": 16,
+    "Leitrim": 17,
+    "Limerick": 18,
+    "Longford": 19,
+    "Louth": 20,
+    "Mayo": 21,
+    "Meath": 22,
+    "Monaghan": 23,
+    "Offaly": 24,
+    "Roscommon": 25,
+    "Sligo": 26,
+    "Tipperary": 27,
+    "Tyrone": 28,
+    "Waterford": 29,
+    "Westmeath": 30,
+    "Wexford": 31,
+    "Wicklow": 32,
+  };
 
 
 export function generateJoinCode() {
@@ -130,7 +166,7 @@ export function generateStudentUsername(studentName, teacherName, schoolName) {
   const teacherPart = teacherLastName
     ? teacherLastName.toLowerCase().slice(-3).replace(/[^a-z]/g, '')
     : 'te';
-  const schoolNumber = schoolNumbers[schoolName] || Math.floor(Math.random() * 89) + 10; // 10-99 range
+  const schoolNumber = countyNumbers[counties] || Math.floor(Math.random() * 89) + 10; // 10-99 range
   return `${studentPart}${teacherPart}${schoolNumber}`.toUpperCase();
 }
 

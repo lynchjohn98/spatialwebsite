@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
-import { quizData } from "../../../../../utils/quiz_data/psvtr_quiz";
+import { quizData } from "../../../../../utils/quiz_data/psvtr_post_quiz";
 import { submitTeacherQuiz } from "../../../../services/teacher_actions";
 
 export default function PosttestPage() {
@@ -52,10 +52,11 @@ export default function PosttestPage() {
         quizData: results,
       };
       //Specifically state the quiz that was completed for the backend, this time it was the practice mock quiz
-      payload.teacherData.pretest_complete = true;
+      payload.teacherData.posttest_complete = true;
+      payload.teacherData.training_complete = true;
       await submitTeacherQuiz(payload);
     } catch (error) {
-      console.error("Error saving pretest results:", error);
+      console.error("Error saving posttest results:", error);
     }
     setTimeout(() => {
       router.push("/teacher/training");
