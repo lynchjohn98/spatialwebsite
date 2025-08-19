@@ -100,7 +100,7 @@ export async function generateDefaultStudent(courseId) {
         .insert(
             [{
                 id: v4(),
-                student_username: generateStudentCode(),
+                student_username: "",
                 student_first_name: "Example",
                 student_last_name: "Student",
                 student_gender: "Male",
@@ -113,6 +113,28 @@ export async function generateDefaultStudent(courseId) {
             }]
         )
         .select("*")
+        .single();
+    if (error) {
+        console.error("❌ Supabase Insert Error:", error.message);
+        return { error: error.message };
+    }
+    return { success: true, data: data };
+}
+
+
+
+
+//Student Table functions to hel pwith username generation
+
+
+
+// Student Grade Table functions
+export async function getStudentGradeData(payload) {
+     const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("student_grades")
+        .select("*")
+        .eq("course_id", payload.courseId)
         .single();
     if (error) {
         console.error("❌ Supabase Insert Error:", error.message);

@@ -170,7 +170,7 @@ export default function Settings() {
           tableTitle={"My Students"}
           tableData={studentData}
           teacherName={courseData?.course_teacher_name}
-          schoolName={courseData?.course_county}
+          countyName={courseData?.course_county}
         />  
         <div className="mt-3 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
           <button 

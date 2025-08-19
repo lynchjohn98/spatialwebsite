@@ -149,22 +149,22 @@ export async function retrieveCourseSettings(payload: { id: any; }) {
   }
 }
 //For student who is joining a course, needs to use course join code
-//and provided student code
-export async function studentCourseJoin(payload: { studentJoinCode: string }) {
+//and provided student username
+export async function studentCourseJoin(payload: { student_username: string }) {
   const supabase = await createClient();
   console.log("Running in local host");
   try {
     const { data: student, error: studentError } = await supabase
       .from("students")
       .select("*, course_id")
-      .eq("student_join_code", payload.studentJoinCode)
+      .eq("student_username", payload.student_username)
       .single();
     if (studentError) {
       console.error("❌ Student lookup error:", studentError.message);
       return { error: studentError.message };
     }
     if (!student) {
-      return { error: "No student found with that join code." };
+      return { error: "No student found with that username." };
     }
     console.log(student);
      
@@ -202,7 +202,7 @@ export async function addStudentToDatabase(payload) {
     .upsert([
       {
         id: payload.id || undefined, // If there's an ID, update; otherwise insert
-        student_join_code: payload.student_join_code,
+        student_username: payload.student_username,
         first_name: payload.first_name,
         last_name: payload.last_name,
         gender: payload.gender,
@@ -214,7 +214,7 @@ export async function addStudentToDatabase(payload) {
       }
     ], 
     { 
-      onConflict: 'student_join_code',  // Update if the join code already exists
+      onConflict: 'student_username',  // Update if the username already exists
       ignoreDuplicates: false
     });
   

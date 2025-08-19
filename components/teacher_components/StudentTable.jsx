@@ -1,13 +1,12 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { generateStudentUsername } from "../../utils/helpers";
+import { countyNumbers } from "../../utils/helpers";
 
 
-
-const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, schoolName }, ref) => {
+const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyName }, ref) => {
   const [data, setData] = useState([]);
   const [showTable, setShowTable] = useState(false);
-  
+
   useEffect(() => {
     if (typeof tableData === 'string') {
       try {
@@ -52,48 +51,70 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, schoolNam
     setData([...data, newStudent]);
   };
 
-  const updateStudent = (index, field, value) => {
-    setData(prevData => 
-      prevData.map((student, i) => {
-        if (i === index) {
-          const updatedStudent = { ...student, [field]: value };
-          
-          // Clear genderOther if gender is not "Other"
-          if (field === 'gender' && value !== 'Other') {
-            updatedStudent.genderOther = '';
-          }
-          
-          // Auto-generate username when last name is entered or changed
-          if (field === 'last_name' && value.trim() && teacherName && schoolName) {
-            updatedStudent.student_join_code = generateStudentUsername(
-              value.trim(),
-              teacherName,
-              schoolName
-            );
-          }
-          
-          return updatedStudent;
-        }
-        return student;
-      })
+  
+  //Current format:   // Format: lastname2chars + lastname2chars + teacher2chars + random2digits
+  // Example: "hn" + "th" + "ms" + "45" = "hnthms45"
+const generateStudentUsername = (firstName, lastName, teacherName, countyName) => {
+  const cleanFirstName = firstName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
+  const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
+  const cleanTeacher = teacherName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
+  const countyNumber = countyNumbers[countyName] || '00'; // Default to '00' if county not found
+  return `${cleanFirstName}${cleanLastName}${cleanTeacher}${countyNumber}`;
+};
+
+// Updated regenerateUsername function
+const regenerateUsername = (index) => {
+  const student = data[index];
+  if (student.first_name && student.last_name && teacherName && countyName) {
+    const newUsername = generateStudentUsername(
+      student.first_name,      // Now includes first name
+      student.last_name,
+      teacherName,
+      countyName
     );
-  };
+    updateStudent(index, 'student_join_code', newUsername);
+  }
+};
+
+// Updated updateStudent function to generate username when first OR last name changes
+const updateStudent = (index, field, value) => {
+  setData(prevData => 
+    prevData.map((student, i) => {
+      if (i === index) {
+        const updatedStudent = { ...student, [field]: value };
+        
+        // Clear genderOther if gender is not "Other"
+        if (field === 'gender' && value !== 'Other') {
+          updatedStudent.genderOther = '';
+        }
+        
+        // Auto-generate username when first name OR last name is entered/changed
+        if ((field === 'first_name' || field === 'last_name') && 
+            updatedStudent.first_name?.trim() && 
+            updatedStudent.last_name?.trim() && 
+            teacherName && 
+            countyName) {
+          updatedStudent.student_join_code = generateStudentUsername(
+            updatedStudent.first_name.trim(),
+            updatedStudent.last_name.trim(),
+            teacherName,
+            countyName
+          );
+        }
+        
+        return updatedStudent;
+      }
+      return student;
+    })
+  );
+};
+
+  
 
   const removeStudent = (index) => {
     setData(prevData => prevData.filter((_, i) => i !== index));
   };
 
-  const regenerateUsername = (index) => {
-    const student = data[index];
-    if (student.last_name && teacherName && schoolName) {
-      const newUsername = generateStudentUsername(
-        student.last_name,
-        teacherName,
-        schoolName
-      );
-      updateStudent(index, 'student_join_code', newUsername);
-    }
-  };
 
   const validateAge = (value) => {
     const num = parseInt(value);
