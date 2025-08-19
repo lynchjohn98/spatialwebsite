@@ -122,17 +122,137 @@ export async function generateDefaultStudent(courseId) {
 }
 
 
+//Teacher dashboard functions
+export async function retrieveSupplementalCourseInformation(payload: { id: any; }) {
+  console.log("Retrieving course settings", payload);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("courses")
+    .select("*")
+    .eq("id", payload.id)
+    .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  return { success: true, data };
+}
 
 
-//Student Table functions to hel pwith username generation
+// Update course information in backend
+export async function updateCourseSettings(payload: { courseId: any; studentSettings: any; moduleSettings: any; quizSettings: any; }) {
+  console.log("Updating course settings in backend", payload);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("course_settings")
+    .update({
+      student_settings: payload.studentSettings,
+      module_settings: payload.moduleSettings,
+      quiz_settings: payload.quizSettings,
+      updated_at : new Date().toISOString()
+    })
+    .eq("course_id", payload.courseId)
+    .single();
+  if (error) {
+    console.error("❌ Supabase Insert Error:", error.message);
+    return { error: error.message };
+  }
+  else {
+    console.log ("Updated course settings", data);
+    return { success: true, data };
+  }
+}
+
+// Fix for retrieving modules
+export async function retrieveModules(payload: { id: any; }) {
+  console.log("Fetching modules", payload);
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from("course_settings")
+      .select("module_settings")
+      .eq("course_id", payload.id)
+      .maybeSingle(); // Use maybeSingle instead of single
+      
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    
+    if (!data) {
+      console.log("No module settings found for course ID:", payload.id);
+      return { success: true, data: { module_settings: [] } }; // Return empty default
+    }
+    
+    return { success: true, data };
+  } catch (err) {
+    console.error("❌ Error retrieving modules:", err);
+    return { error: "Failed to retrieve modules" };
+  }
+}
+
+// Fix for retrieving quizzes
+export async function retrieveQuizzes(payload: { id: any; }) {
+  console.log("Fetching quizzes", payload);
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from("course_settings")
+      .select("quiz_settings")
+      .eq("course_id", payload.id)
+      .maybeSingle(); // Use maybeSingle instead of single
+      
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    
+    if (!data) {
+      console.log("No quiz settings found for course ID:", payload.id);
+      return { success: true, data: { quiz_settings: [] } }; // Return empty default
+    }
+    
+    return { success: true, data };
+  } catch (err) {
+    console.error("❌ Error retrieving quizzes:", err);
+    return { error: "Failed to retrieve quizzes" };
+  }
+}
+
+// Fix for retrieving course settings
+export async function retrieveCourseSettings(payload: { id: any; }) {
+  console.log("Retrieving course settings", payload);
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from("course_settings")
+      .select("*")
+      .eq("course_id", payload.id)
+      .maybeSingle(); // Use maybeSingle instead of single
+    if (error) {
+      console.error("❌ Supabase Query Error:", error.message);
+      return { error: error.message };
+    }
+    if (!data) {
+      console.log("No settings found for course ID:", payload.id);
+      return { success: true, data: null };
+    }
+    return { success: true, data };
+  } catch (err) {
+    console.error("❌ Error retrieving course settings:", err);
+    return { error: "Failed to retrieve course settings" };
+  }
+}
 
 
+//Student Table functions to help with username generation
 
-// Student Grade Table functions
+
+// Student Grade Data Table
 export async function getStudentGradeData(payload) {
      const supabase = await createClient();
     const { data, error } = await supabase
-        .from("student_grades")
+        .from("students")
         .select("*")
         .eq("course_id", payload.courseId)
         .single();

@@ -2,8 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import StudentTable from "../../../../components/teacher_components/StudentTable";
-import { retrieveCourseSettings, updateCourseSettings } from "../../../services/actions";
-import { createClient } from "../../../../utils/supabase/supabase";
+import { retrieveCourseSettings, updateCourseSettings } from "../../../services/course_actions";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
@@ -15,7 +14,6 @@ export default function Settings() {
   const [isLoading, setIsLoading] = useState(true);
   const studentTableRef = useRef();
 
-  
   const fetchCourseSettings = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
@@ -39,9 +37,13 @@ export default function Settings() {
     setIsLoading(false);
   };
 
+
+
   useEffect(() => {
     fetchCourseSettings();
   }, []);
+
+
   const handleSaveChanges = async () => {
     if (!courseData || !courseSettings) {
       setSaveMessage({
@@ -54,58 +56,12 @@ export default function Settings() {
     setSaveMessage({ type: '', text: '' });
     try {
       const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
-      // Step 1: Update course_settings
       const payload = {
         courseId: courseData.id,
         studentSettings: JSON.stringify(updatedStudentData)
       };  
       const result = await updateCourseSettings(payload);
-      const supabase = createClient();
       if (result.success) {
-       const { data: existingStudents, error: fetchError } = await supabase
-          .from("students")
-          .select("id, student_username")
-          .eq("course_id", courseData.id);
-        if (fetchError) {
-          console.error("Error fetching existing students:", fetchError);
-          throw fetchError;
-        }
-        const existingStudentMap = {};
-        existingStudents.forEach(student => {
-          existingStudentMap[student.student_username] = student.id;
-        });
-        for (const student of updatedStudentData) {
-          if (!student.student_username || !student.first_name) {
-            continue;
-          }
-          if (existingStudentMap[student.student_username]) {
-            await supabase
-              .from("students")
-              .update({
-                first_name: student.first_name,
-                last_name: student.last_name,
-                gender: student.gender,
-                grade: student.grade || null,
-                other: student.other || null,
-                remove_date: student.remove_date || null,
-              })
-              .eq("id", existingStudentMap[student.student_username]);
-          } else {
-            await supabase
-              .from("students")
-              .insert([{
-                student_username: student.student_username,
-                first_name: student.first_name,
-                last_name: student.last_name,
-                gender: student.gender,
-                grade: student.grade || null,
-                other: student.other || null,
-                join_date: student.join_date || new Date().toISOString(),
-                remove_date: student.remove_date || null,
-                course_id: courseData.id
-              }]);
-          }
-        }    
         setSaveMessage({
           type: 'success',
           text: 'Course settings and student data updated successfully!'
@@ -148,12 +104,14 @@ export default function Settings() {
       />
       <div className="flex-1 p-6 overflow-auto">
         <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold mb-4">Student Management </h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-4">Student Management 
+              <span> ? </span> 
+              </h1> 
             <p className="text-xl mb-4 text-blue-300">
-                           Use this page to add, remove, and edit your students information.
-                           Once you enter a student's first and last name, a unique username will be generated for them to join the course.
-            </p>
-           
+                        Use this page to add, remove, and edit your students information.
+                        Once you enter a student's first and last name, a unique username will be generated for them to join the course.
+        </p>
+            
           </div>
 
         {saveMessage.text && (

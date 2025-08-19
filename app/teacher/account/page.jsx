@@ -1,12 +1,10 @@
 "use client";
-import { retrieveTeacherCourse } from "../../services/teacher_actions";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function TeacherAccountPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const router = useRouter();
-
   useEffect(() => {
     const courseData = sessionStorage.getItem("courseData");
     if (courseData) {
@@ -23,6 +21,5 @@ export default function TeacherAccountPage() {
       </div>
     );
   }
-
   return <TeacherDashboard />;
 }

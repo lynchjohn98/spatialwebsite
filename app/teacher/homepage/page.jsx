@@ -112,7 +112,7 @@ export default function TeacherHomePage() {
       <div className="flex flex-col items-center justify-center min-h-screen px-4">
         {/* Header Section */}
         <div className="text-center  max-w-3xl">
-          <h1 className="text-3xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-5xl mb-8 font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Welcome, {teacherData?.name || teacherData?.username}
           </h1>
           
@@ -229,7 +229,7 @@ export default function TeacherHomePage() {
             <div className="relative">
               <ResponsiveButton
                 onClick={() => handleRestrictedAccess("/teacher/join")}
-                label="Join Course"
+                label="Join Course as Teacher"
                 className={`w-full ${!pretestComplete ? 'cursor-not-allowed' : ''}`}
               />
               {!pretestComplete && (

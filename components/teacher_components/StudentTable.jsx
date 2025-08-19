@@ -3,10 +3,10 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { countyNumbers } from "../../utils/helpers";
 
 
-const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyName }, ref) => {
+const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyName, courseData }, ref) => {
   const [data, setData] = useState([]);
   const [showTable, setShowTable] = useState(false);
-
+  
   useEffect(() => {
     if (typeof tableData === 'string') {
       try {
@@ -119,8 +119,8 @@ const updateStudent = (index, field, value) => {
   const validateAge = (value) => {
     const num = parseInt(value);
     if (isNaN(num)) return '';
-    if (num < 10) return '10';
-    if (num > 20) return '20';
+    if (num < 14) return '14';
+    if (num > 17) return '17';
     return value;
   };
 
@@ -216,18 +216,18 @@ const updateStudent = (index, field, value) => {
                           className="w-full bg-gray-700 text-white p-1 rounded text-sm"
                         >
                           <option value="">Select Age</option>
-                          {Array.from({ length: 11 }, (_, i) => i + 10).map(age => (
+                          {Array.from({ length: 4 }, (_, i) => i + 14).map(age => (
                             <option key={age} value={age}>{age}</option>
                           ))}
                         </select>
                         <input
                           type="number"
-                          min="10"
-                          max="20"
+                          min="14"
+                          max="17"
                           value={student.age || ''}
                           onChange={(e) => updateStudent(index, 'age', validateAge(e.target.value))}
                           className="w-full bg-gray-600 text-white p-1 rounded text-xs"
-                          placeholder="Or type (10-20)"
+                          placeholder="Or type (14-17)"
                         />
                       </div>
                     </td>
