@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import VisibilityTable from "../../../../components/teacher_components/VisibilityTable";
 import ExtraResourcesTable from "../../../../components/teacher_components/ExtraResourcesTable";
-import { retrieveCourseSettings, updateCourseSettings } from "../../../services/actions";
-import { createClient } from "../../../../utils/supabase/supabase";
+import { retrieveCourseSettings, updateCourseSettings } from "../../../library/services/actions";
+import { createClient } from "../../../utils/supabase/supabase";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);

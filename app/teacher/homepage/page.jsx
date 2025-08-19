@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ResponsiveButton from "../../../components/page_blocks/ResponsiveButton";
-import { getTeacherData } from "../../services/teacher_actions";
+import { getTeacherData } from "../../library/services/teacher_actions";
 
 export default function TeacherHomePage() {
   const router = useRouter();

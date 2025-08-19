@@ -7,7 +7,7 @@ import ExpandableWebpage from "../../../../components/module_blocks/ExpandableWe
 import {
   updateTeacherAccount,
   getTeacherData,
-} from "../../../services/teacher_actions";
+} from "../../../library/services/teacher_actions";
 
 export default function TeacherTraining() {
   const router = useRouter();

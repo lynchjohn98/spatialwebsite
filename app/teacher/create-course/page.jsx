@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { counties } from "../../../utils/helpers";
-import { getTeacherData } from "../../services/teacher_actions";
+import { counties } from "../../library/helpers/helpers";
+import { getTeacherData } from "../../library/services/teacher_actions";
 
 export default function CreateCourse() {
   const router = useRouter();

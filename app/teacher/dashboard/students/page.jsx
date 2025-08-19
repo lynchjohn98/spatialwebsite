@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import StudentTable from "../../../../components/teacher_components/StudentTable";
-import { retrieveCourseSettings, updateCourseSettings } from "../../../services/course_actions";
+import { retrieveCourseSettings, updateCourseSettings } from "../../../library/services/course_actions";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
@@ -23,7 +23,7 @@ export default function Settings() {
       const response = await retrieveCourseSettings({ id: parsedData.id });
       if (response.success) {
         const settings = response.data;
-        const parsedStudentSettings = JSON.parse(settings.student_settings || "{}");
+        const parsedStudentSettings = JSON.parse(settings.student_settings || "[]");
         setCourseSettings(settings);
         setStudentData(parsedStudentSettings);
       } else {
@@ -64,7 +64,7 @@ export default function Settings() {
       if (result.success) {
         setSaveMessage({
           type: 'success',
-          text: 'Course settings and student data updated successfully!'
+          text: 'Student Data Updated.'
         });
         await fetchCourseSettings();
       } else {

@@ -2,7 +2,7 @@
 import { createClient } from "../../utils/supabase/server";
 // generate a uuid for a new student for default course
 import { v4 as uuidv4, v4 } from "uuid";
-import { generateStudentCode } from "../../utils/serverhelpers";
+import { generateStudentCode } from "../helpers/serverhelpers";
 
 // Example SSR function used for server side, use this with the test, page.jsx for inserting
 //a message for similar work

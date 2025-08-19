@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { fetchGradesTeacher } from "../../../services/actions";
+import { fetchGradesTeacher } from "../../../library/services/actions";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar"
 
 export default function Grades() {

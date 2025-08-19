@@ -1,5 +1,5 @@
 "use client";
-import { retrieveTeacherCourse } from "../../services/teacher_actions";
+import { retrieveTeacherCourse } from "../../library/services/teacher_actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 

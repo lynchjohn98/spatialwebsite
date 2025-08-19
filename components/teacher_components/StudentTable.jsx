@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { countyNumbers } from "../../utils/helpers";
+import { countyNumbers } from "../../app/library/helpers/helpers";
 
 
 const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyName, courseData }, ref) => {
@@ -52,8 +52,8 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
   };
 
   
-  //Current format:   // Format: lastname2chars + lastname2chars + teacher2chars + random2digits
-  // Example: "hn" + "th" + "ms" + "45" = "hnthms45"
+//Current format:   // Format: lastname2chars + lastname2chars + teacher2chars + random2digits
+// Example: "hn" + "th" + "ms" + "45" = "hnthms45"
 const generateStudentUsername = (firstName, lastName, teacherName, countyName) => {
   const cleanFirstName = firstName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
   const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
@@ -110,11 +110,9 @@ const updateStudent = (index, field, value) => {
 };
 
   
-
   const removeStudent = (index) => {
     setData(prevData => prevData.filter((_, i) => i !== index));
   };
-
 
   const validateAge = (value) => {
     const num = parseInt(value);

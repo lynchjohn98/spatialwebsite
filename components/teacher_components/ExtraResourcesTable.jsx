@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supplementalMaterialInformation } from "../../utils/helpers";
+import { supplementalMaterialInformation } from "../../app/library/helpers/helpers";
 
 export default function ExtraResourcesTable({ tableTitle }) {
   const [showTable, setShowTable] = useState(false);

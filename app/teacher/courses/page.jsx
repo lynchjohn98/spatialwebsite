@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   getAllTeacherCourses,
-} from "../../services/teacher_actions";
+} from "../../library/services/teacher_actions";
 
 export default function TeacherCoursesPage() {
   const router = useRouter();

@@ -1,5 +1,5 @@
 "use client";
-import { studentCourseJoin } from "../../services/actions";
+import { studentCourseJoin } from "../../library/services/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 

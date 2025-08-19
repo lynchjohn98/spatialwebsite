@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { generateJoinCode } from "../../../utils/helpers";
-import { getTeacherData } from "../../services/teacher_actions";
-import { insertCourseSettings, insertNewCourse, generateDefaultModuleQuizInformation, generateDefaultStudent } from "../../services/course_actions";
+import { generateJoinCode } from "../../library/helpers/helpers";
+import { getTeacherData } from "../../library/services/teacher_actions";
+import { insertCourseSettings, insertNewCourse, generateDefaultModuleQuizInformation, generateDefaultStudent } from "../../library/services/course_actions";
 export default function FinalizeCourse() {
   const router = useRouter();
 

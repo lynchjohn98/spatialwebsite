@@ -4,7 +4,7 @@ import LearningIntentions from "../../../../../components/module_blocks/Learning
 import SuccessCriteria from "../../../../../components/module_blocks/SuccessCriteria";
 import ReturnButton from "../../../../../components/page_blocks/ReturnButton";
 import Sidebar from "../../../../../components/teacher_components/TeacherSidebar";
-import { useModulePage } from "../../../../../utils/helpers";
+import { useModulePage } from "../../../../library/helpers/helpers";
 
 export default function Page() {
   const {

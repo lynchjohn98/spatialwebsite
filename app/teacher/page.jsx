@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { validateTeacherCode } from "../../utils/helpers";
+import { validateTeacherCode } from "../library/helpers/helpers";
 import ResponsiveButton from "../../components/page_blocks/ResponsiveButton";
 
 export default function TeacherMainPage() {

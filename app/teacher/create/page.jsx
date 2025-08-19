@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createTeacherAccount } from "../../services/teacher_actions";
-import { loginTeacherAccount } from "../../services/teacher_actions";
+import { createTeacherAccount } from "../../library/services/teacher_actions";
+import { loginTeacherAccount } from "../../library/services/teacher_actions";
 import ResponsiveButton from "../../../components/page_blocks/ResponsiveButton";
 
 export default function TeacherCreatePage() {
