@@ -52,16 +52,13 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
     if (courseData && typeof courseData === 'string') {
       try {
         const parsed = JSON.parse(courseData);
-
         setParsedCourseData(parsed);
-
       } catch (error) {
         console.error("Failed to parse course data:", error);
       }
     } else {
       setParsedCourseData(courseData);
     }
-
   }, [courseData]);
 
   useEffect(() => {
@@ -118,7 +115,7 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
       )}
 
       <aside
-        className={`fixed lg:relative w-72 lg:w-1/4 min-h-screen bg-gray-800 p-6 transition-all duration-300 ease-in-out z-40
+        className={`fixed top-0 left-0 w-72 h-screen bg-gray-800 p-6 transition-all duration-300 ease-in-out z-40 overflow-y-auto
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           shadow-lg
         `}
@@ -391,7 +388,7 @@ function NavButton({ icon, label, route, isActive, onClick }) {
         ${
           isActive
             ? "bg-blue-600 text-white"
-            : "bg-gray-700 text-gray-200 hover:bg-blue-500 hover:text-white hover:translate-x-1"
+            : "bg-gray-700 text-gray-200 hover:bg-blue-500 hover:text-white"
         }
       `}
       onClick={() => onClick(route)}

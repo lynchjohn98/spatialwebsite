@@ -50,27 +50,28 @@ export default function StudentProgressPage() {
     );  
   }
 
+
+  
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
-      <StudentSidebar
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-        courseData={courseData}
-        studentData={studentData}
-      />
-      
-      <main className={`flex-1 p-6 transition-all duration-300 ${
-        isSidebarOpen ? 'lg:ml-1/4' : ''
-      }`}>
-        <div className="lg:hidden mb-6 pt-8">
-          {/* Space for hamburger button on mobile */}
-        </div>
-        
-        <div className="max-w-7xl mx-auto">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">
-              Your Learning Progress
+          <StudentSidebar
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+            courseData={courseData}
+            studentData={studentData}
+          />
+          <main
+            className={"lg:ml-72 p-6 transition-all duration-300"}
+          >
+            <div className="lg:hidden mb-6 pt-8">
+              {/* Space for hamburger button on mobile */}
+            </div>
+
+            <div className="max-w-7xl mx-auto">
+              {/* Page Header */}
+              <div className="mb-8">
+                <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                  Your Learning Progress
             </h1>
             <p className="text-gray-400">
               Track your progress through the spatial thinking modules

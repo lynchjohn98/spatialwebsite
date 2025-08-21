@@ -24,3 +24,24 @@ export async function fetchStudentProgressPage(student_id : any) {
 }
 
 
+
+export async function updateStudentModuleProgress(student_id: any, course_id: any, payload: any){
+    const supabase = await createClient();
+    try {
+        const { data, error } = await supabase
+            .from("students_progress")
+            .select()
+            .eq("student_id", student_id)
+            .eq("course_id", course_id);
+        if (error) {
+            console.error("❌ Supabase Select Error:", error.message);
+            return { error: error.message };
+        }
+        return { success: true, data };
+    } catch (err) {
+        console.error("❌ Unexpected error:", err);
+        return { error: "An unexpected error occurred. Please try again." };
+    }
+
+}
+

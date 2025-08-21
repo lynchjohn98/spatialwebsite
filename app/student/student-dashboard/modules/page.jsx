@@ -23,24 +23,14 @@ export default function Modules() {
       try {
         const parsedCourseData = JSON.parse(storedCourseData);
         const parsedStudentData = JSON.parse(storedStudentData);
-        
-        console.log("COURSE DATA:", parsedCourseData);
-        console.log("STUDENT DATA:", parsedStudentData);
-        
-        // Parse module_settings if it's a string
+
         let modules = parsedCourseData.settings?.module_settings;
         if (typeof modules === 'string') {
           modules = JSON.parse(modules);
         }
-        
-        console.log("MODULE DATA:", modules);
-        console.log("MODULE DATA TYPE:", Array.isArray(modules) ? 'array' : typeof modules);
-
         setCourseData(parsedCourseData);
         setStudentData(parsedStudentData);
         setModuleData(modules || []);
-        
-        // Set progress data if available
         if (parsedStudentData.students_progress && parsedStudentData.students_progress.length > 0) {
           setProgressData(parsedStudentData.students_progress[0].module_progress || {});
         }
@@ -48,15 +38,14 @@ export default function Modules() {
         console.error("Error parsing session storage data:", error);
         sessionStorage.removeItem("courseData");
         sessionStorage.removeItem("studentData");
-        router.push("/student-join");
+        router.push("/student/student-join");
       }
     } else {
-      router.push("/student-join");
+      router.push("/student/student-join");
     }
     setIsLoading(false);
   }, [router]);
 
-  // Calculate module progress percentage
   const calculateModuleProgress = (moduleProgress) => {
     if (!moduleProgress) return 0;
     const components = ['quiz', 'software', 'workbook', 'mini_lecture', 'getting_started_videos'];
