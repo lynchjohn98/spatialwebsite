@@ -145,6 +145,7 @@ export const countyNumbers = {
   };
 
 
+
 export function generateJoinCode() {
   return (
     Math.random().toString(36).substring(2, 6).toUpperCase() +
@@ -313,3 +314,106 @@ export function generateStudentUsername(studentName, teacherName, schoolName) {
     }
 
   ]
+
+
+  export const defaultModuleProgress = {
+    "1": {
+      "title": "Pre-Module: The Importance of Spatial Skills",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "2": {
+      "title": "Module 1: Combining Solids",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "3": {
+      "title": "Module 2: Surfaces and Solids of Revolution",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "4": {
+      "title": "Module 3: Isometric Sketching and Coded Plans",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "5": {
+      "title": "Module 4: Flat Patterns",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "6": {
+      "title": "Module 5: Rotation of Objects About a Single Axis",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "7": {
+      "title": "Module 6: Reflections and Symmetry",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "8": {
+      "title": "Module 7: Cutting Planes and Cross-Sections",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "9": {
+      "title": "Module 8: Rotation of Objects About Two or More Axes",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "10": {
+      "title": "Module 9: Orthographic Projection",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+    "11": {
+      "title": "Module 10: Inclined and Curved Surfaces",
+      "mini_lecture": false,
+      "software": false,
+      "getting_started": false,
+      "workbook": false,
+      "quiz": false,
+      "completed_at": null
+    },
+  }

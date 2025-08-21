@@ -51,7 +51,6 @@ export default function PretestPage() {
         teacherData: teacherData,
         quizData: results,
       };
-      //Specifically state the quiz that was completed for the backend, this time it was the practice mock quiz
       payload.teacherData.pretest_complete = true;
       await submitTeacherQuiz(payload);
     } catch (error) {

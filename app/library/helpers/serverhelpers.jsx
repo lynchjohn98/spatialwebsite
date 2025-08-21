@@ -26,3 +26,6 @@ export function generateStudentCode() {
     // Check if code is 6 characters long and contains only uppercase letters and numbers
     return /^[A-Z0-9]{6}$/.test(code);
   }
+
+
+  

@@ -43,7 +43,7 @@ export default function ModulePage() {
   }, [router]);
 
   const returnToModules = () => {
-    router.push("/teacher-dashboard/modules");
+    router.push("/student/student-dashboard/modules");
   };
 
   if (isLoading || !courseData) {

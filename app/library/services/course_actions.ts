@@ -1,6 +1,6 @@
 "use server";
 import { createClient } from "../../utils/supabase/server";
-
+import { defaultModuleProgress } from "../helpers/helpers";
 //Fresh course inserted into backend
 export async function insertNewCourse(payload) {
     const supabase = await createClient();
