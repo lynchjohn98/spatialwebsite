@@ -13,6 +13,8 @@ export default function Grades() {
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
+  
+
   const studentGradesMap = gradesData.reduce((acc, grade) => {
     const studentId = grade.student_id;
     if (!acc[studentId]) {

@@ -11,7 +11,7 @@ export default function TeacherHelpPage() {
       Hello World
       <h1 className="text-3xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Help Page</h1>
 
-      <p> WWhat type of questions are on the quizzes?</p>
+      <p> What type of questions are on the quizzes?</p>
       <div>
         Before each quiz a brief overview will provide the types of questions the quiz will have.
         <ul>

@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getAllTeacherCourses,
+  getAllTeacherCourses
 } from "../../library/services/teacher_actions";
+import { deleteCourse } from "../../library/services/course_actions";
 
 export default function TeacherCoursesPage() {
   const router = useRouter();
@@ -11,6 +12,10 @@ export default function TeacherCoursesPage() {
   const [allCourses, setAllCourses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showActions, setShowActions] = useState({}); // For mobile menu
 
   useEffect(() => {
     const loadTeacherData = async () => {
@@ -34,7 +39,7 @@ export default function TeacherCoursesPage() {
     loadTeacherData();
   }, []);
 
- const formatDate = (dateString) => {
+  const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -44,18 +49,16 @@ export default function TeacherCoursesPage() {
     });
   };
 
-const handleCopy = async (joinCode) => {
+  const handleCopy = async (joinCode) => {
     try {
       await navigator.clipboard.writeText(joinCode);
       setCopiedCode(joinCode);
       
-      // Reset the "copied" state after 2 seconds
       setTimeout(() => {
         setCopiedCode(null);
       }, 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
-      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = joinCode;
       document.body.appendChild(textArea);
@@ -65,6 +68,47 @@ const handleCopy = async (joinCode) => {
       setCopiedCode(joinCode);
       setTimeout(() => setCopiedCode(null), 2000);
     }
+  };
+
+  const handleDeleteClick = (course) => {
+    setCourseToDelete(course);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!courseToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const result = await deleteCourse(courseToDelete.id);
+      if (result.success) {
+        // Remove the course from the list
+        setAllCourses(allCourses.filter(c => c.id !== courseToDelete.id));
+        setShowDeleteModal(false);
+        setCourseToDelete(null);
+        
+        // Update session storage if needed
+        const storedData = JSON.parse(sessionStorage.getItem("teacherData"));
+        if (storedData && storedData.courses) {
+          storedData.courses = storedData.courses.filter(c => c.id !== courseToDelete.id);
+          sessionStorage.setItem("teacherData", JSON.stringify(storedData));
+        }
+      } else {
+        alert("Failed to delete course. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      alert("An error occurred while deleting the course.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const toggleActions = (courseId) => {
+    setShowActions(prev => ({
+      ...prev,
+      [courseId]: !prev[courseId]
+    }));
   };
 
   const getBadgeColor = (type, value) => {
@@ -95,6 +139,51 @@ const handleCopy = async (joinCode) => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-800 rounded-lg max-w-md w-full p-6 border border-gray-700">
+            <h3 className="text-xl font-semibold mb-4 text-white">Delete Course</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete <span className="font-semibold text-white">
+                {courseToDelete?.course_name || 'this course'}
+              </span>? This action cannot be undone and will remove all associated students, grades, and settings.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setCourseToDelete(null);
+                }}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Delete Course</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gray-800/50 border-b border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -158,6 +247,7 @@ const handleCopy = async (joinCode) => {
                         <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Demographics</th>
                         <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Research</th>
                         <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Created</th>
+                        <th className="px-8 py-4 text-center text-sm font-medium text-gray-400 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
@@ -169,10 +259,9 @@ const handleCopy = async (joinCode) => {
                                 {course.course_name || 'Unnamed Course'}
                               </div>
                               
-                              {/* Join Code with Copy Button */}
                               <div className="flex items-center gap-2 mb-2">
                                 <div className="text-sm text-blue-300 font-mono">
-                                  <span>Teacher Join Code: </span>{course.course_join_code}
+                                  <span>Join Code: </span>{course.course_join_code}
                                 </div>
                                 
                                 <button
@@ -191,7 +280,6 @@ const handleCopy = async (joinCode) => {
                                   )}
                                 </button>
                                 
-                                {/* "Code copied" text */}
                                 {copiedCode === course.course_join_code && (
                                   <span className="text-xs text-green-400 font-medium animate-fade-in">
                                     Code copied!
@@ -238,6 +326,19 @@ const handleCopy = async (joinCode) => {
                           <td className="px-8 py-6 text-sm text-gray-400">
                             {formatDate(course.created_at)}
                           </td>
+                          <td className="px-8 py-6">
+                            <div className="flex justify-center">
+                              <button
+                                onClick={() => handleDeleteClick(course)}
+                                className="p-2 bg-red-600/20 hover:bg-red-600/30 rounded-lg transition-colors group"
+                                title="Delete course"
+                              >
+                                <svg className="w-5 h-5 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -250,7 +351,7 @@ const handleCopy = async (joinCode) => {
             <div className="lg:hidden space-y-4">
               {allCourses.map((course) => (
                 <div key={course.id} className="bg-gray-800/50 rounded-lg border border-gray-700 p-6">
-                  {/* Course Header */}
+                  {/* Course Header with Actions */}
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-white text-lg mb-2">
@@ -279,7 +380,6 @@ const handleCopy = async (joinCode) => {
                           )}
                         </button>
                         
-                        {/* "Code copied" text */}
                         {copiedCode === course.course_join_code && (
                           <span className="text-xs text-green-400 font-medium animate-fade-in">
                             Code copied!
@@ -288,6 +388,38 @@ const handleCopy = async (joinCode) => {
                       </div>
                     </div>
                     
+                    {/* Mobile Actions Menu */}
+                    <div className="relative">
+                      <button
+                        onClick={() => toggleActions(course.id)}
+                        className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
+                      >
+                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
+                      </button>
+                      
+                      {showActions[course.id] && (
+                        <div className="absolute right-0 top-10 z-20 bg-gray-700 rounded-lg shadow-lg border border-gray-600 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              handleDeleteClick(course);
+                              setShowActions({});
+                            }}
+                            className="flex items-center gap-2 px-4 py-3 hover:bg-gray-600 transition-colors text-red-400 w-full text-left"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Delete Course</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Research Badge */}
+                  <div className="mb-4">
                     <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white ${getBadgeColor('research', course.course_research)}`}>
                       Research: {course.course_research ? 'Yes' : 'No'}
                     </span>

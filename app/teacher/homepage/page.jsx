@@ -1,5 +1,4 @@
 "use client";
-
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ResponsiveButton from "../../../components/page_blocks/ResponsiveButton";
@@ -93,6 +92,7 @@ export default function TeacherHomePage() {
                 />
               </svg>
               <span className="font-medium">Sign Out and Return to Main Menu</span>
+              
             </button>
 
           </div>

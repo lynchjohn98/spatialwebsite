@@ -1,8 +1,6 @@
 "use server";
 import { createClient } from "../../utils/supabase/server";
 import { v4 as uuidv4, v4 } from "uuid";
-import { generateStudentCode } from "../helpers/serverhelpers";
-
 
 export async function createTeacherAccount(payload) {
   const supabase = await createClient();
@@ -41,16 +39,23 @@ export async function createTeacherAccount(payload) {
   }
 }
 
-
+/*
+Function logins an existing account and access all elements that are associated with the accounts
+- teachers information
+-
+*/
 export async function loginTeacherAccount(payload) {
   const supabase = await createClient();
   try {
     const { data, error } = await supabase
       .from("teachers")
-      .select("*")
+      .select(`
+        *,
+        courses (*)
+      `)
       .eq("username", payload.username)
       .eq("password", payload.password)
-      .single();
+      .single(); 
     if (error) {
       console.error("❌ Supabase Select Error:", error.message);
       return { error: error.message };
@@ -62,6 +67,12 @@ export async function loginTeacherAccount(payload) {
   }
 }
 
+export async function logoutTeacherAccount() {
+  sessionStorage.clear();
+
+}
+
+
 export async function getTeacherData(payload) {
   console.log("Inside getTeacherData with ID:", payload);
   const supabase = await createClient();
@@ -70,7 +81,7 @@ export async function getTeacherData(payload) {
       .from("teachers")
       .select(`
     *,
-    teacher_grades(*)
+    teachers_grades(*)
   `)
       .eq("id", payload.id)
       .single();
@@ -132,7 +143,7 @@ export async function submitTeacherQuiz(payload) {
       return { error: error.message };
     }
     const { data: quizDataResponse, error: quizError } = await supabase
-      .from("teacher_grades")
+      .from("teachers_grades")
       .insert([
         {
           created_at: new Date().toISOString(),

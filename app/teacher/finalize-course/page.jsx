@@ -3,20 +3,22 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { generateJoinCode } from "../../library/helpers/helpers";
 import { getTeacherData } from "../../library/services/teacher_actions";
-import { insertCourseSettings, insertNewCourse, generateDefaultModuleQuizInformation, generateDefaultStudent } from "../../library/services/course_actions";
+import {
+  insertCourseSettings,
+  insertNewCourse,
+  generateDefaultModuleQuizInformation,
+} from "../../library/services/course_actions";
 export default function FinalizeCourse() {
   const router = useRouter();
 
   const [courseData, setCourseData] = useState(null);
   const [joinCode, setJoinCode] = useState("");
-  const [teacherCode, setTeacherCode] = useState("");
   const [successMessage, setSuccessMessage] = useState(null);
   const [copied, setCopied] = useState(false);
   const [teacherData, setTeacherData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [courseName, setCourseName] = useState("");
-
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const tooltipRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -37,9 +39,6 @@ export default function FinalizeCourse() {
         } else {
           setTeacherData(storedData);
         }
-        console.log("Teacher data loaded:", result.data);
-        console.log("Teacher data from sessionStorage:", storedData);
-        console.log(result.data.id);
       } catch (error) {
         console.error("Error loading teacher data:", error);
       } finally {
@@ -48,7 +47,6 @@ export default function FinalizeCourse() {
     };
     loadTeacherData();
   }, []);
-
 
   useEffect(() => {
     const storedData = sessionStorage.getItem("courseData");
@@ -119,16 +117,14 @@ export default function FinalizeCourse() {
         courseName: courseName || "Default Course",
       };
 
-
       const result = await insertNewCourse(allCourseData);
-      const studentResult = await generateDefaultStudent(result.courseId);
 
       console.log("INFORMATION FROM REGULAR RESULT", result);
       const allPayload = {
         courseSettings: JSON.stringify(allCourseData),
         moduleSettings: JSON.stringify(otherData.modules),
         quizSettings: JSON.stringify(otherData.quizzes),
-        studentSettings: JSON.stringify(studentResult.data),
+        studentSettings: JSON.stringify({}), // Initialize with empty JSON
         courseId: result.courseId,
       };
       const result2 = await insertCourseSettings(allPayload);
@@ -163,10 +159,8 @@ export default function FinalizeCourse() {
                 Please make sure to save the following credentials:
               </p>
               <div className="bg-gray-800 p-4 rounded-md mb-4">
-                 <div>
-                  <p className="text-sm text-gray-300 mb-1">
-                    Course Name:
-                  </p>
+                <div>
+                  <p className="text-sm text-gray-300 mb-1">Course Name:</p>
                   <div className="relative">
                     <p className="font-mono text-lg bg-gray-700 p-2 rounded">
                       {successMessage.courseName}
@@ -181,7 +175,7 @@ export default function FinalizeCourse() {
                   <p className="font-mono text-lg bg-gray-700 p-2 rounded">
                     {successMessage.joinCode}
                   </p>
-                </div> 
+                </div>
               </div>
 
               <div className="flex flex-col space-y-3">
@@ -257,18 +251,17 @@ export default function FinalizeCourse() {
               </div>
 
               <div className="space-y-6">
-             
                 <label className="block text-lg font-medium mb-2">
-                    Your Course Name (Optional):
-                  </label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={courseName}  
-                      onChange={(e) => setCourseName(e.target.value)}
-                      className="flex-1 px-4 py-2 rounded text-black bg-gray-100"
-                      placeholder="Enter course name"
-                    />
+                  Your Course Name (Optional):
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                    className="flex-1 px-4 py-2 rounded text-black bg-gray-100"
+                    placeholder="Enter course name"
+                  />
                 </div>
               </div>
 
@@ -326,18 +319,19 @@ export default function FinalizeCourse() {
 
             <div className="space-y-4 text-sm max-h-96 overflow-y-auto">
               <div className="mb-4">
-                The following section asks for a <b> Join Code </b>, which is generated by the button. Please mark this down to distinguish between your courses.
+                The following section asks for a <b> Join Code </b>, which is
+                generated by the button. Please mark this down to distinguish
+                between your courses.
               </div>
-
 
               <div>
                 <span className="font-semibold text-blue-200 text-base">
                   Course Join Code:
                 </span>
                 <p className="text-white-300 mt-1">
-                  This is an automatically generated code that you will use to access the teacher dashboard of your courses.
-                  Each course you create will have a unique join code.
- 
+                  This is an automatically generated code that you will use to
+                  access the teacher dashboard of your courses. Each course you
+                  create will have a unique join code.
                 </p>
               </div>
             </div>

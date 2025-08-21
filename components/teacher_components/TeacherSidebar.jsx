@@ -49,24 +49,15 @@ export default function Sidebar({
   isSidebarOpen,
   setIsSidebarOpen,
   courseData,
-  teacherData,
 }) {
   const router = useRouter();
   const [activeRoute, setActiveRoute] = useState("");
-  console.log("Course Data in Sidebar:", courseData);
   useEffect(() => {
     const path = window.location.pathname;
     setActiveRoute(path);
   }, []);
 
-  const handleNavigation = (route) => {
-    if (courseData) {
-      const queryString = new URLSearchParams(courseData).toString();
-      router.push(`${route}?${queryString}`);
-    } else {
-      router.push(route);
-    }
-  };
+
   const handleMobileNavClick = (route) => {
     setActiveRoute(route);
     router.push(route);

@@ -1,10 +1,10 @@
 "use client";
-import { studentCourseJoin } from "../../library/services/actions";
+import { studentJoinCourse } from "../../library/services/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function StudentJoin() {
-  const [studentJoinCode, setStudentJoinCode] = useState("");
+  const [studentUsername, setStudentUsername] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -15,46 +15,38 @@ export default function StudentJoin() {
     
     // Limit to exactly 8 characters
     if (value.length <= 8) {
-      setStudentJoinCode(value);
+      setStudentUsername(value);
     }
   };
 
   const handleSubmit = async () => {
     setError("");
-    if (studentJoinCode.length !== 8) {
+    if (studentUsername.length !== 8) {
       setError("Please enter the complete 8-character code provided by your instructor.");
       return;
     }
     setIsLoading(true);  
     try {
-      const result = await studentCourseJoin({ 
-        studentJoinCode: studentJoinCode.toUpperCase(),
+      const result = await studentJoinCourse({ 
+        student_username: studentUsername.toUpperCase(),
       });
       
       if (result.error) {
         setError("Invalid join code. Please check with your instructor and try again.");
       } else {
         console.log(result);
-        
-        // Store student data separately
+
         sessionStorage.setItem("studentData", JSON.stringify(result.data.student));
-        
-        // Store course data (containing course object and settings)
         sessionStorage.setItem("courseData", JSON.stringify(result.data.courseData));
-        
-        // Optionally, store module and quiz data separately for easier access
         const moduleSettings = result.data.courseData.settings.module_settings;
         const quizSettings = result.data.courseData.settings.quiz_settings;
-        
         if (moduleSettings) {
           sessionStorage.setItem("moduleData", moduleSettings);
         }
-        
         if (quizSettings) {
           sessionStorage.setItem("quizData", quizSettings);
         }
-        
-        router.push("/student-dashboard");
+        router.push("/student/student-dashboard");
       }
     } catch (error) {
       console.error("Error joining course:", error);
@@ -119,7 +111,7 @@ export default function StudentJoin() {
               Join Course
             </h1>
             <p className="text-gray-400 leading-relaxed">
-              Enter the join code provided by your instructor to access your spatial thinking course
+              Enter the username provided by your instructor to access your spatial thinking course
             </p>
           </div>
 
@@ -140,17 +132,12 @@ export default function StudentJoin() {
             {/* Join Code Input */}
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-200">
-                Course Join Code
+                Student Username
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                  </svg>
-                </div>
                 <input
                   type="text"
-                  value={studentJoinCode}
+                  value={studentUsername}
                   onChange={handleJoinCodeChange}
                   className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white text-center font-mono text-lg tracking-wider placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none transition-colors"
                   placeholder="ABCD-1234"
@@ -162,9 +149,7 @@ export default function StudentJoin() {
                 <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
-                <p className="text-sm text-gray-400">
-                  Enter the 8-character code exactly as provided by your instructor
-                </p>
+     
               </div>
               
               {/* Character count indicator */}
@@ -174,7 +159,7 @@ export default function StudentJoin() {
                     <div
                       key={index}
                       className={`w-3 h-3 rounded-full ${
-                        index < studentJoinCode.length
+                        index < studentUsername.length
                           ? 'bg-green-500'
                           : 'bg-gray-600'
                       }`}
@@ -182,7 +167,7 @@ export default function StudentJoin() {
                   ))}
                 </div>
                 <span className="text-xs text-gray-500">
-                  {studentJoinCode.length}/8
+                  {studentUsername.length}/8
                 </span>
               </div>
             </div>
@@ -191,7 +176,7 @@ export default function StudentJoin() {
             <div className="pt-2">
               <button
                 onClick={handleSubmit}
-                disabled={isLoading || studentJoinCode.length !== 8}
+                disabled={isLoading || studentUsername.length !== 8}
                 className="w-full py-3 rounded-lg font-medium transition-colors bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white"
               >
                 {isLoading ? "Joining Course..." : "Join Course"}
@@ -200,18 +185,18 @@ export default function StudentJoin() {
           </div>
 
           {/* Help Section */}
-          <div className="mt-8 bg-gray-800/30 border border-gray-700 rounded-xl p-6">
-            <h3 className="text-white font-medium mb-3 flex items-center gap-2">
-              <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mt-8 text-center bg-gray-800/30 border border-gray-700 rounded-xl p-6">
+            <h3 className="text-white font-medium mb-3 flex items-center gap-2 text-center">
+              <svg className="w-5 h-5 text-green-400 " fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Need Help?
             </h3>
             <div className="space-y-3 text-sm text-gray-400">
-              <p>• Ask your instructor for the correct join code</p>
+              <p>• Ask your instructor for the username located in the course Dashboard</p>
               <p>• Make sure you enter all 8 characters</p>
-              <p>• The code is case-sensitive and may contain letters and numbers</p>
-              <p>• Contact your instructor if you continue having issues</p>
+              <p>• The username is NOT case-sensitive and contains letters and numbers</p>
+
             </div>
           </div>
 

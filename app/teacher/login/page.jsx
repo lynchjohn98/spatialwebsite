@@ -13,12 +13,10 @@ export default function TeacherMainPage() {
 
   const handleLogin = async () => {
     setError("");
-
     if (!username.trim() || !password.trim()) {
       setError("Please enter both username and password.");
       return;
     }
-
     setIsLoading(true);
     try {
       const result = await loginTeacherAccount({
@@ -30,6 +28,7 @@ export default function TeacherMainPage() {
         setError("Incorrect password. Please try again.");
       } else {
         sessionStorage.setItem("teacherData", JSON.stringify(result.data));
+        console.log("LOGGED INTO THE ACCOUNT:", result.data);
         router.push("/teacher/homepage");
       }
     } catch (error) {
@@ -53,7 +52,6 @@ export default function TeacherMainPage() {
 
   return (
     <div className="min-h-screen w-full bg-gray-900 text-white">
-      {/* Sticky Header */}
       <div className="bg-gray-800/50 border-b border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -79,11 +77,8 @@ export default function TeacherMainPage() {
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-8">
         <div className="w-full max-w-md">
-          {/* Header Section */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,10 +92,7 @@ export default function TeacherMainPage() {
               Sign in to access your spatial thinking training dashboard
             </p>
           </div>
-
-          {/* Login Form */}
           <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-6 sm:p-8 space-y-6">
-            {/* Error Message */}
             {error && (
               <div className="p-4 bg-red-600/20 border border-red-500 text-red-200 rounded-lg">
                 <div className="flex items-center gap-2">

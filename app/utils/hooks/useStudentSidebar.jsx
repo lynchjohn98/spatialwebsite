@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function useSidebar(defaultOpen = false) {
+export function useStudentSidebar(defaultOpen = false) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(defaultOpen);
 
   useEffect(() => {

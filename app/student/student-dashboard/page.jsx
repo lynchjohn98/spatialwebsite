@@ -1,60 +1,27 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import StudentSidebar from "../../../components/student_components/StudentSidebar"
+import StudentSidebar from "../../../components/student_components/StudentSidebar";
+import { useStudentSidebar } from "../../utils/hooks/useStudentSidebar"; // Import the hook
 
 export default function StudentDashboard() {
   const router = useRouter();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const {isSidebarOpen, setIsSidebarOpen} = useStudentSidebar();
   const [courseData, setCourseData] = useState(null);
   const [studentData, setStudentData] = useState(null);
-  const [moduleData, setModuleData] = useState([]);
-  const [quizData, setQuizData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-useEffect(() => {
-  const checkWindowSize = () => {
-    if (window.innerWidth >= 1024) {
-      setIsSidebarOpen(true);
-    } else {
-      setIsSidebarOpen(false);
-    }
-  };
-  window.addEventListener("resize", checkWindowSize);
-  checkWindowSize();
-  const loadData = () => {
-    setIsLoading(true);
+  useEffect(() => {
     const storedCourseData = sessionStorage.getItem("courseData");
     const storedStudentData = sessionStorage.getItem("studentData");
     if (storedCourseData && storedStudentData) {
       try {
-        const parsedCourseData = JSON.parse(storedCourseData);
-        setCourseData(parsedCourseData);
-        const parsedStudentData = JSON.parse(storedStudentData);
-        setStudentData(parsedStudentData);
-
-        if (parsedCourseData.settings && parsedCourseData.settings.module_settings) {
-          let moduleSettings;
-          if (typeof parsedCourseData.settings.module_settings === 'string') {
-            moduleSettings = JSON.parse(parsedCourseData.settings.module_settings);
-          } else {
-            moduleSettings = parsedCourseData.settings.module_settings;
-          }
-          setModuleData(moduleSettings);
-        }
-        
-        if (parsedCourseData.settings && parsedCourseData.settings.quiz_settings) {
-          let quizSettings;
-          if (typeof parsedCourseData.settings.quiz_settings === 'string') {
-            quizSettings = JSON.parse(parsedCourseData.settings.quiz_settings);
-          } else {
-            quizSettings = parsedCourseData.settings.quiz_settings;
-          }
-          setQuizData(quizSettings);
-        }  
-        setIsLoading(false);
+        setCourseData(JSON.parse(storedCourseData));
+        setStudentData(JSON.parse(storedStudentData));
+                console.log(courseData);
+        console.log(studentData);
       } catch (error) {
-        console.error("Error parsing session data:", error);
+        console.error("Error parsing session storage data:", error);
         sessionStorage.removeItem("courseData");
         sessionStorage.removeItem("studentData");
         router.push("/student-join");
@@ -62,21 +29,15 @@ useEffect(() => {
     } else {
       router.push("/student-join");
     }
-  };
-  loadData();
-  return () => window.removeEventListener("resize", checkWindowSize);
-}, [router]);
+  }, [router]);
 
-if (isLoading || !courseData || !studentData) {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl">
-      <div className="flex flex-col items-center">
-        <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-4"></div>
+  if (!courseData || !studentData) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl">
         Loading...
       </div>
-    </div>
-  );
-}
+    );  
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
@@ -130,7 +91,9 @@ if (isLoading || !courseData || !studentData) {
                   </svg>
                 </span>
                 <span>
-                  Please use the sidebar on the leftside to access your modules and quizzes. If none are visible, please inform your instructor.
+                  Please use the sidebar on the leftside to access your modules
+                  and quizzes. If none are visible, please inform your
+                  instructor.
                 </span>
               </li>
 
@@ -153,7 +116,8 @@ if (isLoading || !courseData || !studentData) {
                   </svg>
                 </span>
                 <span>
-                  You can view your grades on previous quiz attempts in the Grades section of the sidebar.
+                  You can view your grades on previous quiz attempts in the
+                  Grades section of the sidebar.
                 </span>
               </li>
 

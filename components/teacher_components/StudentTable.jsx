@@ -7,6 +7,13 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
   const [data, setData] = useState([]);
   const [showTable, setShowTable] = useState(false);
   
+  // Get default gender from course data
+  const getDefaultGender = () => {
+    if (courseData?.course_gender === 'Male') return 'Male';
+    if (courseData?.course_gender === 'Female') return 'Female';
+    return 'Not Disclosed';
+  };
+  
   useEffect(() => {
     if (typeof tableData === 'string') {
       try {
@@ -14,10 +21,12 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
         const cleanedData = Array.isArray(parsedData) ? parsedData : [parsedData];
         const updatedData = cleanedData.map(student => ({
           ...student,
-          gender: student.gender || 'Not Disclosed',
+          gender: student.gender || getDefaultGender(),
           genderOther: student.genderOther || '',
           age: student.age || '',
-          esl_status: student.esl_status || 'No'
+          esl_status: student.esl_status || 'No',
+          // Map student_join_code to student_username for backward compatibility
+          student_username: student.student_username || student.student_join_code || ''
         }));
         setData(updatedData);
       } catch (error) {
@@ -28,86 +37,86 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
       const cleanedData = Array.isArray(tableData) ? tableData : tableData ? [tableData] : [];
       const updatedData = cleanedData.map(student => ({
         ...student,
-        gender: student.gender || 'Not Disclosed',
+        gender: student.gender || getDefaultGender(),
         genderOther: student.genderOther || '',
         age: student.age || '',
-        esl_status: student.esl_status || 'No'
+        esl_status: student.esl_status || 'No',
+        student_username: student.student_username || student.student_join_code || ''
       }));
       setData(updatedData);
     }
-  }, [tableData]);
+  }, [tableData, courseData]);
 
   const addStudent = () => {
     const newStudent = {
       first_name: "",
       last_name: "",
-      gender: "Not Disclosed",
+      gender: getDefaultGender(), // Use course default gender
       genderOther: "",
       age: "",
       esl_status: "No",
       other: "",
-      student_join_code: "", // Will be generated when last name is entered
+      student_username: "", // Changed from student_join_code
     };
     setData([...data, newStudent]);
   };
 
   
-//Current format:   // Format: lastname2chars + lastname2chars + teacher2chars + random2digits
-// Example: "hn" + "th" + "ms" + "45" = "hnthms45"
-const generateStudentUsername = (firstName, lastName, teacherName, countyName) => {
-  const cleanFirstName = firstName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
-  const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
-  const cleanTeacher = teacherName.toLowerCase().replace(/[^a-z]/g, '').slice(-2);
-  const countyNumber = countyNumbers[countyName] || '00'; // Default to '00' if county not found
-  return `${cleanFirstName}${cleanLastName}${cleanTeacher}${countyNumber}`;
-};
+  // Current format: firstname2chars + lastname2chars + teacher2chars + countyNumber
+  // Example: "jo" + "sm" + "ms" + "01" = "josms01"
+  const generateStudentUsername = (firstName, lastName, teacherName, countyName) => {
+    const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-3).padEnd(3, 'x');
+    const cleanTeacher = teacherName.toLowerCase().replace(/[^a-z]/g, '').slice(-3).padEnd(3, 'x');
+    const countyNumber = countyNumbers[countyName] || '00';
+    return `${cleanLastName}${cleanTeacher}${countyNumber}`;
+  };
 
-// Updated regenerateUsername function
-const regenerateUsername = (index) => {
-  const student = data[index];
-  if (student.first_name && student.last_name && teacherName && countyName) {
-    const newUsername = generateStudentUsername(
-      student.first_name,      // Now includes first name
-      student.last_name,
-      teacherName,
-      countyName
+  // Updated regenerateUsername function
+  const regenerateUsername = (index) => {
+    const student = data[index];
+    if (student.first_name && student.last_name && teacherName && countyName) {
+      const newUsername = generateStudentUsername(
+        student.first_name,
+        student.last_name,
+        teacherName,
+        countyName
+      );
+      updateStudent(index, 'student_username', newUsername);
+    }
+  };
+
+  // Updated updateStudent function
+  const updateStudent = (index, field, value) => {
+    setData(prevData => 
+      prevData.map((student, i) => {
+        if (i === index) {
+          const updatedStudent = { ...student, [field]: value };
+          
+          // Clear genderOther if gender is not "Other"
+          if (field === 'gender' && value !== 'Other') {
+            updatedStudent.genderOther = '';
+          }
+          
+          // Auto-generate username when first name OR last name is entered/changed
+          if ((field === 'first_name' || field === 'last_name') && 
+              updatedStudent.first_name?.trim() && 
+              updatedStudent.last_name?.trim() && 
+              teacherName && 
+              countyName) {
+            updatedStudent.student_username = generateStudentUsername(
+              updatedStudent.first_name.trim(),
+              updatedStudent.last_name.trim(),
+              teacherName,
+              countyName
+            );
+          }
+          
+          return updatedStudent;
+        }
+        return student;
+      })
     );
-    updateStudent(index, 'student_join_code', newUsername);
-  }
-};
-
-// Updated updateStudent function to generate username when first OR last name changes
-const updateStudent = (index, field, value) => {
-  setData(prevData => 
-    prevData.map((student, i) => {
-      if (i === index) {
-        const updatedStudent = { ...student, [field]: value };
-        
-        // Clear genderOther if gender is not "Other"
-        if (field === 'gender' && value !== 'Other') {
-          updatedStudent.genderOther = '';
-        }
-        
-        // Auto-generate username when first name OR last name is entered/changed
-        if ((field === 'first_name' || field === 'last_name') && 
-            updatedStudent.first_name?.trim() && 
-            updatedStudent.last_name?.trim() && 
-            teacherName && 
-            countyName) {
-          updatedStudent.student_join_code = generateStudentUsername(
-            updatedStudent.first_name.trim(),
-            updatedStudent.last_name.trim(),
-            teacherName,
-            countyName
-          );
-        }
-        
-        return updatedStudent;
-      }
-      return student;
-    })
-  );
-};
+  };
 
   
   const removeStudent = (index) => {
@@ -129,6 +138,11 @@ const updateStudent = (index, field, value) => {
     removeStudent
   }));
 
+  // Show gender column only if course is Mixed or not specified
+  const shouldShowGenderColumn = !courseData?.course_gender || 
+                                  courseData.course_gender === 'Mixed' || 
+                                  courseData.course_gender === 'Other';
+
   return (
     <div className="w-full bg-gray-800 p-4 rounded-lg shadow-md m-4">
       <div
@@ -145,13 +159,24 @@ const updateStudent = (index, field, value) => {
           showTable ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
+        {/* Show course gender info if it's single-gender */}
+        {courseData?.course_gender && (courseData.course_gender === 'Male' || courseData.course_gender === 'Female') && (
+          <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-2 mt-2 mb-2">
+            <p className="text-sm text-blue-300">
+              ℹ️ This is a <strong>{courseData.course_gender}</strong> course. All students will default to {courseData.course_gender} gender.
+            </p>
+          </div>
+        )}
+        
         <div className="overflow-auto max-h-[400px] mt-2">
           <table className="table-auto w-full border-collapse border border-gray-600 min-w-[900px]">
             <thead className="bg-gray-700 sticky top-0 z-10">
               <tr>
                 <th className="border border-gray-600 px-4 py-2">First Name</th>
                 <th className="border border-gray-600 px-4 py-2">Last Name</th>
-                <th className="border border-gray-600 px-4 py-2">Gender</th>
+                {shouldShowGenderColumn && (
+                  <th className="border border-gray-600 px-4 py-2">Gender</th>
+                )}
                 <th className="border border-gray-600 px-4 py-2">Age</th>
                 <th className="border border-gray-600 px-4 py-2">ESL Status</th>
                 <th className="border border-gray-600 px-4 py-2">Username</th>
@@ -179,33 +204,35 @@ const updateStudent = (index, field, value) => {
                         className="w-full bg-gray-700 text-white p-1 rounded"
                         placeholder="Enter last name"
                       />
-                      {student.last_name && !student.student_join_code && (
+                      {student.last_name && !student.student_username && (
                         <p className="text-xs text-yellow-400 mt-1">
-                          Username will generate when you enter the last name
+                          Username will generate when you enter both names
                         </p>
                       )}
                     </td>
-                    <td className="border border-gray-600 px-2 py-2">
-                      <select
-                        value={student.gender || 'Not Disclosed'}
-                        onChange={(e) => updateStudent(index, 'gender', e.target.value)}
-                        className="w-full bg-gray-700 text-white p-1 rounded mb-1"
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                        <option value="Not Disclosed">Not Disclosed</option>
-                      </select>
-                      {student.gender === 'Other' && (
-                        <input
-                          type="text"
-                          value={student.genderOther || ''}
-                          onChange={(e) => updateStudent(index, 'genderOther', e.target.value)}
-                          className="w-full bg-gray-600 text-white p-1 rounded text-xs"
-                          placeholder="Please specify"
-                        />
-                      )}
-                    </td>
+                    {shouldShowGenderColumn && (
+                      <td className="border border-gray-600 px-2 py-2">
+                        <select
+                          value={student.gender || 'Not Disclosed'}
+                          onChange={(e) => updateStudent(index, 'gender', e.target.value)}
+                          className="w-full bg-gray-700 text-white p-1 rounded mb-1"
+                        >
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                          <option value="Not Disclosed">Not Disclosed</option>
+                        </select>
+                        {student.gender === 'Other' && (
+                          <input
+                            type="text"
+                            value={student.genderOther || ''}
+                            onChange={(e) => updateStudent(index, 'genderOther', e.target.value)}
+                            className="w-full bg-gray-600 text-white p-1 rounded text-xs"
+                            placeholder="Please specify"
+                          />
+                        )}
+                      </td>
+                    )}
                     <td className="border border-gray-600 px-2 py-2">
                       <div className="flex flex-col gap-1">
                         <select
@@ -243,9 +270,9 @@ const updateStudent = (index, field, value) => {
                     <td className="border border-gray-600 px-2 py-2">
                       <div className="flex items-center">
                         <span className="bg-blue-900 px-2 py-1 rounded font-mono text-xs flex-1 mr-2 break-all">
-                          {student.student_join_code || 'Enter last name first'}
+                          {student.student_username || 'Enter both names'}
                         </span>
-                        {student.last_name && (
+                        {student.first_name && student.last_name && (
                           <button
                             onClick={() => regenerateUsername(index)}
                             className="p-1 rounded-full bg-gray-600 hover:bg-blue-600 transition-colors flex-shrink-0"
@@ -283,7 +310,7 @@ const updateStudent = (index, field, value) => {
               ) : (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan={shouldShowGenderColumn ? "7" : "6"}
                     className="text-center border border-gray-600 px-4 py-2"
                   >
                     No students found.
@@ -297,6 +324,9 @@ const updateStudent = (index, field, value) => {
         <div className="mt-3 flex justify-between items-center">
           <div className="text-sm text-gray-400">
             Total Students: {data.length}
+            {!shouldShowGenderColumn && courseData?.course_gender && (
+              <span className="ml-2">| Course Gender: {courseData.course_gender}</span>
+            )}
           </div>
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

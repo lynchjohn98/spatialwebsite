@@ -1,19 +1,18 @@
 
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../../components/teacher_components/TeacherSidebar";
-import HamburgerButton from "../../../components/page_blocks/HamburgerButton";
-import { useSidebar } from "../../library/utils/hooks/useSidebar"; // Import the hook
+import { useTeacherSidebar } from "../../utils/hooks/useTeacherSidebar"; // Import the hook
 
 export default function TeacherDashboard() {
-  const { isSidebarOpen, setIsSidebarOpen } = useSidebar(); // Use the hook
-  const [courseData, setCourseData] = useState(null);
+
   const router = useRouter();
+  const { isSidebarOpen, setIsSidebarOpen } = useTeacherSidebar(); // Use the hook
+  const [courseData, setCourseData] = useState(null);
 
   useEffect(() => {
     const storedData = sessionStorage.getItem("courseData");
-    console.log(storedData);
     if (storedData) {
       try {
         setCourseData(JSON.parse(storedData));
