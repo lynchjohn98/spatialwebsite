@@ -17,6 +17,14 @@ export default function Settings() {
   const studentTableRef = useRef();
 
 
+/*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Fetches course settings from the database and stores it in the component's state.
+   * Also stores the student settings in the state.
+   * If the course data is not found in the session storage, or if the request fails,
+   * it will display an error message.
+   */
+/*******  54da6dd1-42b4-4043-b69e-b5cbbdb13d0d  *******/
   const fetchCourseSettings = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
