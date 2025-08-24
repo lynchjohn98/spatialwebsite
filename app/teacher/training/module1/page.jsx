@@ -215,8 +215,7 @@ export default function TeacherTraining() {
                 </div>
                 <div className="bg-gray-700/30 p-6 rounded-lg">
                   <p className="mb-4 text-gray-200 font-medium">
-                    Review the video below for an introduction to spatial skills
-                    and their importance in various careers.
+                    Review the video below for an introduction to Module 1.
                   </p>
                   <ExpandableVideo
                     videoId="https://www.youtube.com/watch?v=Js_UC4fAZns"

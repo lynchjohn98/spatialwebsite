@@ -1,3 +1,5 @@
+// Module Page for Students Pre-Module Activities
+
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -5,35 +7,85 @@ import { useStudentSidebar } from "../../../../utils/hooks/useStudentSidebar";
 import StudentSidebar from "../../../../../components/student_components/StudentSidebar";
 import ExpandableVideo from "../../../../../components/module_blocks/ExpandableVideo";
 import ExpandableWebpage from "../../../../../components/module_blocks/ExpandableWebpage";
+import { updateStudentModuleProgress } from "../../../../library/services/student_actions";
 
 export default function StudentModulePage() {
   const router = useRouter();
-  const params = useParams();
   const { isSidebarOpen, setIsSidebarOpen } = useStudentSidebar();
   const [courseData, setCourseData] = useState(null);
   const [studentData, setStudentData] = useState(null);
+  const [moduleProgressData, setModuleProgressData] = useState(null);
+  const [introductionVideoCompleted, setIntroductionVideoCompleted] = useState(false);
   const [workbookCompleted, setWorkbookCompleted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
+  
   useEffect(() => {
     const storedCourseData = sessionStorage.getItem("courseData");
     const storedStudentData = sessionStorage.getItem("studentData");
-    if (storedCourseData && storedStudentData) {
+    const storedProgressData = sessionStorage.getItem("studentProgressData");
+
+    if (storedCourseData && storedStudentData && storedProgressData) {
       try {
         const parsedCourseData = JSON.parse(storedCourseData);
         const parsedStudentData = JSON.parse(storedStudentData);
+        const parsedProgressData = JSON.parse(storedProgressData);
+
         setCourseData(parsedCourseData);
         setStudentData(parsedStudentData);
+        setModuleProgressData(parsedProgressData);
+
+        // Get the Pre-Module progress data
+        const preModuleProgress =
+          parsedProgressData["Pre-Module: The Importance of Spatial Skills"];
+        console.log("Pre-Module Progress:", preModuleProgress);
+
+        // Initialize the checkbox states from the saved progress
+        if (preModuleProgress) {
+          setIntroductionVideoCompleted(
+            preModuleProgress.introduction_video || false
+          );
+          setWorkbookCompleted(preModuleProgress.workbook || false);
+
+          // If you have other checkboxes, set them too:
+          // setQuizCompleted(preModuleProgress.quiz || false);
+          // setSoftwareCompleted(preModuleProgress.software || false);
+          // setMiniLectureCompleted(preModuleProgress.mini_lecture || false);
+          // setGettingStartedCompleted(preModuleProgress.getting_started || false);
+        }
       } catch (error) {
         console.error("Error parsing session storage data:", error);
         sessionStorage.removeItem("courseData");
         sessionStorage.removeItem("studentData");
+        sessionStorage.removeItem("studentProgressData");
         router.push("/student/student-join");
       }
     } else {
       router.push("/student/student-join");
     }
   }, [router]);
+
+
+  // Each item below is a specific section update for the backend, they relate to the checkbox inside each of the 
+  // subsections (intro video), (getting started etc.)
+  const handleIntroductionVideoToggle = async (checked) => {
+    setIntroductionVideoCompleted(checked);
+    const result = await updateStudentModuleProgress(
+      studentData.id,
+      "Pre-Module: The Importance of Spatial Skills",
+      "introduction_video",
+      checked
+    );
+    console.log("RESULT:", result);
+  };
+
+  const handleWorkbookToggle = async (checked) => {
+    setWorkbookCompleted(checked);
+    const result = await updateStudentModuleProgress(
+      studentData.id,
+      "Pre-Module: The Importance of Spatial Skills",
+      "workbook",
+      checked
+    );
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
@@ -120,55 +172,95 @@ export default function StudentModulePage() {
                         description="Learn about the importance of spatial skills in various fields."
                       />
                     </div>
+                    {/* Checkbox for introduction video completion */}
+                    <label
+                      htmlFor="introduction_video"
+                      className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
+                    >
+                      <div className="flex items-center h-5 mt-0.5">
+                        <input
+                          id="introduction_video"
+                          type="checkbox"
+                          className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                          checked={introductionVideoCompleted}
+                          onChange={(e) =>
+                            handleIntroductionVideoToggle(e.target.checked)
+                          }
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-200">
+                          I have reviewed the introduction video.
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  {introductionVideoCompleted && (
+                    <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span>Introduction video completed</span>
+                    </div>
+                  )}
+                </section>
+                {/* Workbook Activities Section with Checkbox */}
+                <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
+                  <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
+                    Complete the Workbook Activities
+                  </h2>
+
+                  <div className="space-y-4">
+                    {/* Checkbox for workbook completion */}
+                    <label
+                      htmlFor="workbook"
+                      className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
+                    >
+                      <div className="flex items-center h-5 mt-0.5">
+                        <input
+                          id="workbook"
+                          type="checkbox"
+                          className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                          checked={workbookCompleted}
+                          onChange={(e) =>
+                            handleWorkbookToggle(e.target.checked)
+                          }
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-200">
+                          I have completed all workbook activities
+                        </div>
+                      </div>
+                    </label>
+
+                    {workbookCompleted && (
+                      <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>Workbook activities completed</span>
+                      </div>
+                    )}
                   </div>
                 </section>
-
-                {/* Workbook Activities Section with Checkbox */}
-             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
-              <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
-                Complete the Workbook Activities
-              </h2>
-              
-              <div className="space-y-4">
-                <p className="text-gray-300 mb-4">
-                  Download and complete the Module 1 workbook activities. These exercises will help reinforce 
-                  your understanding of combining solid objects and spatial visualization.
-                </p>
-                
-                {/* Checkbox for workbook completion */}
-                <label 
-                  htmlFor="workbook-completed" 
-                  className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
-                >
-                  <div className="flex items-center h-5 mt-0.5">
-                    <input
-                      id="workbook-completed"
-                      type="checkbox"
-                      className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
-                      checked={workbookCompleted}
-                      onChange={(e) => handleWorkbookToggle(e.target.checked)}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-200">
-                      I have completed all workbook activities
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Check this box once you've finished all exercises in the Module 1 workbook
-                    </p>
-                  </div>
-                </label>
-
-                {workbookCompleted && (
-                  <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span>Workbook activities marked as complete!</span>
-                  </div>
-                )}
-              </div>
-             </section>
 
                 <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
                   <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
@@ -191,11 +283,55 @@ export default function StudentModulePage() {
                         </svg>
                         I have:
                       </p>
-                      <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                        <li>Completed all activities in my workbook.</li>
-                        <li>
-                          Listed careers I am interested in and whether or not
-                          they require spatial thinking skills
+                      <ul className="list-disc pl-6 space-y-3 leading-relaxed">
+                        <li
+                          className={`flex items-start ${
+                            workbookCompleted
+                              ? "text-green-400"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          <span className="flex-1">
+                            Completed all activities in my workbook.
+                          </span>
+                          {workbookCompleted && (
+                            <svg
+                              className="w-5 h-5 ml-2 flex-shrink-0 text-green-400"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
+                        </li>
+                        <li
+                          className={`flex items-start ${
+                            introductionVideoCompleted
+                              ? "text-green-400"
+                              : "text-gray-300"
+                          }`}
+                        >
+                          <span className="flex-1">
+                            Listed careers I am interested in and whether or not
+                            they require spatial thinking skills
+                          </span>
+                          {introductionVideoCompleted && (
+                            <svg
+                              className="w-5 h-5 ml-2 flex-shrink-0 text-green-400"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          )}
                         </li>
                       </ul>
                     </div>
@@ -236,16 +372,11 @@ export default function StudentModulePage() {
                     </div>
                   </div>
                 </section>
-
-                
-
-           </div>
-         </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
     </div>
   );
 }
-
-

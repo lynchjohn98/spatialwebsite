@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-
 export function validateTeacherCode(inputtedCode) {
   //Use environment teacher code
   if (inputtedCode === "1234") {
@@ -45,32 +44,32 @@ export function validateTeacherCode(inputtedCode) {
 
 // School to number mapping for username generation
 export const schoolNumbers = {
-"Ard Scoil Mhuire": 11,
-"Ardscoil Phadraig": 12,
-"Athlone Community College": 13,
-"Belmayne ETSS": 14,
-"Bremore ETSS": 15,
-"Carndonagh Community School": 16,
-"Colaiste Bride Enniscorthy": 17,
-"Colaiste ghlor na Mara": 18,
-"Colaiste Mhuire Askeaton": 19,
-"Colaiste Na Trocaire": 20,
-"Drogheda Grammar School": 21,
-"Gallen Community School": 22,
-"Lusk Community College": 23,
-"Malahide Community School": 24,
-"Old Bawn Community School": 25,
-"Patrician High School": 26,
-"Portumna Community School": 27,
-"Royal and Prior Comprehensive": 28,
-"Sancta Maria College": 29,
-"Santa Sabina Dominican College": 30,
-"St Columbas Comprehensive": 31,
-"St Josephs Castlebar": 32,
-"St Josephs Secondary School Rush": 33,
-"St Kevins Community College": 34,
-"St Mogues": 35,
-"Test School:": 36, // Example for a test school
+  "Ard Scoil Mhuire": 11,
+  "Ardscoil Phadraig": 12,
+  "Athlone Community College": 13,
+  "Belmayne ETSS": 14,
+  "Bremore ETSS": 15,
+  "Carndonagh Community School": 16,
+  "Colaiste Bride Enniscorthy": 17,
+  "Colaiste ghlor na Mara": 18,
+  "Colaiste Mhuire Askeaton": 19,
+  "Colaiste Na Trocaire": 20,
+  "Drogheda Grammar School": 21,
+  "Gallen Community School": 22,
+  "Lusk Community College": 23,
+  "Malahide Community School": 24,
+  "Old Bawn Community School": 25,
+  "Patrician High School": 26,
+  "Portumna Community School": 27,
+  "Royal and Prior Comprehensive": 28,
+  "Sancta Maria College": 29,
+  "Santa Sabina Dominican College": 30,
+  "St Columbas Comprehensive": 31,
+  "St Josephs Castlebar": 32,
+  "St Josephs Secondary School Rush": 33,
+  "St Kevins Community College": 34,
+  "St Mogues": 35,
+  "Test School:": 36, // Example for a test school
 };
 
 // Counties for teachers to pick from
@@ -107,44 +106,42 @@ export const counties = [
   "Westmeath",
   "Wexford",
   "Wicklow",
-  ];
+];
 
 export const countyNumbers = {
-    "Antrim": "01",
-    "Armagh": "02",
-    "Carlow": "03",
-    "Cavan": "04",
-    "Clare": "05",
-    "Cork": "06",
-    "Derry": "07",
-    "Donegal": "08",
-    "Down": "09",
-    "Dublin": "10",
-    "Fermanagh": "11",
-    "Galway": "12",
-    "Kerry": "13",
-    "Kildare": "14",
-    "Kilkenny": "15",
-    "Laois": "16",
-    "Leitrim": "17",
-    "Limerick": "18",
-    "Longford": "19",
-    "Louth": "20",
-    "Mayo": "21",
-    "Meath": "22",
-    "Monaghan": "23",
-    "Offaly": "24",
-    "Roscommon": "25",
-    "Sligo": "26",
-    "Tipperary": "27",
-    "Tyrone": "28",
-    "Waterford": "29",
-    "Westmeath": "30",
-    "Wexford": "31",
-    "Wicklow": "32",
-  };
-
-
+  Antrim: "01",
+  Armagh: "02",
+  Carlow: "03",
+  Cavan: "04",
+  Clare: "05",
+  Cork: "06",
+  Derry: "07",
+  Donegal: "08",
+  Down: "09",
+  Dublin: "10",
+  Fermanagh: "11",
+  Galway: "12",
+  Kerry: "13",
+  Kildare: "14",
+  Kilkenny: "15",
+  Laois: "16",
+  Leitrim: "17",
+  Limerick: "18",
+  Longford: "19",
+  Louth: "20",
+  Mayo: "21",
+  Meath: "22",
+  Monaghan: "23",
+  Offaly: "24",
+  Roscommon: "25",
+  Sligo: "26",
+  Tipperary: "27",
+  Tyrone: "28",
+  Waterford: "29",
+  Westmeath: "30",
+  Wexford: "31",
+  Wicklow: "32",
+};
 
 export function generateJoinCode() {
   return (
@@ -154,266 +151,290 @@ export function generateJoinCode() {
   );
 }
 
-export function generateStudentCode(){
-
-    return Math.random().toString(36).substr(2, 8).toUpperCase(); // Example: "XK5D9A"
-};
+export function generateStudentCode() {
+  return Math.random().toString(36).substr(2, 8).toUpperCase(); // Example: "XK5D9A"
+}
 
 export function generateStudentUsername(studentName, teacherName, schoolName) {
   const studentPart = studentName
-    ? studentName.toLowerCase().slice(-3).replace(/[^a-z]/g, '')
-    : 'stu';
-  const teacherLastName = teacherName ? teacherName.split(' ').pop() : 'teacher';
+    ? studentName
+        .toLowerCase()
+        .slice(-3)
+        .replace(/[^a-z]/g, "")
+    : "stu";
+  const teacherLastName = teacherName
+    ? teacherName.split(" ").pop()
+    : "teacher";
   const teacherPart = teacherLastName
-    ? teacherLastName.toLowerCase().slice(-3).replace(/[^a-z]/g, '')
-    : 'te';
-  const schoolNumber = countyNumbers[counties] || Math.floor(Math.random() * 89) + 10; // 10-99 range
+    ? teacherLastName
+        .toLowerCase()
+        .slice(-3)
+        .replace(/[^a-z]/g, "")
+    : "te";
+  const schoolNumber =
+    countyNumbers[counties] || Math.floor(Math.random() * 89) + 10; // 10-99 range
   return `${studentPart}${teacherPart}${schoolNumber}`.toUpperCase();
 }
 
 //if needed, a random suffix can be added to the username: const randomSuffix = Math.floor(Math.random() * 99);
-  //Teacher module page generator:
-  export function useModulePage() {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [courseData, setCourseData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter();
-  
-    useEffect(() => {
-      const checkWindowSize = () => {
-        if (window.innerWidth >= 1024) {
-          setIsSidebarOpen(true);
-        } else {
-          setIsSidebarOpen(false);
-        }
-      };
-      
-      window.addEventListener("resize", checkWindowSize);
-      checkWindowSize();
-      
-      const loadData = () => {
-        const storedData = sessionStorage.getItem("courseData");
-        if (storedData) {
-          try {
-            setCourseData(JSON.parse(storedData));
-          } catch (error) {
-            console.error("Error parsing course data:", error);
-            router.push("/teacher-join");
-          }
-        } else {
+//Teacher module page generator:
+export function useModulePage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [courseData, setCourseData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkWindowSize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", checkWindowSize);
+    checkWindowSize();
+
+    const loadData = () => {
+      const storedData = sessionStorage.getItem("courseData");
+      if (storedData) {
+        try {
+          setCourseData(JSON.parse(storedData));
+        } catch (error) {
+          console.error("Error parsing course data:", error);
           router.push("/teacher-join");
         }
-        setIsLoading(false);
-      };
-      
-      loadData();
-      
-      return () => window.removeEventListener("resize", checkWindowSize);
-    }, [router]);
-  
-    const returnToModules = () => {
-      router.push("/teacher-dashboard/modules");
+      } else {
+        router.push("/teacher-join");
+      }
+      setIsLoading(false);
     };
-  
-    // Loading component to be rendered when loading or no course data
-    const LoadingComponent = () => (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl font-bold">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
-          <p>Loading...</p>
-        </div>
+
+    loadData();
+
+    return () => window.removeEventListener("resize", checkWindowSize);
+  }, [router]);
+
+  const returnToModules = () => {
+    router.push("/teacher-dashboard/modules");
+  };
+
+  // Loading component to be rendered when loading or no course data
+  const LoadingComponent = () => (
+    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl font-bold">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+        <p>Loading...</p>
       </div>
-    );
-  
-    return {
-      isSidebarOpen,
-      setIsSidebarOpen,
-      courseData,
-      isLoading,
-      returnToModules,
-      LoadingComponent
-    };
+    </div>
+  );
+
+  return {
+    isSidebarOpen,
+    setIsSidebarOpen,
+    courseData,
+    isLoading,
+    returnToModules,
+    LoadingComponent,
+  };
+}
+
+export const supplementalMaterialInformation = [
+  {
+    title: "Informed Consent Form for Research Study",
+    description: "Consent forms for student participants",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//consent_forms.pdf",
+  },
+  {
+    title: "Extension Excercises",
+    description:
+      "Word document with extra material and information usable with each module",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//ExtensionExcercises.docx",
+  },
+  {
+    title: "Information Sheet and Recruitment Letter",
+    description:
+      "PDF that includes information that the student / parent can review regarding the study",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//information_sheet_recruitment.pdf",
+  },
+  {
+    title: "Teacher's Resource Guide to accompany Developing Spatial Thinking",
+    description:
+      "Large guide (~126 pg. pdf) that can be used to supplemental and provide walkthroughs of each module and questions associated with the modules",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//teacher_guide_ireland_final.pdf",
+  },
+  {
+    title: "Pre-Module - The Importance of Spatial Skills",
+    description: "Powerpoint presentation for the pre-module",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_premodule.pptx",
+  },
+  {
+    title: "Module 1 - Combining Solids Powerpoint",
+    description: "Powerpoint presentation for Module 1",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_combiningsolids.pptx",
+  },
+  {
+    title: "Module 2 - Surfaces and Solids of Revolution",
+    description: "Powerpoint presentation for Module 2",
+    downloadUrl: "",
+  },
+  {
+    title: "Module 3 - Isometric Sketching and Coded Plans",
+    description: "Powerpoint presentation for Module 3",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_isometric.pptx",
+  },
+  {
+    title: "Module 4 - Flat Patterns",
+    description: "Powerpoint presentation for Module 4",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_flatpatterns.pptx",
+  },
+  {
+    title: "Module 5 - Rotation of Objects About a Single Axis",
+    description: "Powerpoint presentation for Module 5",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__rotation1.pptx",
+  },
+  {
+    title: "Module 6 - Reflections and Symmetry",
+    description: "Powerpoint presentation for Module 6",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_reflection.pptx",
+  },
+  {
+    title: "Module 7 - Cutting Planes and Cross-Sections",
+    description: "Powerpoint presentation for Module 7",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_cuttingplanes.pptx",
+  },
+  {
+    title: "Module 8 - Rotation of Objects About Two or More Axes",
+    description: "Powerpoint presentation for Module 8",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_rotation2.pptx",
+  },
+  {
+    title: "Module 9 - Orthographic Projection",
+    description: "Powerpoint presentation for Module 9",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__orthographic.pptx",
+  },
+  {
+    title: "Module 10 - Inclined and Curved Surfaces",
+    description: "Powerpoint presentation for Module 10",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_inclinedcurved.pptx",
+  },
+];
+
+const defaultModuleProgress = 
+{
+  "Pre-Module: The Importance of Spatial Skills": {
+    "introduction_video": false,
+    "mini_lecture": true,
+    "software": true,
+    "getting_started": true,
+    "workbook": false,
+    "quiz": true,
+    "completed_at": null
+  },
+  "Combining Solids": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Surfaces and Solids of Revolution": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Isometric Sketching and Coded Plans": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Flat Patterns": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Rotation of Objects About a Single Axis": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Reflections and Symmetry": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Cutting Planes and Cross-Sections": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Rotation of Objects About Two or More Axes": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Orthographic Projection": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Inclined and Curved Surfaces": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
   }
-
-
-  export const supplementalMaterialInformation = [
-    {
-      title: "Informed Consent Form for Research Study",
-      description: "Consent forms for student participants",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//consent_forms.pdf",
-    },
-    {
-      title: "Extension Excercises",
-      description: "Word document with extra material and information usable with each module",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//ExtensionExcercises.docx",
-    },
-    {
-      title: "Information Sheet and Recruitment Letter",
-      description: "PDF that includes information that the student / parent can review regarding the study",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//information_sheet_recruitment.pdf"
-    },
-    {
-      title: "Teacher's Resource Guide to accompany Developing Spatial Thinking",
-      description: "Large guide (~126 pg. pdf) that can be used to supplemental and provide walkthroughs of each module and questions associated with the modules",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//teacher_guide_ireland_final.pdf",
-    },
-    {
-      title: "Pre-Module - The Importance of Spatial Skills",
-      description: "Powerpoint presentation for the pre-module",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_premodule.pptx",
-    },
-    {
-      title: "Module 1 - Combining Solids Powerpoint",
-      description: "Powerpoint presentation for Module 1",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_combiningsolids.pptx",
-    },
-    {
-      title: "Module 2 - Surfaces and Solids of Revolution",
-      description: "Powerpoint presentation for Module 2",
-      downloadUrl: "",
-    },
-    {
-      title: "Module 3 - Isometric Sketching and Coded Plans",
-      description: "Powerpoint presentation for Module 3",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_isometric.pptx",
-    },
-    {
-      title: "Module 4 - Flat Patterns",
-      description: "Powerpoint presentation for Module 4",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_flatpatterns.pptx",
-    },
-    {
-      title: "Module 5 - Rotation of Objects About a Single Axis",
-      description: "Powerpoint presentation for Module 5",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__rotation1.pptx",
-    },
-    {
-      title: "Module 6 - Reflections and Symmetry",
-      description: "Powerpoint presentation for Module 6",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_reflection.pptx",
-    },
-    {
-      title: "Module 7 - Cutting Planes and Cross-Sections",
-      description: "Powerpoint presentation for Module 7",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_cuttingplanes.pptx",
-    },
-    {
-      title: "Module 8 - Rotation of Objects About Two or More Axes",
-      description: "Powerpoint presentation for Module 8",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_rotation2.pptx",
-    },
-    {
-      title: "Module 9 - Orthographic Projection",
-      description: "Powerpoint presentation for Module 9",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__orthographic.pptx",
-    },
-    {
-      title: "Module 10 - Inclined and Curved Surfaces",
-      description: "Powerpoint presentation for Module 10",
-      downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_inclinedcurved.pptx",
-    }
-
-  ]
-
-
-  export const defaultModuleProgress = {
-    "1": {
-      "title": "Pre-Module: The Importance of Spatial Skills",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "2": {
-      "title": "Module 1: Combining Solids",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "3": {
-      "title": "Module 2: Surfaces and Solids of Revolution",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "4": {
-      "title": "Module 3: Isometric Sketching and Coded Plans",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "5": {
-      "title": "Module 4: Flat Patterns",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "6": {
-      "title": "Module 5: Rotation of Objects About a Single Axis",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "7": {
-      "title": "Module 6: Reflections and Symmetry",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "8": {
-      "title": "Module 7: Cutting Planes and Cross-Sections",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "9": {
-      "title": "Module 8: Rotation of Objects About Two or More Axes",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "10": {
-      "title": "Module 9: Orthographic Projection",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-    "11": {
-      "title": "Module 10: Inclined and Curved Surfaces",
-      "mini_lecture": false,
-      "software": false,
-      "getting_started": false,
-      "workbook": false,
-      "quiz": false,
-      "completed_at": null
-    },
-  }
+};
+export { defaultModuleProgress };

@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import VisibilityTable from "../../../../components/teacher_components/VisibilityTable";
 import ExtraResourcesTable from "../../../../components/teacher_components/ExtraResourcesTable";
-import { retrieveCourseSettings, updateCourseSettings } from "../../../library/services/actions";
+import { retrieveCourseSettings, updateCourseSettings } from "../../../library/services/course_actions";
+
 import { createClient } from "../../../utils/supabase/supabase";
 
 export default function Settings() {
@@ -18,7 +19,6 @@ export default function Settings() {
   const [moduleData, setModuleData] = useState([]);
   const [quizData, setQuizData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
 
   const studentTableRef = useRef();
   const moduleTableRef = useRef();
@@ -55,6 +55,7 @@ export default function Settings() {
   useEffect(() => {
     fetchCourseSettings();
   }, []);
+
   const handleSaveChanges = async () => {
     if (!courseData || !courseSettings) {
       setSaveMessage({
@@ -63,82 +64,25 @@ export default function Settings() {
       });
       return;
     }
-    
     setIsSaving(true);
     setSaveMessage({ type: '', text: '' });
     
     try {
-      const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
       const updatedModuleData = moduleTableRef.current?.getUpdatedData() || moduleData;
       const updatedQuizData = quizTableRef.current?.getUpdatedData() || quizData;
-      
-      // Step 1: Update course_settings
       const payload = {
         courseId: courseData.id,
-        studentSettings: JSON.stringify(updatedStudentData),
         moduleSettings: JSON.stringify(updatedModuleData),
         quizSettings: JSON.stringify(updatedQuizData)
       };
       
       const result = await updateCourseSettings(payload);
-
       const supabase = createClient();
-      
       if (result.success) {
-       const { data: existingStudents, error: fetchError } = await supabase
-          .from("students")
-          .select("id, student_join_code")
-          .eq("course_id", courseData.id);
-          
-        if (fetchError) {
-          console.error("Error fetching existing students:", fetchError);
-          throw fetchError;
-        }
-        
-        const existingStudentMap = {};
-        existingStudents.forEach(student => {
-          existingStudentMap[student.student_join_code] = student.id;
-        });
-        for (const student of updatedStudentData) {
-
-          if (!student.student_join_code || !student.first_name) {
-            continue;
-          }
-          
-          if (existingStudentMap[student.student_join_code]) {
-            await supabase
-              .from("students")
-              .update({
-                first_name: student.first_name,
-                last_name: student.last_name,
-                gender: student.gender,
-                grade: student.grade || null,
-                other: student.other || null,
-                remove_date: student.remove_date || null,
-              })
-              .eq("id", existingStudentMap[student.student_join_code]);
-          } else {
-            await supabase
-              .from("students")
-              .insert([{
-                student_join_code: student.student_join_code,
-                first_name: student.first_name,
-                last_name: student.last_name,
-                gender: student.gender,
-                grade: student.grade || null,
-                other: student.other || null,
-                join_date: student.join_date || new Date().toISOString(),
-                remove_date: student.remove_date || null,
-                course_id: courseData.id
-              }]);
-          }
-        }    
         setSaveMessage({
           type: 'success',
-          text: 'Course settings and student data updated successfully!'
+          text: 'Course settings updated successfully!'
         });
-        
-        await fetchCourseSettings();
       } else {
         setSaveMessage({
           type: 'error',

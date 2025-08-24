@@ -1,6 +1,6 @@
 "use server";
 import { createClient } from "../../utils/supabase/server";
-import { defaultModuleProgress } from "../helpers/helpers";
+
 //Fresh course inserted into backend
 export async function insertNewCourse(payload) {
     const supabase = await createClient();
@@ -98,12 +98,11 @@ export async function retrieveSupplementalCourseInformation(payload: { id: any; 
 
 
 // Course Settings Updated inside the Course Settings dashboard nav bar (only module / quiz settings)
-export async function updateCourseSettings(payload: { courseId: any; studentSettings: any; moduleSettings: any; quizSettings: any; }) {
+export async function updateCourseSettings(payload: { courseId: any; moduleSettings: any; quizSettings: any; }) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("courses_settings")
     .update({
-      student_settings: payload.studentSettings,
       module_settings: payload.moduleSettings,
       quiz_settings: payload.quizSettings,
       updated_at : new Date().toISOString()
@@ -122,6 +121,8 @@ export async function updateCourseSettings(payload: { courseId: any; studentSett
 
 
 export async function updateStudentSettings(payload) {
+  const defaultModules = defaultModuleProgress;
+  console.log("INSIDE UPDATE:", defaultModuleProgress);
   const supabase = await createClient();
   try {
     // Parse and prepare all students at once
@@ -176,9 +177,12 @@ export async function updateStudentSettings(payload) {
           const { error: progressError } = await supabase
             .from("students_progress")
             .insert({
-              student_id: newStudent.id
+              student_id: newStudent.id,
+              module_progress: defaultModuleProgress
               // All other fields will default to false as per your schema
-            });
+            })
+            .select('*')
+            .single();
           
           if (progressError) {
             console.error(`Error creating progress record for student ${student.student_username}:`, progressError);
@@ -211,7 +215,7 @@ export async function updateStudentSettings(payload) {
 
 // Fix for retrieving modules
 export async function retrieveModules(payload: { id: any; }) {
-
+  console.log("Fetching modules", payload);
   const supabase = await createClient();
   try {
     const { data, error } = await supabase
@@ -322,3 +326,111 @@ export async function getStudentGradeData(payload) {
     }
     return { success: true, data: data };
 }
+
+
+
+
+// Define the const to help with errors
+
+const defaultModuleProgress = 
+{
+  "Pre-Module: The Importance of Spatial Skills": {
+    "introduction_video": false,
+    "mini_lecture": true,
+    "software": true,
+    "getting_started": true,
+    "workbook": false,
+    "quiz": true,
+    "completed_at": null
+  },
+  "Combining Solids": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Surfaces and Solids of Revolution": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Isometric Sketching and Coded Plans": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Flat Patterns": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Rotation of Objects About a Single Axis": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Reflections and Symmetry": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Cutting Planes and Cross-Sections": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Rotation of Objects About Two or More Axes": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Orthographic Projection": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  },
+  "Inclined and Curved Surfaces": {
+    "introduction_video": false,
+    "mini_lecture": false,
+    "software": false,
+    "getting_started": false,
+    "workbook": false,
+    "quiz": false,
+    "completed_at": null
+  }
+};

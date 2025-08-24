@@ -11,6 +11,8 @@ export default function StudentDashboard() {
   const [courseData, setCourseData] = useState(null);
   const [studentData, setStudentData] = useState(null);
 
+  
+
   useEffect(() => {
     const storedCourseData = sessionStorage.getItem("courseData");
     const storedStudentData = sessionStorage.getItem("studentData");
