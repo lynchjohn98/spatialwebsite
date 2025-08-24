@@ -47,7 +47,13 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
   const router = useRouter();
   const [activeRoute, setActiveRoute] = useState("");
   const [parsedCourseData, setParsedCourseData] = useState(null);
+  const [isClient, setIsClient] = useState(false);
   
+  // Set isClient to true when component mounts (only happens in browser)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   useEffect(() => {
     if (courseData && typeof courseData === 'string') {
       try {
@@ -62,20 +68,25 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
   }, [courseData]);
 
   useEffect(() => {
-    const path = window.location.pathname;
-    setActiveRoute(path);
-  }, []);
+    if (isClient) {
+      const path = window.location.pathname;
+      setActiveRoute(path);
+    }
+  }, [isClient]);
 
   const handleMobileNavClick = (route) => {
     setActiveRoute(route);
     router.push(route);
 
-    if (window.innerWidth < 1024) {
+    // Only check window.innerWidth after we know we're on the client
+    if (isClient && window.innerWidth < 1024) {
       setIsSidebarOpen(false);
     }
   };
 
   useEffect(() => {
+    if (!isClient) return;
+
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && isSidebarOpen) {
         setIsSidebarOpen(false);
@@ -84,7 +95,7 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isSidebarOpen, setIsSidebarOpen]);
+  }, [isSidebarOpen, setIsSidebarOpen, isClient]);
 
   const effectiveCourseData = parsedCourseData || courseData;
   const schoolName = 
@@ -97,7 +108,13 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
     effectiveCourseData?.teacher_name ||
     effectiveCourseData?.teacherName ||
     (effectiveCourseData?.course?.teacher_name) ||
+    (effectiveCourseData?.courses?.course_teacher_name) ||
     "Teacher information unavailable";
+
+  const countyName = 
+    effectiveCourseData?.courses?.course_county ||
+    effectiveCourseData?.course_county ||
+    "County information unavailable";
 
   return (
     <>
@@ -119,7 +136,7 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
           shadow-lg
         `}
-        aria-hidden={!isSidebarOpen && window.innerWidth < 1024}
+        aria-hidden={!isSidebarOpen && isClient && window.innerWidth < 1024}
       >
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center">
@@ -220,7 +237,7 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                       </svg>
                       <h2 className="text-sm font-medium truncate">
-                        {courseData.courses.course_teacher_name}
+                        {teacherName}
                       </h2>
                     </div>
                   </div>
@@ -240,7 +257,7 @@ export default function StudentSidebar({ isSidebarOpen, setIsSidebarOpen, course
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                       </svg>
                       <h2 className="text-sm font-medium truncate">
-                        {courseData.courses.course_county || "County information unavailable"}
+                        {countyName}
                       </h2>
                     </div>
                   </div>
