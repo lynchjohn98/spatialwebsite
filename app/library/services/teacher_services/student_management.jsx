@@ -246,7 +246,7 @@ const defaultModuleProgress =
     "quiz": false,
     "completed_at": null
   },
-  "Isometric Sketching and Coded Plans": {
+  "Isometric Drawing and Coded Plans": {
     "introduction_video": false,
     "mini_lecture": false,
     "software": false,

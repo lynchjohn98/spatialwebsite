@@ -53,38 +53,38 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   };
 
   // After setting initial timeRemaining, check if it's no-limit mode
-useEffect(() => {
-  // Check if time limit is 3600 seconds or more (1 hour+)
-  const noLimit = quizData?.timeLimit >= 3600;
-  setIsNoTimeLimit(noLimit);
-  
-  // If no time limit, set a large value for tracking purposes
-  if (noLimit) {
-    setTimeRemaining(quizData?.timeLimit || 3600);
-  }
-}, [quizData]);
+  useEffect(() => {
+    // Check if time limit is 3600 seconds or more (1 hour+)
+    const noLimit = quizData?.timeLimit >= 3600;
+    setIsNoTimeLimit(noLimit);
 
-useEffect(() => {
-  if (isSubmitted || (timeRemaining <= 0 && !isNoTimeLimit)) return;
+    // If no time limit, set a large value for tracking purposes
+    if (noLimit) {
+      setTimeRemaining(quizData?.timeLimit || 3600);
+    }
+  }, [quizData]);
 
-  const timer = setInterval(() => {
-    setTimeRemaining((prev) => {
-      // For no-limit mode, count UP instead of down
-      if (isNoTimeLimit) {
-        return prev + 1; // Count up to track time spent
-      }
-      
-      // Normal countdown mode
-      if (prev <= 1) {
-        forceSubmit();
-        return 0;
-      }
-      return prev - 1;
-    });
-  }, 1000);
+  useEffect(() => {
+    if (isSubmitted || (timeRemaining <= 0 && !isNoTimeLimit)) return;
 
-  return () => clearInterval(timer);
-}, [timeRemaining, isSubmitted, isNoTimeLimit]);
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        // For no-limit mode, count UP instead of down
+        if (isNoTimeLimit) {
+          return prev + 1; // Count up to track time spent
+        }
+
+        // Normal countdown mode
+        if (prev <= 1) {
+          forceSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeRemaining, isSubmitted, isNoTimeLimit]);
 
   // Timer functionality
   useEffect(() => {
@@ -105,20 +105,20 @@ useEffect(() => {
   }, [timeRemaining, isSubmitted]);
 
   // Format time display
- const formatTime = (seconds) => {
-  if (isNoTimeLimit) {
-    // For no-limit mode, show elapsed time
-    const elapsedSeconds = seconds - (quizData?.timeLimit || 3600);
-    const mins = Math.floor(Math.abs(elapsedSeconds) / 60);
-    const secs = Math.abs(elapsedSeconds) % 60;
+  const formatTime = (seconds) => {
+    if (isNoTimeLimit) {
+      // For no-limit mode, show elapsed time
+      const elapsedSeconds = seconds - (quizData?.timeLimit || 3600);
+      const mins = Math.floor(Math.abs(elapsedSeconds) / 60);
+      const secs = Math.abs(elapsedSeconds) % 60;
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    }
+
+    // Normal countdown display
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
-  }
-  
-  // Normal countdown display
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-};
+  };
 
   // Handle different answer types
   const handleAnswerSelect = (questionId, answer, questionType) => {
@@ -189,9 +189,7 @@ useEffect(() => {
 
         questionScore = correctCount;
         questionMaxScore = question.parts.length;
-      } 
-
-      else if (question.type === "multiple-parts-subselect") {
+      } else if (question.type === "multiple-parts-subselect") {
         const multiPartAnswers = userAnswer || {};
         let correctCount = 0;
         let totalSubQuestions = 0;
@@ -213,9 +211,22 @@ useEffect(() => {
 
         questionScore = correctCount;
         questionMaxScore = totalSubQuestions;
-      }
+      } else if (question.type === "single-image-multiple-points") {
+  const problemAnswers = userAnswer || {};
+  let correctCount = 0;
+  let totalProblems = question.problems.length;
+  
+  question.problems.forEach((problem) => {
+    const userProblemAnswer = problemAnswers[problem.id];
+    if (userProblemAnswer === problem.correctAnswer) {
+      correctCount += 1;
+    }
+  });
+  
+  questionScore = correctCount;
+  questionMaxScore = totalProblems;
+}
 
-      
       totalScore += questionScore;
       maxScore += questionMaxScore;
 
@@ -234,17 +245,12 @@ useEffect(() => {
   const forceSubmit = useCallback(() => {
     if (isSubmitted) return;
 
-    
     const results = calculateResults();
-    const timeSpent = isNoTimeLimit 
-  ? timeRemaining - (quizData?.timeLimit || 3600) // Actual elapsed time
-  : (quizData?.timeLimit || 600) - timeRemaining; // Time used from limit
+    const timeSpent = isNoTimeLimit
+      ? timeRemaining - (quizData?.timeLimit || 3600) // Actual elapsed time
+      : (quizData?.timeLimit || 600) - timeRemaining; // Time used from limit
 
     setIsSubmitted(true);
-
-
-
-    
 
     if (onQuizComplete) {
       onQuizComplete({
@@ -319,6 +325,7 @@ useEffect(() => {
     if (questionType === "multiple-select") {
       return Array.isArray(answer) && answer.length > 0;
     }
+
     return answer !== "" && answer !== undefined;
   };
 
@@ -376,54 +383,11 @@ useEffect(() => {
   }
 
   const renderQuestionContent = () => {
-  const userAnswer = answers[currentQ.id];
+    const userAnswer = answers[currentQ.id];
 
-  switch (currentQ.type) {
-    case "multiple-choice":
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {currentQ.options.map((option) => (
-            <button
-              key={option.id}
-              onClick={() =>
-                handleAnswerSelect(currentQ.id, option.id, currentQ.type)
-              }
-              className={`
-                p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]
-                ${
-                  userAnswer === option.id
-                    ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/25 text-white"
-                    : "bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600 text-white"
-                }
-              `}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={`
-                  w-4 h-4 rounded-full border-2 flex items-center justify-center
-                  ${
-                    userAnswer === option.id
-                      ? "border-white bg-white"
-                      : "border-gray-400"
-                  }
-                `}
-                >
-                  {userAnswer === option.id && (
-                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  )}
-                </div>
-                <span className="font-medium">{option.text}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      );
-
-    case "multiple-select":
-      const selectedAnswers = userAnswer || [];
-      return (
-        <div className="space-y-3">
-          <p className="text-sm text-blue-400 mb-4">Select all that apply:</p>
+    switch (currentQ.type) {
+      case "multiple-choice":
+        return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {currentQ.options.map((option) => (
               <button
@@ -432,27 +396,27 @@ useEffect(() => {
                   handleAnswerSelect(currentQ.id, option.id, currentQ.type)
                 }
                 className={`
-                  p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]
-                  ${
-                    selectedAnswers.includes(option.id)
-                      ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/25 text-white"
-                      : "bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600 text-white"
-                  }
-                `}
+                p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]
+                ${
+                  userAnswer === option.id
+                    ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/25 text-white"
+                    : "bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600 text-white"
+                }
+              `}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`
-                    w-4 h-4 rounded border-2 flex items-center justify-center
-                    ${
-                      selectedAnswers.includes(option.id)
-                        ? "border-white bg-white"
-                        : "border-gray-400"
-                    }
-                  `}
+                  w-4 h-4 rounded-full border-2 flex items-center justify-center
+                  ${
+                    userAnswer === option.id
+                      ? "border-white bg-white"
+                      : "border-gray-400"
+                  }
+                `}
                   >
-                    {selectedAnswers.includes(option.id) && (
-                      <div className="text-blue-600 text-xs font-bold">✓</div>
+                    {userAnswer === option.id && (
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                     )}
                   </div>
                   <span className="font-medium">{option.text}</span>
@@ -460,35 +424,303 @@ useEffect(() => {
               </button>
             ))}
           </div>
-        </div>
-      );
+        );
 
-    case "multiple-subselect":
-      const multiPartAnswers = userAnswer || {};
-      return (
-        <div className="space-y-4">
-          <p className="text-sm text-blue-400 mb-4">
-            Select an answer for each part:
-          </p>
+      case "multiple-select":
+        const selectedAnswers = userAnswer || [];
+        return (
+          <div className="space-y-3">
+            <p className="text-sm text-blue-400 mb-4">Select all that apply:</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {currentQ.options.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() =>
+                    handleAnswerSelect(currentQ.id, option.id, currentQ.type)
+                  }
+                  className={`
+                  p-4 text-left rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]
+                  ${
+                    selectedAnswers.includes(option.id)
+                      ? "bg-blue-600 border-blue-400 shadow-lg shadow-blue-600/25 text-white"
+                      : "bg-gray-700 border-gray-600 hover:border-gray-500 hover:bg-gray-600 text-white"
+                  }
+                `}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`
+                    w-4 h-4 rounded border-2 flex items-center justify-center
+                    ${
+                      selectedAnswers.includes(option.id)
+                        ? "border-white bg-white"
+                        : "border-gray-400"
+                    }
+                  `}
+                    >
+                      {selectedAnswers.includes(option.id) && (
+                        <div className="text-blue-600 text-xs font-bold">✓</div>
+                      )}
+                    </div>
+                    <span className="font-medium">{option.text}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "multiple-subselect":
+        const multiPartAnswers = userAnswer || {};
+        return (
           <div className="space-y-4">
-            {currentQ.parts.map((part) => (
-              <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
-                <div className="flex items-center gap-4 mb-3">
-                  <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
-                    {part.label}
-                  </span>
-                  {part.description && (
-                    <span className="text-gray-300 text-sm">
-                      {part.description}
+            <p className="text-sm text-blue-400 mb-4">
+              Select an answer for each part:
+            </p>
+            <div className="space-y-4">
+              {currentQ.parts.map((part) => (
+                <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
+                      {part.label}
                     </span>
-                  )}
+                    {part.description && (
+                      <span className="text-gray-300 text-sm">
+                        {part.description}
+                      </span>
+                    )}
 
+                    <select
+                      value={multiPartAnswers[part.id] || ""}
+                      onChange={(e) => {
+                        const newAnswers = {
+                          ...multiPartAnswers,
+                          [part.id]: e.target.value,
+                        };
+                        handleAnswerSelect(
+                          currentQ.id,
+                          newAnswers,
+                          currentQ.type
+                        );
+                      }}
+                      className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
+                    >
+                      <option value="" className="text-gray-400">
+                        Select an option...
+                      </option>
+                      {currentQ.options.map((option) => (
+                        <option
+                          key={option.id}
+                          value={option.id}
+                          className="text-white"
+                        >
+                          {option.text}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-gray-400 mt-2">
+              All parts must be answered to complete this question
+            </div>
+          </div>
+        );
+
+      case "text-input":
+        return (
+          <div className="space-y-4">
+            <div className="bg-gray-700 p-4 rounded-lg">
+              <label
+                htmlFor="text-answer"
+                className="block text-sm text-gray-300 mb-2"
+              >
+                Your Answer:
+              </label>
+              <input
+                id="text-answer"
+                type="text"
+                value={userAnswer || ""}
+                onChange={(e) =>
+                  handleAnswerSelect(currentQ.id, e.target.value, currentQ.type)
+                }
+                placeholder="Type your answer here..."
+                className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
+              />
+              {currentQ.alternateAnswers && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Note: Multiple answer formats may be accepted
+                </p>
+              )}
+            </div>
+          </div>
+        );
+
+      case "multiple-parts-subselect":
+        const multiplePartsAnswers = userAnswer || {}; // Changed variable name to avoid conflict
+
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-blue-400 mb-4">
+              Select answers for each part:
+            </p>
+            <div className="space-y-6">
+              {currentQ.parts.map((part) => (
+                <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
+                  {/* Part Header with Label */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
+                      {part.label}
+                    </span>
+                    {part.description && (
+                      <span className="text-gray-300 text-sm">
+                        {part.description}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Image and Sub-questions Layout */}
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Image Section */}
+                    {part.imageUrl && (
+                      <div className="flex-shrink-0">
+                        <div className="bg-gray-800 p-3 rounded-lg">
+                          <img
+                            src={part.imageUrl}
+                            alt={`Part ${part.label}`}
+                            className="max-w-full h-auto max-w-xs"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sub-questions Section */}
+                    <div className="flex-grow space-y-3">
+                      {part.subQuestions?.map((subQuestion) => (
+                        <div
+                          key={subQuestion.id}
+                          className="flex items-center gap-3 flex-wrap"
+                        >
+                          <label className="text-sm font-medium text-gray-300 min-w-[80px]">
+                            {subQuestion.label}
+                          </label>
+
+                          <select
+                            value={
+                              multiplePartsAnswers[part.id]?.[subQuestion.id] ||
+                              ""
+                            }
+                            onChange={(e) => {
+                              const newAnswers = {
+                                ...multiplePartsAnswers,
+                                [part.id]: {
+                                  ...multiplePartsAnswers[part.id],
+                                  [subQuestion.id]: e.target.value,
+                                },
+                              };
+                              handleAnswerSelect(
+                                currentQ.id,
+                                newAnswers,
+                                currentQ.type
+                              );
+                            }}
+                            className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer min-w-[120px]"
+                          >
+                            <option value="" className="text-gray-400">
+                              [ Select ]
+                            </option>
+                            {(
+                              subQuestion.options ||
+                              currentQ.globalOptions ||
+                              currentQ.options
+                            )?.map((option) => (
+                              <option
+                                key={option.id}
+                                value={option.id}
+                                className="text-white"
+                              >
+                                {option.text}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )) || (
+                        // Fallback for simple single dropdown per part (backward compatibility)
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={multiplePartsAnswers[part.id] || ""}
+                            onChange={(e) => {
+                              const newAnswers = {
+                                ...multiplePartsAnswers,
+                                [part.id]: e.target.value,
+                              };
+                              handleAnswerSelect(
+                                currentQ.id,
+                                newAnswers,
+                                currentQ.type
+                              );
+                            }}
+                            className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
+                          >
+                            <option value="" className="text-gray-400">
+                              Select an option...
+                            </option>
+                            {currentQ.options.map((option) => (
+                              <option
+                                key={option.id}
+                                value={option.id}
+                                className="text-white"
+                              >
+                                {option.text}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-gray-400 mt-2">
+              All parts must be answered to complete this question
+            </div>
+          </div>
+        );
+
+      case "single-image-multiple-points":
+        const problemAnswers = userAnswer || {};
+
+        return (
+          <div className="space-y-4">
+            <p className="text-sm text-blue-400 mb-4">
+              Identify each numbered point in the image:
+            </p>
+
+          
+
+            {/* Dropdown for each numbered problem */}
+            <div className="space-y-3 bg-gray-700 p-4 rounded-lg">
+              {currentQ.problems.map((problem) => (
+                <div key={problem.id} className="flex items-center gap-4">
+                  {/* Problem Number Label */}
+                  <div className="flex items-center gap-2 min-w-[140px]">
+                    <span className="bg-blue-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center text-sm">
+                      {problem.number}
+                    </span>
+                    <span className="text-gray-300 text-sm font-medium">
+                      {problem.label || `Point ${problem.number}`}
+                    </span>
+                  </div>
+
+                  {/* Dropdown Selection */}
                   <select
-                    value={multiPartAnswers[part.id] || ""}
+                    value={problemAnswers[problem.id] || ""}
                     onChange={(e) => {
                       const newAnswers = {
-                        ...multiPartAnswers,
-                        [part.id]: e.target.value,
+                        ...problemAnswers,
+                        [problem.id]: e.target.value,
                       };
                       handleAnswerSelect(
                         currentQ.id,
@@ -496,188 +728,40 @@ useEffect(() => {
                         currentQ.type
                       );
                     }}
-                    className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
+                    className="flex-1 p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
                   >
                     <option value="" className="text-gray-400">
                       Select an option...
                     </option>
-                    {currentQ.options.map((option) => (
+                    {currentQ.answerChoices.map((choice) => (
                       <option
-                        key={option.id}
-                        value={option.id}
+                        key={choice.id}
+                        value={choice.id}
                         className="text-white"
                       >
-                        {option.text}
+                        {choice.text}
                       </option>
                     ))}
                   </select>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-xs text-gray-400 mt-2">
-            All parts must be answered to complete this question
-          </div>
-        </div>
-      );
 
-    case "text-input":
-      return (
-        <div className="space-y-4">
-          <div className="bg-gray-700 p-4 rounded-lg">
-            <label
-              htmlFor="text-answer"
-              className="block text-sm text-gray-300 mb-2"
-            >
-              Your Answer:
-            </label>
-            <input
-              id="text-answer"
-              type="text"
-              value={userAnswer || ""}
-              onChange={(e) =>
-                handleAnswerSelect(currentQ.id, e.target.value, currentQ.type)
-              }
-              placeholder="Type your answer here..."
-              className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none"
-            />
-            {currentQ.alternateAnswers && (
-              <p className="text-xs text-gray-400 mt-2">
-                Note: Multiple answer formats may be accepted
-              </p>
-            )}
-          </div>
-        </div>
-      );
-
-    case "multiple-parts-subselect":
-      const multiplePartsAnswers = userAnswer || {}; // Changed variable name to avoid conflict
-      
-      return (
-        <div className="space-y-4">
-          <p className="text-sm text-blue-400 mb-4">
-            Select answers for each part:
-          </p>
-          <div className="space-y-6">
-            {currentQ.parts.map((part) => (
-              <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
-                {/* Part Header with Label */}
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
-                    {part.label}
-                  </span>
-                  {part.description && (
-                    <span className="text-gray-300 text-sm">
-                      {part.description}
-                    </span>
+                  {/* Show if answered */}
+                  {problemAnswers[problem.id] && (
+                    <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></div>
                   )}
                 </div>
+              ))}
+            </div>
 
-                {/* Image and Sub-questions Layout */}
-                <div className="flex flex-col lg:flex-row gap-6">
-                  {/* Image Section */}
-                  {part.imageUrl && (
-                    <div className="flex-shrink-0">
-                      <div className="bg-gray-800 p-3 rounded-lg">
-                        <img 
-                          src={part.imageUrl} 
-                          alt={`Part ${part.label}`}
-                          className="max-w-full h-auto max-w-xs"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Sub-questions Section */}
-                  <div className="flex-grow space-y-3">
-                    {part.subQuestions?.map((subQuestion) => (
-                      <div key={subQuestion.id} className="flex items-center gap-3 flex-wrap">
-                        <label className="text-sm font-medium text-gray-300 min-w-[80px]">
-                          {subQuestion.label}
-                        </label>
-                        
-                        <select
-                          value={multiplePartsAnswers[part.id]?.[subQuestion.id] || ""}
-                          onChange={(e) => {
-                            const newAnswers = {
-                              ...multiplePartsAnswers,
-                              [part.id]: {
-                                ...multiplePartsAnswers[part.id],
-                                [subQuestion.id]: e.target.value,
-                              }
-                            };
-                            handleAnswerSelect(
-                              currentQ.id,
-                              newAnswers,
-                              currentQ.type
-                            );
-                          }}
-                          className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer min-w-[120px]"
-                        >
-                          <option value="" className="text-gray-400">
-                            [ Select ]
-                          </option>
-                          {(subQuestion.options || currentQ.globalOptions || currentQ.options)?.map((option) => (
-                            <option
-                              key={option.id}
-                              value={option.id}
-                              className="text-white"
-                            >
-                              {option.text}
-                            </option>
-                          ))}
-                        </select>
-
-                        
-                      </div>
-                    )) || (
-                      // Fallback for simple single dropdown per part (backward compatibility)
-                      <div className="flex items-center gap-3">
-                        <select
-                          value={multiplePartsAnswers[part.id] || ""}
-                          onChange={(e) => {
-                            const newAnswers = {
-                              ...multiplePartsAnswers,
-                              [part.id]: e.target.value,
-                            };
-                            handleAnswerSelect(
-                              currentQ.id,
-                              newAnswers,
-                              currentQ.type
-                            );
-                          }}
-                          className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
-                        >
-                          <option value="" className="text-gray-400">
-                            Select an option...
-                          </option>
-                          {currentQ.options.map((option) => (
-                            <option
-                              key={option.id}
-                              value={option.id}
-                              className="text-white"
-                            >
-                              {option.text}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+            <div className="text-xs text-gray-400 mt-2">
+              Identify what each numbered point represents in the isometric view
+            </div>
           </div>
-          <div className="text-xs text-gray-400 mt-2">
-            All parts must be answered to complete this question
-          </div>
-        </div>
-      );
+        );
 
-    default:
-      return <div>Unknown question type</div>;
-  }
-};
+      default:
+        return <div>Unknown question type</div>;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
@@ -762,32 +846,34 @@ useEffect(() => {
           </div>
         </div>
 
-<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-  {!isNoTimeLimit ? (
-    // Show countdown timer for regular mode
-    <div
-      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
-        timeRemaining < 60 ? "bg-red-600" : "bg-blue-600"
-      }`}
-    >
-      <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-      <span className="font-mono">{formatTime(timeRemaining)}</span>
-    </div>
-  ) : (
-    // Show elapsed time indicator for no-limit mode
-    <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-gray-600">
-      <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-      <span className="font-mono">Time: {formatTime(timeRemaining)}</span>
-    </div>
-  )}
-  
-  <button
-    onClick={handleSubmit}
-    className="bg-green-600 hover:bg-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm"
-  >
-    Submit
-  </button>
-</div>
+        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+          {!isNoTimeLimit ? (
+            // Show countdown timer for regular mode
+            <div
+              className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
+                timeRemaining < 60 ? "bg-red-600" : "bg-blue-600"
+              }`}
+            >
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-mono">{formatTime(timeRemaining)}</span>
+            </div>
+          ) : (
+            // Show elapsed time indicator for no-limit mode
+            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-gray-600">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-mono">
+                Time: {formatTime(timeRemaining)}
+              </span>
+            </div>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            className="bg-green-600 hover:bg-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm"
+          >
+            Submit
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
