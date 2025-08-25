@@ -361,16 +361,12 @@ export default function Sidebar({
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
             }
-            label="Research"
+            label="Research Consent Management"
             route="/teacher/dashboard/research"
             isActive={activeRoute === "/teacher/dashboard/research"}
             onClick={handleMobileNavClick}
           />
           )}
-
-          
-          
-          
 
           <div className="pt-2 mt-6 border-t border-gray-700"></div>
 

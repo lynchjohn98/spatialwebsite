@@ -66,12 +66,24 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
   
   // Current format: firstname2chars + lastname2chars + teacher2chars + countyNumber
   // Example: "jo" + "sm" + "ms" + "01" = "josms01"
-  const generateStudentUsername = (firstName, lastName, teacherName, countyName) => {
-    const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-3).padEnd(3, 'x');
-    const cleanTeacher = teacherName.toLowerCase().replace(/[^a-z]/g, '').slice(-3).padEnd(3, 'x');
-    const countyNumber = countyNumbers[countyName] || '00';
-    return `${cleanLastName}${cleanTeacher}${countyNumber}`;
-  };
+  const generateStudentUsername = (firstName, lastName, teacherName, countyName, existingUsernames = []) => {
+  const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-3).padEnd(3, 'x');
+  const cleanTeacher = teacherName.toLowerCase().replace(/[^a-z]/g, '').slice(-2); // Reduced to 2 chars
+  const countyNumber = countyNumbers[countyName] || '00';
+  
+  // Generate random character (a-z or 0-9)
+  const randomChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let username;
+  let attempts = 0;
+  
+  do {
+    const randomChar = randomChars[Math.floor(Math.random() * randomChars.length)];
+    username = `${cleanLastName}${cleanTeacher}${randomChar}${countyNumber}`;
+    attempts++;
+  } while (existingUsernames.includes(username) && attempts < 36);
+  
+  return username;
+};
 
   // Updated regenerateUsername function
   const regenerateUsername = (index) => {

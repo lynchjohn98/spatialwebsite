@@ -1,23 +1,28 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { updateStudentConsentSettings } from "../../app/library/services/course_actions";
+
+
+//add fetch for consent settings here.
 
 const ResearchConsentTable = forwardRef(({ studentData, researchData }, ref) => {
   const [consentData, setConsentData] = useState({});
   const [showTable, setShowTable] = useState(true);
   const [selectAll, setSelectAll] = useState(false);
 
-
   useEffect(() => {
     // Initialize consent data from existing research data or create new
     const initialData = {};
     studentData.forEach(student => {
       const username = student.student_username || student.student_join_code;
+      const student_consent = student.research_consent || false;
+      console.log()
       if (username) {
         console.log(student);
         initialData[username] = researchData[username] || {
-          consentProvided: false,
-          consentDate: null,
-          notes: ''
+          student_research_consent: false,
+          consent_date: null,
+          student_notes: ''
         };
       }
     });
@@ -52,9 +57,17 @@ const ResearchConsentTable = forwardRef(({ studentData, researchData }, ref) => 
   const stats = getConsentStats();
 
 
-  const handleUpdateConsent = () => {
+  const handleUpdateConsent = async () => {
     // Logic to handle updating consent
-    console.log("Updating consent data:", consentData);
+    const updatePayload = Object.entries(consentData).map(([username, data]) => ({
+      student_username: username,
+      student_consent: data.consentProvided,
+      consent_date: data.consentDate,
+      consent_notes: data.notes
+    }));
+
+    const result = await updateStudentConsentSettings(updatePayload);
+    console.log("Update Result:", result);  
   };
 
   return (

@@ -225,16 +225,7 @@ export default function TeacherHomePage() {
 
           {/* Restricted Access Buttons */}
           <div className={`space-y-4 ${!pretestComplete ? 'opacity-50' : ''}`}>
-            <div className="relative">
-              <ResponsiveButton
-                onClick={() => handleRestrictedAccess("/teacher/join")}
-                label="Join Course as Teacher"
-                className={`w-full ${!pretestComplete ? 'cursor-not-allowed' : ''}`}
-              />
-              {!pretestComplete && (
-                <div className="absolute inset-0 bg-transparent cursor-not-allowed" title="Complete pretest first" />
-              )}
-            </div>
+            
 
             <div className="relative">
               <ResponsiveButton
@@ -260,8 +251,8 @@ export default function TeacherHomePage() {
 
             <div className="relative">
               <ResponsiveButton
-                onClick={() => handleRestrictedAccess("/teacher/help")}
-                label="Need help? Click here"
+                onClick={() => handleRestrictedAccess("/teacher/join")}
+                label="Join Course as Teacher"
                 className={`w-full ${!pretestComplete ? 'cursor-not-allowed' : ''}`}
               />
               {!pretestComplete && (
@@ -269,13 +260,20 @@ export default function TeacherHomePage() {
               )}
             </div>
 
-               <div className="relative">
+            <div className="relative">
               <ResponsiveButton
-                onClick={() => handleRestrictedAccess("/teacher/account")}
-                label="My Account"
+                onClick={() => handleRestrictedAccess("/teacher/help")}
+                label="Need help? Click here"
                 className={`w-full ${!pretestComplete ? 'cursor-not-allowed' : ''}`}
               />
+              {!pretestComplete && (
+                <div className="absolute inset-0 bg-transparent cursor-not-allowed" title="Complete pretest first" />
+              )}
+
+              
             </div>
+
+              
           </div>
 
           {/* Locked Features Notice */}

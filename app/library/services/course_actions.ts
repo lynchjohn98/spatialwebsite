@@ -439,15 +439,57 @@ const defaultModuleProgress =
 
 
 // Course consent settings, specifically to update the student settings of consent in the students page and also the courses_settings student_settings page
-export async function updateStudentConsentSettings(payload) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-      .from("students")
-      .update({ consent: payload.consent })
-      .eq("id", payload.studentId);
-  if (error) {
-      console.error("❌ Supabase Update Error:", error.message);
-      return { error: error.message };
+export async function updateStudentConsentSettings(updatePayload) {
+  try {
+    const supabase = await createClient();
+    
+    // Update each student's consent status individually
+    const results = [];
+
+    
+    for (const student of updatePayload) {
+      console.log(student.student_consent);
+      const { data, error } = await supabase
+        .from('students')
+        .update({ 
+          student_consent: student.student_consent
+        })
+        .eq('student_username', student.student_username)
+        .select();
+      
+      if (error) {
+        console.error(`Error updating student ${student.student_username}:`, error);
+        results.push({ username: student.student_username, success: false, error: error.message });
+      } else {
+        results.push({ username: student.student_username, success: true });
+      }
+    }
+    
+    // Check if all updates succeeded
+    const failedUpdates = results.filter(r => !r.success);
+    if (failedUpdates.length > 0) {
+      return {
+        success: false,
+        error: `Failed to update ${failedUpdates.length} students`,
+        details: failedUpdates
+      };
+    }
+    return {
+      success: true,
+      message: `Successfully updated consent for ${updatePayload.length} students`,
+      results: results
+    };
+  } catch (error) {
+    console.error('Error updating student consent:', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
-  return { success: true, data };
+}
+
+
+// Fetch student consent data for table
+export async function fetchStudentConsentData(payload) {
+
 }
