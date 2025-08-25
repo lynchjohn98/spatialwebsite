@@ -25,10 +25,9 @@ export default function TeacherHomePage() {
         if (result.success && result.data) {
           const freshData = result.data;
           setTeacherData(freshData);
-          sessionStorage.setItem("teacherData", JSON.stringify(freshData));
           setPretestComplete(freshData.pretest_complete);
-          console.log("training", freshData);
           setTrainingComplete(freshData.training_complete);
+          sessionStorage.setItem("teacherModuleProgress", JSON.stringify(freshData.module_progress));
         } else {
           setTeacherData(storedData);
         }

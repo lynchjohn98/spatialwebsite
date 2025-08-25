@@ -1,34 +1,54 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
-import StudentTable from "../../../../components/teacher_components/StudentTable";
-import { updateCourseSettings } from "../../../library/services/actions";
-import { retrieveCourseSettings } from "../../../library/services/course_actions";
-import { createClient } from "../../../utils/supabase/supabase";
+import ResearchConsentTable from "../../../../components/teacher_components/ResearchConsentTable";
+import FileUploadSection from "../../../../components/teacher_components/FileUploadSection";
+import { retrieveCourseSettings, updateStudentSettings } from "../../../library/services/course_actions";
+import { fetchUploadedFiles } from "../../../library/services/teacher_actions";
 
-export default function Settings() {
-  const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
+export default function ResearchConsent() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
   const [courseData, setCourseData] = useState(null);
-  const [courseSettings, setCourseSettings] = useState(null);
   const [studentData, setStudentData] = useState([]);
+  const [researchData, setResearchData] = useState({});
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const studentTableRef = useRef();
+  const [teacherId, setTeacherId] = useState(null);
+  const researchTableRef = useRef();
+  const router = useRouter();
 
-
-  const fetchCourseSettings = async () => {
+  const fetchCourseData = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
+
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       setCourseData(parsedData);
+      setTeacherId(JSON.parse(sessionStorage.getItem("teacherData") || "{}")?.id);
+
+      // Fetch course settings including student data
       const response = await retrieveCourseSettings({ id: parsedData.id });
       if (response.success) {
         const settings = response.data;
         const parsedStudentSettings = JSON.parse(settings.student_settings || "{}");
-        setCourseSettings(settings);
-        setStudentData(parsedStudentSettings);
+        const parsedResearchData = JSON.parse(settings.research_consent_data || "{}");
+        
+        // Format student data for the research table
+        const formattedStudents = Array.isArray(parsedStudentSettings) 
+          ? parsedStudentSettings 
+          : Object.values(parsedStudentSettings);
+        
+        setStudentData(formattedStudents);
+        setResearchData(parsedResearchData);
+        
+        // Fetch existing uploaded files using the server action
+        const filesData = await fetchUploadedFiles(parsedData.id);
+        if (filesData.success) {
+          setUploadedFiles(filesData.data || []);
+        }
       } else {
         console.error("Error retrieving course settings:", response.error);
         setSaveMessage({
@@ -41,85 +61,48 @@ export default function Settings() {
   };
 
   useEffect(() => {
-    fetchCourseSettings();
+    fetchCourseData();
   }, []);
+
   const handleSaveChanges = async () => {
-    if (!courseData || !courseSettings) {
+    if (!courseData) {
       setSaveMessage({
         type: 'error',
         text: 'Course data not found. Please try refreshing the page.'
       });
       return;
     }
+    
     setIsSaving(true);
     setSaveMessage({ type: '', text: '' });
+    
     try {
-      const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
-      // Step 1: Update course_settings
+      const updatedResearchData = researchTableRef.current?.getUpdatedData() || researchData;
+      
+      // Update course settings with research consent data
       const payload = {
         courseId: courseData.id,
-        studentSettings: JSON.stringify(updatedStudentData)
-      };  
-      const result = await updateCourseSettings(payload);
-      const supabase = createClient();
+        researchConsentData: JSON.stringify(updatedResearchData)
+      };
+      
+      const result = await updateStudentSettings(payload);
+      
       if (result.success) {
-       const { data: existingStudents, error: fetchError } = await supabase
-          .from("students")
-          .select("id, student_join_code")
-          .eq("course_id", courseData.id);
-        if (fetchError) {
-          console.error("Error fetching existing students:", fetchError);
-          throw fetchError;
-        }
-        const existingStudentMap = {};
-        existingStudents.forEach(student => {
-          existingStudentMap[student.student_join_code] = student.id;
-        });
-        for (const student of updatedStudentData) {
-          if (!student.student_join_code || !student.first_name) {
-            continue;
-          }
-          if (existingStudentMap[student.student_join_code]) {
-            await supabase
-              .from("students")
-              .update({
-                first_name: student.first_name,
-                last_name: student.last_name,
-                gender: student.gender,
-                grade: student.grade || null,
-                other: student.other || null,
-                remove_date: student.remove_date || null,
-              })
-              .eq("id", existingStudentMap[student.student_join_code]);
-          } else {
-            await supabase
-              .from("students")
-              .insert([{
-                student_join_code: student.student_join_code,
-                first_name: student.first_name,
-                last_name: student.last_name,
-                gender: student.gender,
-                grade: student.grade || null,
-                other: student.other || null,
-                join_date: student.join_date || new Date().toISOString(),
-                remove_date: student.remove_date || null,
-                course_id: courseData.id
-              }]);
-          }
-        }    
         setSaveMessage({
           type: 'success',
-          text: 'Course settings and student data updated successfully!'
+          text: 'Research consent data saved successfully!'
         });
-        await fetchCourseSettings();
+        
+        // Refresh data
+        await fetchCourseData();
       } else {
         setSaveMessage({
           type: 'error',
-          text: `Failed to update settings: ${result.error}`
+          text: `Failed to save: ${result.error}`
         });
       }
     } catch (error) {
-      console.error("Error saving course settings:", error);
+      console.error("Error saving research data:", error);
       setSaveMessage({
         type: 'error',
         text: 'An unexpected error occurred while saving.'
@@ -127,6 +110,14 @@ export default function Settings() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleFilesUploaded = (newFiles) => {
+    setUploadedFiles(prev => [...newFiles, ...prev]);
+  };
+
+  const handleFileDeleted = (fileId) => {
+    setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
   if (isLoading || !courseData) {
@@ -143,21 +134,27 @@ export default function Settings() {
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       <Sidebar
-        isSidebarOpen={studentSettingsOpen}
-        setIsSidebarOpen={setStudentSettingsOpen}
+        isSidebarOpen={sidebarOpen}
+        setIsSidebarOpen={setSidebarOpen}
         courseData={courseData}
       />
+      
       <div className="flex-1 p-6 overflow-auto">
-        <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold mb-4">Course Research Information </h1>
-            <p className="text-xl mb-4 text-blue-300">
-                           The following section will describe the research information that will needed to be reviewed and consent forms.
-            </p>
-            <p className="mb-6">
-              A unique student ID is generated after adding a student. You will share this code with your students so they can join the course.
+        {/* Header Section */}
+        <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold mb-4">Research Consent Management</h1>
+          <p className="text-lg mb-4 text-blue-300">
+            Track student research consent forms and upload supporting documentation.
+          </p>
+          <div className="bg-yellow-900/30 border border-yellow-600 rounded p-3">
+            <p className="text-yellow-300">
+              <strong>Important:</strong> Please ensure all consent forms are properly collected before marking students as consented. 
+              Upload scanned copies of signed forms for record keeping.
             </p>
           </div>
+        </div>
 
+        {/* Save Message */}
         {saveMessage.text && (
           <div className={`mb-4 p-3 rounded-lg text-center font-bold ${
             saveMessage.type === 'success' ? 'bg-green-800 text-white' : 'bg-red-800 text-white'
@@ -165,16 +162,25 @@ export default function Settings() {
             {saveMessage.text}
           </div>
         )}
-        
-        
-        <StudentTable
-          ref={studentTableRef}
-          tableTitle={""}
-          tableData={studentData}
-          teacherName={courseData?.course_teacher_name}
-          schoolName={courseData?.course_county}
-        />  
-        <div className="mt-3 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
+
+        {/* Research Consent Table */}
+        <ResearchConsentTable
+          ref={researchTableRef}
+          studentData={studentData}
+          researchData={researchData}
+        />
+
+        {/* File Upload Section */}
+        <FileUploadSection
+          courseId={courseData.id}
+          teacherId={teacherId}
+          uploadedFiles={uploadedFiles}
+          onFilesUploaded={handleFilesUploaded}
+          onFileDeleted={handleFileDeleted}
+        />
+
+        {/* Save Button */}
+        <div className="mt-6 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
           <button 
             className={`${
               isSaving 
@@ -184,7 +190,7 @@ export default function Settings() {
             onClick={handleSaveChanges}
             disabled={isSaving}
           >
-            {isSaving ? 'Saving...' : 'Submit Changes'}
+            {isSaving ? 'Saving...' : 'Save Research Data'}
           </button>
         </div>
       </div>

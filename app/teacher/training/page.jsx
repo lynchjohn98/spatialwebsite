@@ -45,7 +45,6 @@ export default function TeacherTraining() {
     console.log("Current Module Data:", moduleData);
     loadTeacherData();
   }, []);
-
   const handleRestrictedAccess = () => {
     setShowAlert(true);
     setTimeout(() => setShowAlert(false), 3000);

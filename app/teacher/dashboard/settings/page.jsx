@@ -1,17 +1,20 @@
-"use client";
+"use client"
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import VisibilityTable from "../../../../components/teacher_components/VisibilityTable";
 import ExtraResourcesTable from "../../../../components/teacher_components/ExtraResourcesTable";
+import TrainingWarningModal from "../../../../components/teacher_components/TrainingWarningModal.jsx";
 import { retrieveCourseSettings, updateCourseSettings } from "../../../library/services/course_actions";
-
+import { fetchTeacherModuleProgress} from "../../../library/services/teacher_actions"; 
 import { createClient } from "../../../utils/supabase/supabase";
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
+  const [showTrainingWarning, setShowTrainingWarning] = useState(false);
+  const [incompleteModules, setIncompleteModules] = useState([]);
   const router = useRouter();
   const [courseData, setCourseData] = useState(null);
   const [courseSettings, setCourseSettings] = useState(null);
@@ -19,7 +22,7 @@ export default function Settings() {
   const [moduleData, setModuleData] = useState([]);
   const [quizData, setQuizData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [moduleProgress, setModuleProgress] = useState({});
   const studentTableRef = useRef();
   const moduleTableRef = useRef();
   const quizTableRef = useRef();
@@ -27,10 +30,10 @@ export default function Settings() {
   const fetchCourseSettings = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
+    const teacherData = JSON.parse(sessionStorage.getItem("teacherData"));
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       setCourseData(parsedData);
-
       const response = await retrieveCourseSettings({ id: parsedData.id });
       if (response.success) {
         const settings = response.data;
@@ -48,6 +51,15 @@ export default function Settings() {
           text: 'Failed to load course settings. Please try refreshing the page.'
         });
       }
+
+      const moduleProgressResponse = await fetchTeacherModuleProgress(teacherData.id);
+      if (moduleProgressResponse.success) {
+        const moduleProgress = moduleProgressResponse.data;
+        setModuleProgress(moduleProgress);
+        console.log("MODULE PROGRESS FETCHED:", moduleProgress);
+      } else {
+        console.error("Error fetching module progress:", moduleProgressResponse.error);
+      }
     }
     setIsLoading(false);
   };
@@ -55,6 +67,46 @@ export default function Settings() {
   useEffect(() => {
     fetchCourseSettings();
   }, []);
+
+  const checkTrainingCompletion = () => {
+    const updatedModuleData = moduleTableRef.current?.getUpdatedData() || moduleData;
+    const incompleteMods = [];
+    
+    // Check each module that's set to visible
+    updatedModuleData.forEach(module => {
+      if (module.visibility === "Yes") {
+        // Find corresponding progress data
+        const progressData = moduleProgress[0]?.module_progress?.[module.name];
+        
+        if (progressData) {
+          const incompleteItems = [];
+          
+          // Check each training component
+          if (!progressData.getting_started) incompleteItems.push("Getting Started");
+          if (!progressData.introduction_video) incompleteItems.push("Introduction Video");
+          if (!progressData.mini_lecture) incompleteItems.push("Mini Lecture");
+          if (!progressData.quiz) incompleteItems.push("Quiz");
+          if (!progressData.software) incompleteItems.push("Software");
+          if (!progressData.workbook) incompleteItems.push("Workbook");
+          
+          if (incompleteItems.length > 0) {
+            incompleteMods.push({
+              moduleName: module.name,
+              incompleteItems: incompleteItems
+            });
+          }
+        } else {
+          // If no progress data exists, all items are incomplete
+          incompleteMods.push({
+            moduleName: module.name,
+            incompleteItems: ["Getting Started", "Introduction Video", "Mini Lecture", "Quiz", "Software", "Workbook"]
+          });
+        }
+      }
+    });
+    
+    return incompleteMods;
+  };
 
   const handleSaveChanges = async () => {
     if (!courseData || !courseSettings) {
@@ -64,6 +116,20 @@ export default function Settings() {
       });
       return;
     }
+    
+    // Check for incomplete training modules
+    const incomplete = checkTrainingCompletion();
+    if (incomplete.length > 0) {
+      setIncompleteModules(incomplete);
+      setShowTrainingWarning(true);
+      return;
+    }
+    
+    // Proceed with saving if all training is complete
+    await proceedWithSave();
+  };
+  
+  const proceedWithSave = async () => {
     setIsSaving(true);
     setSaveMessage({ type: '', text: '' });
     
@@ -83,6 +149,7 @@ export default function Settings() {
           type: 'success',
           text: 'Course settings updated successfully!'
         });
+        setShowTrainingWarning(false);
       } else {
         setSaveMessage({
           type: 'error',
@@ -137,7 +204,6 @@ export default function Settings() {
           </div>
         )}
         
-        
         <VisibilityTable
           ref={moduleTableRef}
           tableTitle={"Module Visibility"}
@@ -154,7 +220,6 @@ export default function Settings() {
           tableTitle={"Extra Resources"}
         />
         
-        
         <div className="mt-3 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
           <button 
             className={`${
@@ -169,6 +234,15 @@ export default function Settings() {
           </button>
         </div>
       </div>
+      
+      {/* Training Warning Modal */}
+      {showTrainingWarning && (
+        <TrainingWarningModal
+          incompleteModules={incompleteModules}
+          onClose={() => setShowTrainingWarning(false)}
+          onProceed={proceedWithSave}
+        />
+      )}
     </div>
   );
 }

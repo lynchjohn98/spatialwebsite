@@ -145,7 +145,8 @@ export async function updateStudentSettings(payload) {
         student_gender: student.gender || 'Not Disclosed',
         student_age: student.age ? parseInt(student.age) : null,
         student_esl: student.esl_status === 'Yes',
-        course_id: payload.courseId
+        course_id: payload.courseId,
+        student_consent: false
       };
       
       if (existingStudent) {
@@ -293,6 +294,8 @@ export async function retrieveCourseSettings(payload: { id: any; }) {
   }
 }
 
+
+
 export async function deleteCourse(payload) {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -327,10 +330,7 @@ export async function getStudentGradeData(payload) {
 }
 
 
-
-
 // Define the const to help with errors
-
 const defaultModuleProgress = 
 {
   "Pre-Module: The Importance of Spatial Skills": {
@@ -433,3 +433,21 @@ const defaultModuleProgress =
     "completed_at": null
   }
 };
+
+
+
+
+
+// Course consent settings, specifically to update the student settings of consent in the students page and also the courses_settings student_settings page
+export async function updateStudentConsentSettings(payload) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+      .from("students")
+      .update({ consent: payload.consent })
+      .eq("id", payload.studentId);
+  if (error) {
+      console.error("❌ Supabase Update Error:", error.message);
+      return { error: error.message };
+  }
+  return { success: true, data };
+}

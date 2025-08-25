@@ -2,7 +2,6 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { countyNumbers } from "../../app/library/helpers/helpers";
 
-
 const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyName, courseData }, ref) => {
   const [data, setData] = useState([]);
   const [showTable, setShowTable] = useState(false);
@@ -26,7 +25,8 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
           age: student.age || '',
           esl_status: student.esl_status || 'No',
           // Map student_join_code to student_username for backward compatibility
-          student_username: student.student_username || student.student_join_code || ''
+          student_username: student.student_username || student.student_join_code || '',
+          student_consent: student.student_consent || false
         }));
         setData(updatedData);
       } catch (error) {
@@ -41,7 +41,8 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
         genderOther: student.genderOther || '',
         age: student.age || '',
         esl_status: student.esl_status || 'No',
-        student_username: student.student_username || student.student_join_code || ''
+        student_username: student.student_username || student.student_join_code || '',
+        student_consent: student.student_consent || false
       }));
       setData(updatedData);
     }
@@ -57,6 +58,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
       esl_status: "No",
       other: "",
       student_username: "", // Changed from student_join_code
+      student_consent: false
     };
     setData([...data, newStudent]);
   };

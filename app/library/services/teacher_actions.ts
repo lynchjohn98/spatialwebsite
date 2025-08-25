@@ -282,7 +282,80 @@ export async function updateTeacherModuleProgress(teacher_id: any, module_title:
     }
 }
 
+// Fetch teacher module progress
+export async function fetchTeacherModuleProgress(teacher_id: any) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("teachers_progress")
+        .select("*")
+        .eq("teacher_id", teacher_id);
+    if (error) {
+        console.error("❌ Supabase Fetch Error:", error.message);
+        return { error: error.message };
+    }
+    return { success: true, data };
+}
 
 // Default Teacher Progress for each Module and for Each Quiz
 const teacherModuleProgress = 
 {"Flat Patterns": {"quiz": false, "order": 4, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Combining Solids": {"quiz": true, "order": 1, "software": true, "workbook": true, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": true}, "Orthographic Projection": {"quiz": false, "order": 9, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Reflections and Symmetry": {"quiz": false, "order": 6, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Inclined and Curved Surfaces": {"quiz": false, "order": 10, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Cutting Planes and Cross-Sections": {"quiz": false, "order": 7, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Surfaces and Solids of Revolution": {"quiz": false, "order": 2, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Isometric Sketching and Coded Plans": {"quiz": false, "order": 3, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Rotation of Objects About a Single Axis": {"quiz": false, "order": 5, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Rotation of Objects About Two or More Axes": {"quiz": false, "order": 8, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Pre-Module: The Importance of Spatial Skills": {"quiz": true, "order": 0, "software": true, "workbook": true, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": true}}
+
+
+
+
+export async function fetchUploadedFiles(courseId) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('research_documents')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return {
+      success: true,
+      data: data || []
+    };
+  } catch (error) {
+    console.error('Error fetching uploaded files:', error);
+    return {
+      success: false,
+      error: error.message,
+      data: []
+    };
+  }
+}
+
+// Delete a research file
+export async function deleteResearchFile(fileId, filePath) {
+  try {
+    const supabase = await createClient();
+    
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('research-documents')
+      .remove([filePath]);
+    
+    if (storageError) throw storageError;
+    
+    // Delete from database
+    const { error: dbError } = await supabase
+      .from('research_documents')
+      .delete()
+      .eq('id', fileId);
+    
+    if (dbError) throw dbError;
+    
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error('Delete error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
