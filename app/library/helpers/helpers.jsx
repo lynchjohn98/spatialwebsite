@@ -2,10 +2,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+
+// Function to modify the admin code for logging in
 export function validateTeacherCode(inputtedCode) {
   //Use environment teacher code
   if (inputtedCode === "SPA2025") {
-    console.log("Teecher code is correct");
+    console.log("Teacher code is correct");
     return true;
   } else {
     console.log("Another ERROR");

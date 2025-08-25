@@ -77,5 +77,7 @@ export async function updateStudentModuleProgress(student_id: any, module_title:
     }
 }
 
+// Student Quiz Submission Handling
+export async function submitStudentQuiz(student_id: any, module_id: any, answers: any, score: any) {
 
-
+}
