@@ -434,25 +434,23 @@ const defaultModuleProgress =
   }
 };
 
-
-
-
-
 // Course consent settings, specifically to update the student settings of consent in the students page and also the courses_settings student_settings page
-export async function updateStudentConsentSettings(updatePayload) {
+export async function updateStudentConsentSettings(updatePayload, courseId) {
   try {
     const supabase = await createClient();
     
-    // Update each student's consent status individually
+    // Update each student's consent status individually in students table
     const results = [];
+    console.log("Update Payload:", updatePayload);
 
-    
     for (const student of updatePayload) {
       console.log(student.student_consent);
       const { data, error } = await supabase
         .from('students')
         .update({ 
-          student_consent: student.student_consent
+          student_consent: student.student_consent,
+          student_notes: student.student_notes,
+          consent_date: student.consent_date
         })
         .eq('student_username', student.student_username)
         .select();
@@ -462,6 +460,7 @@ export async function updateStudentConsentSettings(updatePayload) {
         results.push({ username: student.student_username, success: false, error: error.message });
       } else {
         results.push({ username: student.student_username, success: true });
+        console.log(`Successfully updated student ${student.student_username}`);
       }
     }
     
@@ -474,11 +473,89 @@ export async function updateStudentConsentSettings(updatePayload) {
         details: failedUpdates
       };
     }
+
+    // Now update the student_settings JSONB in courses_settings table
+    try {
+      // First, fetch the current student_settings
+      const { data: currentSettings, error: fetchError } = await supabase
+        .from('courses_settings')
+        .select('student_settings')
+        .eq('course_id', courseId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current settings:', fetchError);
+        return {
+          success: false,
+          error: `Failed to fetch current settings: ${fetchError.message}`
+        };
+      }
+
+      // Parse the current settings
+      let studentSettings = [];
+      if (currentSettings && currentSettings.student_settings) {
+        studentSettings = typeof currentSettings.student_settings === 'string' 
+          ? JSON.parse(currentSettings.student_settings)
+          : currentSettings.student_settings;
+      }
+
+      // Create a map for quick lookup of updates
+      const updateMap = new Map();
+      updatePayload.forEach(update => {
+        updateMap.set(update.student_username, {
+          student_consent: update.student_consent,
+          student_notes: update.student_notes,
+          consent_date: update.consent_date
+        });
+      });
+
+      // Update the student_settings array with new consent data
+      const updatedStudentSettings = studentSettings.map(student => {
+        if (updateMap.has(student.student_username)) {
+          const updates = updateMap.get(student.student_username);
+          return {
+            ...student,
+            student_consent: updates.student_consent,
+            student_notes: updates.student_notes || student.student_notes,
+            consent_date: updates.consent_date || student.consent_date
+          };
+        }
+        return student;
+      });
+
+      // Update the courses_settings table with the modified student_settings
+      const { data: updateData, error: updateError } = await supabase
+        .from('courses_settings')
+        .update({ 
+          student_settings: JSON.stringify(updatedStudentSettings)
+        })
+        .eq('course_id', courseId)
+        .select();
+
+      if (updateError) {
+        console.error('Error updating course settings:', updateError);
+        return {
+          success: false,
+          error: `Students updated but failed to update course settings: ${updateError.message}`
+        };
+      }
+
+      console.log('Successfully updated course settings with new consent data');
+
+    } catch (jsonError) {
+      console.error('Error updating student_settings JSONB:', jsonError);
+      return {
+        success: false,
+        error: `Students updated but failed to update course settings: ${jsonError.message}`
+      };
+    }
+
     return {
       success: true,
-      message: `Successfully updated consent for ${updatePayload.length} students`,
+      message: `Successfully updated consent for ${updatePayload.length} students in both tables`,
       results: results
     };
+    
   } catch (error) {
     console.error('Error updating student consent:', error);
     return {
@@ -489,7 +566,148 @@ export async function updateStudentConsentSettings(updatePayload) {
 }
 
 
-// Fetch student consent data for table
-export async function fetchStudentConsentData(payload) {
 
+// Fetch Data for the Student Course Progress Page
+export async function fetchStudentProgress(courseId) {
+  try {
+    const supabase = await createClient();
+    
+    // Fetch all student progress for the course
+    const { data: progressData, error: progressError } = await supabase
+      .from('students_progress')
+      .select('*')
+      .eq('course_id', courseId);
+    
+    if (progressError) {
+      console.error('Error fetching progress:', progressError);
+      return { success: false, error: progressError.message };
+    }
+    
+    return {
+      success: true,
+      data: progressData || []
+    };
+  } catch (error) {
+    console.error('Error in fetchStudentProgress:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 }
+
+export async function fetchStudentGrades(courseId) {
+  try {
+    const supabase = await createClient();
+    
+    // Fetch all quiz grades for the course
+    const { data: gradesData, error: gradesError } = await supabase
+      .from('students_grades')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('time_submitted', { ascending: false });
+    
+    if (gradesError) {
+      console.error('Error fetching grades:', gradesError);
+      return { success: false, error: gradesError.message };
+    }
+    
+    return {
+      success: true,
+      data: gradesData || []
+    };
+  } catch (error) {
+    console.error('Error in fetchStudentGrades:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+export async function fetchCourseProgressData(courseId) {
+  try {
+    const supabase = await createClient();
+    
+    // Fetch course settings
+    const { data: settings, error: settingsError } = await supabase
+      .from('courses_settings')
+      .select('student_settings, module_settings')
+      .eq('course_id', courseId)
+      .single();
+    
+    if (settingsError) {
+      console.error('Error fetching settings:', settingsError);
+      return { success: false, error: settingsError.message };
+    }
+    
+    // Fetch students with their IDs
+    const studentSettings = JSON.parse(settings.student_settings || "[]");
+    const studentUsernames = studentSettings.map(s => s.student_username);
+    
+    const { data: students, error: studentsError } = await supabase
+      .from('students')
+      .select('id, student_username, student_first_name, student_last_name')
+      .in('student_username', studentUsernames);
+    
+    if (studentsError) {
+      console.error('Error fetching students:', studentsError);
+      return { success: false, error: studentsError.message };
+    }
+    
+    // Map student IDs to the settings
+    const enrichedStudents = studentSettings.map(s => {
+      const student = students.find(st => st.student_username === s.student_username);
+      return {
+        ...s,
+        id: student?.id,
+        first_name: s.first_name || student?.first_name,
+        last_name: s.last_name || student?.last_name
+      };
+    });
+    
+    // Fetch all progress data
+    const studentIds = students.map(s => s.id).filter(Boolean);
+    
+    const { data: progressData, error: progressError } = await supabase
+      .from('students_progress')
+      .select('*')
+      .eq('course_id', courseId)
+      .in('student_id', studentIds);
+    
+    if (progressError) {
+      console.error('Error fetching progress:', progressError);
+      return { success: false, error: progressError.message };
+    }
+    
+    // Fetch all grades
+    const { data: gradesData, error: gradesError } = await supabase
+      .from('students_grades')
+      .select('*')
+      .eq('course_id', courseId)
+      .in('student_id', studentIds)
+      .order('time_submitted', { ascending: false });
+    
+    if (gradesError) {
+      console.error('Error fetching grades:', gradesError);
+      return { success: false, error: gradesError.message };
+    }
+    
+    return {
+      success: true,
+      data: {
+        students: enrichedStudents,
+        moduleSettings: JSON.parse(settings.module_settings || "{}"),
+        progress: progressData || [],
+        grades: gradesData || []
+      }
+    };
+  } catch (error) {
+    console.error('Error in fetchCourseProgressData:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+

@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import ResearchConsentTable from "../../../../components/teacher_components/ResearchConsentTable";
 import FileUploadSection from "../../../../components/teacher_components/FileUploadSection";
-import { retrieveCourseSettings, updateStudentSettings } from "../../../library/services/course_actions";
+import { retrieveCourseSettings, updateStudentConsentSettings } from "../../../library/services/course_actions";
 import { fetchUploadedFiles } from "../../../library/services/teacher_actions";
+import { researchMaterial } from "../../../library/helpers/helpers";
 
 export default function ResearchConsent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -64,7 +65,7 @@ export default function ResearchConsent() {
     fetchCourseData();
   }, []);
 
-  const handleSaveChanges = async () => {
+  const handleSaveConsentData = async (updatedConsentData) => {
     if (!courseData) {
       setSaveMessage({
         type: 'error',
@@ -77,24 +78,34 @@ export default function ResearchConsent() {
     setSaveMessage({ type: '', text: '' });
     
     try {
-      const updatedResearchData = researchTableRef.current?.getUpdatedData() || researchData;
+      // Prepare the update payload with consent information
+      const updatePayload = Object.keys(updatedConsentData).map(username => {
+        const consentData = updatedConsentData[username];
+        
+        return {
+          student_username: username,
+          student_consent: consentData?.consented || false,
+          student_notes: consentData?.notes || '',
+          consent_date: consentData?.consent_date || null
+        };
+      });
       
-      // Update course settings with research consent data
-      const payload = {
-        courseId: courseData.id,
-        researchConsentData: JSON.stringify(updatedResearchData)
-      };
-      
-      const result = await updateStudentSettings(payload);
+      // Call the updated function with both the payload and courseId
+      const result = await updateStudentConsentSettings(updatePayload, courseData.id);
       
       if (result.success) {
         setSaveMessage({
           type: 'success',
-          text: 'Research consent data saved successfully!'
+          text: 'Student consent data saved successfully!'
         });
         
-        // Refresh data
-        await fetchCourseData();
+        // Store the updated research data for next refresh
+        setResearchData(updatedConsentData);
+        
+        // Clear the success message after 3 seconds
+        setTimeout(() => {
+          setSaveMessage({ type: '', text: '' });
+        }, 3000);
       } else {
         setSaveMessage({
           type: 'error',
@@ -105,7 +116,7 @@ export default function ResearchConsent() {
       console.error("Error saving research data:", error);
       setSaveMessage({
         type: 'error',
-        text: 'An unexpected error occurred while saving.'
+        text: 'An unexpected error occurred while saving consent data.'
       });
     } finally {
       setIsSaving(false);
@@ -114,10 +125,32 @@ export default function ResearchConsent() {
 
   const handleFilesUploaded = (newFiles) => {
     setUploadedFiles(prev => [...newFiles, ...prev]);
+    setSaveMessage({
+      type: 'success',
+      text: `${newFiles.length} file(s) uploaded successfully!`
+    });
+    setTimeout(() => {
+      setSaveMessage({ type: '', text: '' });
+    }, 3000);
   };
 
   const handleFileDeleted = (fileId) => {
     setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+    setSaveMessage({
+      type: 'success',
+      text: 'File deleted successfully!'
+    });
+    setTimeout(() => {
+      setSaveMessage({ type: '', text: '' });
+    }, 3000);
+  };
+
+  const handleUploadSignedForms = () => {
+    // Scroll to file upload section
+    const uploadSection = document.getElementById('file-upload-section');
+    if (uploadSection) {
+      uploadSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   if (isLoading || !courseData) {
@@ -140,17 +173,83 @@ export default function ResearchConsent() {
       />
       
       <div className="flex-1 p-6 overflow-auto">
-        {/* Header Section */}
+        {/* Enhanced Header Section */}
         <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-6">
           <h1 className="text-2xl md:text-3xl font-bold mb-4">Research Consent Management</h1>
           <p className="text-lg mb-4 text-blue-300">
             Track student research consent forms and upload supporting documentation.
           </p>
-          <div className="bg-yellow-900/30 border border-yellow-600 rounded p-3">
-            <p className="text-yellow-300">
-              <strong>Important:</strong> Please ensure all consent forms are properly collected before marking students as consented. 
-              Upload scanned copies of signed forms for record keeping.
-            </p>
+
+          {/* Research Documents Section */}
+          <div className="bg-gradient-to-r from-green-900/20 to-blue-900/20 border border-green-600/50 rounded-lg p-6">
+            <div className="flex items-start mb-4">
+              <svg className="w-6 h-6 text-green-400 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h2 className="text-green-300 font-semibold text-lg mb-2">Research Documents</h2>
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  This course has been created with the research feature added. The below documents include the research consent form 
+                  and information sheet that can be provided to students. After you download these, you can distribute them to students and use the upload feature below to upload signed forms.
+                </p> 
+              </div>
+            </div>
+
+            {/* Document Download Cards */}
+            <div className="grid md:grid-cols-2 gap-4 mt-6">
+              {researchMaterial.map((material, index) => (
+                <div key={index} className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700/70 transition-all duration-200">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-white font-medium mb-1">{material.title}</h3>
+                      <p className="text-gray-400 text-sm mb-3">{material.description}</p>
+                      <a 
+                        href={material.downloadUrl} 
+                        className="inline-flex items-center text-blue-400 hover:text-blue-300 transition-colors text-sm font-medium"
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                          />
+                        </svg>
+                        Download PDF
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Actions */}
+            <div className="mt-6 pt-4 border-t border-gray-600/50">
+              <div className="flex flex-wrap gap-3">
+                <button 
+                  onClick={handleUploadSignedForms}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Jump to Upload Section
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Important Notice */}
+          <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mt-6">
+            <div className="flex items-start">
+              <svg className="w-6 h-6 text-blue-400 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p className="text-blue-300 font-semibold mb-1">How This Works</p>
+                <p className="text-blue-200/90 text-sm">
+                  <b>1. Track Consent:</b> Use the table below to manually track which students have provided consent.<br/>
+                  <b>2. Upload Documentation:</b> Upload scanned consent forms in the file upload section for record keeping.<br/>
+                  These are independent actions - you can update consent status now and upload files later.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -163,35 +262,24 @@ export default function ResearchConsent() {
           </div>
         )}
 
-        {/* Research Consent Table */}
+        {/* Research Consent Table with its own save */}
         <ResearchConsentTable
           ref={researchTableRef}
           studentData={studentData}
           researchData={researchData}
+          onSave={handleSaveConsentData}
+          isSaving={isSaving}
         />
 
-        {/* File Upload Section */}
-        <FileUploadSection
-          courseId={courseData.id}
-          teacherId={teacherId}
-          uploadedFiles={uploadedFiles}
-          onFilesUploaded={handleFilesUploaded}
-          onFileDeleted={handleFileDeleted}
-        />
-
-        {/* Save Button */}
-        <div className="mt-6 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
-          <button 
-            className={`${
-              isSaving 
-                ? 'bg-gray-500 cursor-not-allowed' 
-                : 'bg-blue-500 hover:bg-blue-700'
-            } text-white font-bold py-2 px-4 rounded transition-colors duration-200`}
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Saving...' : 'Save Research Data'}
-          </button>
+        {/* File Upload Section - Independent functionality */}
+        <div id="file-upload-section">
+          <FileUploadSection
+            courseId={courseData.id}
+            teacherId={teacherId}
+            uploadedFiles={uploadedFiles}
+            onFilesUploaded={handleFilesUploaded}
+            onFileDeleted={handleFileDeleted}
+          />
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useRouter } from "next/navigation";
 
-const VisibilityTable = forwardRef(({ tableTitle, tableData, moniker }, ref) => {
+const VisibilityTable = forwardRef(({ tableTitle, tableData, moniker, maxHeight = "400px" }, ref) => {
   const [showTable, setShowTable] = useState(false);
   const [data, setData] = useState([]);
   const router = useRouter();
@@ -64,7 +64,7 @@ const VisibilityTable = forwardRef(({ tableTitle, tableData, moniker }, ref) => 
       {/* Table container with animation */}
       <div
         className={`overflow-hidden transition-all duration-500 ${
-          showTable ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          showTable ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         {/* Fixed header table */}
@@ -80,8 +80,8 @@ const VisibilityTable = forwardRef(({ tableTitle, tableData, moniker }, ref) => 
             </thead>
           </table>
           
-          {/* Scrollable table body */}
-          <div className="max-h-[250px] overflow-y-auto">
+          {/* Scrollable table body - INCREASED HEIGHT */}
+          <div className={`overflow-y-auto`} style={{ maxHeight: maxHeight }}>
             <table className="table-auto w-full border-collapse border border-gray-600">
               <tbody>
                 {data.map((item, index) => (

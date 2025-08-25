@@ -50,7 +50,7 @@ export default function ExtraResourcesTable({ tableTitle }) {
           </table>
           
           {/* Scrollable table body */}
-          <div className="max-h-[250px] overflow-y-auto">
+          <div className="max-h-[500px] overflow-y-auto">
             <table className="table-auto w-full border-collapse border border-gray-600">
               <tbody>
                 {supplementalMaterialInformation.map((resource, index) => (

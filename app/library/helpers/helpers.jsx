@@ -242,7 +242,7 @@ export function useModulePage() {
   };
 }
 
-export const supplementalMaterialInformation = [
+export const researchMaterial = [
   {
     title: "Informed Consent Form for Research Study",
     description: "Consent forms for student participants",
@@ -250,19 +250,15 @@ export const supplementalMaterialInformation = [
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//consent_forms.pdf",
   },
   {
-    title: "Extension Excercises",
-    description:
-      "Word document with extra material and information usable with each module",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//ExtensionExcercises.docx",
-  },
-  {
     title: "Information Sheet and Recruitment Letter",
     description:
       "PDF that includes information that the student / parent can review regarding the study",
     downloadUrl:
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//information_sheet_recruitment.pdf",
-  },
+  }
+];
+
+export const supplementalMaterialInformation = [
   {
     title: "Teacher's Resource Guide to accompany Developing Spatial Thinking",
     description:
@@ -335,6 +331,15 @@ export const supplementalMaterialInformation = [
     downloadUrl:
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_inclinedcurved.pptx",
   },
+    
+  {
+    title: "Extension Excercises",
+    description:
+      "Word document with extra material and information usable with each module",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//ExtensionExcercises.docx",
+  }
+ 
 ];
 
 const defaultModuleProgress = 

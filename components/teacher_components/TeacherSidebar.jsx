@@ -257,64 +257,6 @@ export default function Sidebar({
                 stroke="currentColor"
                 strokeWidth="2"
               >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            }
-            label="Manage Students"
-            route="/teacher/dashboard/students"
-            isActive={activeRoute === "/teacher/dashboard/students"}
-            onClick={handleMobileNavClick}
-          />
-          <NavButton
-            icon={
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            }
-            label="Course Settings"
-            route="/teacher/dashboard/settings"
-            isActive={activeRoute === "/teacher/dashboard/settings"}
-            onClick={handleMobileNavClick}
-          />
-
-          <NavButton
-            icon={
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-              </svg>
-            }
-            label="Student Grades"
-            route="/teacher/dashboard/grades" // Change this from "/teacher-dashboard/settings"
-            isActive={activeRoute === "/teacher/dashboard/grades"}
-            onClick={handleMobileNavClick}
-          />
-          <NavButton
-            icon={
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
                 <rect x="3" y="3" width="7" height="7" rx="1" />
                 <rect x="14" y="3" width="7" height="7" rx="1" />
                 <rect x="14" y="14" width="7" height="7" rx="1" />
@@ -345,6 +287,66 @@ export default function Sidebar({
             isActive={activeRoute === "/teacher/dashboard/quizzes"}
             onClick={handleMobileNavClick}
           />
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            }
+            label="Manage Students"
+            route="/teacher/dashboard/students"
+            isActive={activeRoute === "/teacher/dashboard/students"}
+            onClick={handleMobileNavClick}
+          />
+           <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            }
+            label="Student Progress"
+            route="/teacher/dashboard/progress" // Change this from "/teacher-dashboard/settings"
+            isActive={activeRoute === "/teacher/dashboard/progress"}
+            onClick={handleMobileNavClick}
+          />
+          <NavButton
+            icon={
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+            }
+            label="Course Settings"
+            route="/teacher/dashboard/settings"
+            isActive={activeRoute === "/teacher/dashboard/settings"}
+            onClick={handleMobileNavClick}
+          />
+
+         
+          
           {courseData.course_research && (
        
           <NavButton
