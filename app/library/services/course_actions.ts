@@ -661,8 +661,8 @@ export async function fetchCourseProgressData(courseId) {
       return {
         ...s,
         id: student?.id,
-        first_name: s.first_name || student?.first_name,
-        last_name: s.last_name || student?.last_name
+        first_name: s.first_name || student?.student_first_name,
+        last_name: s.last_name || student?.student_last_name
       };
     });
     

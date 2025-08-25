@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { retrieveQuizzes } from "../../../library/services/actions";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 
 export default function Quizzes() {
@@ -27,11 +26,9 @@ export default function Quizzes() {
 
   const getQuizData = useCallback(async (courseId) => {
     try {
-      const response = await retrieveQuizzes({ id: courseId });
-      if (response.success) {
-        const parsedQuizSettings = JSON.parse(
-          response.data.quiz_settings || "[]"
-        );
+      const response = await fetch(`/api/quizzes/${courseId}`);
+      if (response.ok) {
+        const parsedQuizSettings = await response.json();
         setQuizData(parsedQuizSettings);
         const currentTime = new Date().toISOString();
         setLastUpdated(currentTime);
