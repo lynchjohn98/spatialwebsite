@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { generateJoinCode } from "../../library/helpers/helpers";
+import { generateJoinCode } from "../../library/helpers/clienthelpers";
 import { getTeacherData } from "../../library/services/teacher_actions";
 import {
   insertCourseSettings,

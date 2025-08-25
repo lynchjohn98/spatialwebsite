@@ -3,8 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import StudentSidebar from "../../../../components/student_components/StudentSidebar";
 import { useStudentSidebar } from "../../../utils/hooks/useStudentSidebar";
-import { fetchStudentProgressPage } from "../../../library/services/student_actions";
-import { retrieveModules } from "../../../library/services/course_actions"; // Import your retrieve function
+import { fetchStudentProgressPage } from "../../../library/services/student_services/student_actions";
+import { retrieveModules } from "../../../library/services/course_actions";
 
 export default function Modules() {
   const router = useRouter();
@@ -14,45 +14,39 @@ export default function Modules() {
   const [progressData, setProgressData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [moduleData, setModuleData] = useState([]);
-  const [isRefreshing, setIsRefreshing] = useState(false); // Add refresh state
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false); // Track if initial load is done
 
-  useEffect(() => {
-    const storedCourseData = sessionStorage.getItem("courseData");
-    const storedStudentData = sessionStorage.getItem("studentData");
-
-    if (storedCourseData && storedStudentData) {
-      try {
-        const parsedCourseData = JSON.parse(storedCourseData);
-        const parsedStudentData = JSON.parse(storedStudentData);
-
-        let modules = parsedCourseData.settings?.module_settings;
-        if (typeof modules === "string") {
-          modules = JSON.parse(modules);
-        }
-        setCourseData(parsedCourseData);
-        setStudentData(parsedStudentData);
-        setModuleData(modules || []);
-
-        // Pass the parsed student data directly to the function
-        setStudentProgressSession(parsedStudentData);
-      } catch (error) {
-        console.error("Error parsing session storage data:", error);
-        sessionStorage.removeItem("courseData");
-        sessionStorage.removeItem("studentData");
-        router.push("/student/student-join");
-      }
-    } else {
-      router.push("/student/student-join");
-    }
-    setIsLoading(false);
-  }, [router]);
-
-  const refreshModules = async () => {
-    if (!courseData) return;
-
-    setIsRefreshing(true);
+  // Separate function to fetch progress data
+  const setStudentProgressSession = async (student) => {
     try {
-      const response = await retrieveModules({ id: studentData.course_id });
+      const studentProgressData = await fetchStudentProgressPage({
+        student_id: student.id,
+      });
+
+      if (studentProgressData.success && studentProgressData.data) {
+        const moduleProgress = studentProgressData.data.module_progress || {};
+        setProgressData(moduleProgress);
+        sessionStorage.setItem(
+          "studentProgressData",
+          JSON.stringify(moduleProgress)
+        );
+      } else {
+        console.error("No data in response or request failed");
+      }
+    } catch (error) {
+      console.error("Error fetching student progress:", error);
+    }
+  };
+
+  // Function to refresh modules
+  const refreshModules = async (courseId, studentInfo, showLoadingState = true) => {
+    if (showLoadingState) {
+      setIsRefreshing(true);
+    }
+    
+    try {
+      const response = await retrieveModules({ id: courseId });
 
       if (response.success && response.data) {
         let modules = response.data.module_settings;
@@ -61,10 +55,13 @@ export default function Modules() {
         }
 
         setModuleData(modules || []);
+        
+        // Update course data in state and session storage
+        const currentCourseData = JSON.parse(sessionStorage.getItem("courseData"));
         const updatedCourseData = {
-          ...courseData,
+          ...currentCourseData,
           settings: {
-            ...courseData.settings,
+            ...currentCourseData.settings,
             module_settings: modules,
           },
         };
@@ -72,38 +69,76 @@ export default function Modules() {
         sessionStorage.setItem("courseData", JSON.stringify(updatedCourseData));
 
         // Also refresh progress data
-        if (studentData) {
-          await setStudentProgressSession(studentData);
+        if (studentInfo) {
+          await setStudentProgressSession(studentInfo);
         }
+        
+        return true;
       }
+      return false;
     } catch (error) {
       console.error("Error refreshing modules:", error);
+      return false;
     } finally {
-      setIsRefreshing(false);
+      if (showLoadingState) {
+        setIsRefreshing(false);
+      }
     }
   };
 
-  const setStudentProgressSession = async (student) => {
-    const studentProgressData = await fetchStudentProgressPage({
-      student_id: student.id,
-    });
+  // Initial load effect
+  useEffect(() => {
+    const initializePage = async () => {
+      const storedCourseData = sessionStorage.getItem("courseData");
+      const storedStudentData = sessionStorage.getItem("studentData");
 
-    if (studentProgressData.success && studentProgressData.data) {
-      const moduleProgress = studentProgressData.data.module_progress || {};
-      setProgressData(moduleProgress);
-      sessionStorage.setItem(
-        "studentProgressData",
-        JSON.stringify(moduleProgress)
-      );
-    } else {
-      console.error("No data in response or request failed");
-    }
+      if (storedCourseData && storedStudentData) {
+        try {
+          const parsedCourseData = JSON.parse(storedCourseData);
+          const parsedStudentData = JSON.parse(storedStudentData);
+
+          // Set initial data
+          setCourseData(parsedCourseData);
+          setStudentData(parsedStudentData);
+
+          // Set initial module data from session storage
+          let modules = parsedCourseData.settings?.module_settings;
+          if (typeof modules === "string") {
+            modules = JSON.parse(modules);
+          }
+          setModuleData(modules || []);
+
+          // Fetch progress data
+          await setStudentProgressSession(parsedStudentData);
+
+          // Auto-refresh modules from database to get latest visibility settings
+          await refreshModules(parsedStudentData.course_id, parsedStudentData, false);
+          
+          setHasInitialized(true);
+        } catch (error) {
+          console.error("Error parsing session storage data:", error);
+          sessionStorage.removeItem("courseData");
+          sessionStorage.removeItem("studentData");
+          router.push("/student/student-join");
+        }
+      } else {
+        router.push("/student/student-join");
+      }
+      setIsLoading(false);
+    };
+
+    initializePage();
+  }, [router]);
+
+  // Manual refresh handler
+  const handleManualRefresh = async () => {
+    if (!studentData) return;
+    await refreshModules(studentData.course_id, studentData);
   };
 
   const calculateModuleProgress = (moduleProgress) => {
     if (!moduleProgress) return 0;
 
-    // Updated to use actual property names from your data
     const components = [
       "quiz",
       "software",
@@ -118,7 +153,6 @@ export default function Modules() {
     return Math.round((completed / components.length) * 100);
   };
 
-  // Get progress bar color based on percentage
   const getProgressBarColor = (percentage) => {
     if (percentage === 100) return "bg-green-500";
     if (percentage >= 60) return "bg-blue-500";
@@ -126,7 +160,6 @@ export default function Modules() {
     return "bg-gray-600";
   };
 
-  // Get module status and styling
   const getModuleStatus = (moduleProgress) => {
     if (!moduleProgress) {
       return {
@@ -139,7 +172,6 @@ export default function Modules() {
       };
     }
 
-    // Updated component list to match actual data structure
     const components = [
       "quiz",
       "software",
@@ -214,7 +246,7 @@ export default function Modules() {
       <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl">
         <div className="flex flex-col items-center">
           <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-4"></div>
-          Loading...
+          Loading modules...
         </div>
       </div>
     );
@@ -243,7 +275,7 @@ export default function Modules() {
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl md:text-3xl font-bold">All Modules</h1>
             <button
-              onClick={refreshModules}
+              onClick={handleManualRefresh}
               disabled={isRefreshing}
               className={`flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200 ${
                 isRefreshing ? "opacity-50 cursor-not-allowed" : ""
@@ -282,32 +314,48 @@ export default function Modules() {
 
               // Handle both array and object formats
               if (Array.isArray(moduleData) && moduleData.length > 0) {
-                // If moduleData is an array
                 visibleModules = moduleData
                   .filter((module) => module?.visibility === "Yes")
-                  .sort((a, b) => a.id - b.id);
+                  .sort((a, b) => (a.module_rank ?? a.id) - (b.module_rank ?? b.id));
               } else if (
                 moduleData &&
                 typeof moduleData === "object" &&
                 Object.keys(moduleData).length > 0
               ) {
-                // If moduleData is an object
                 visibleModules = Object.entries(moduleData)
                   .map(([id, module]) => ({
                     ...module,
                     id: parseInt(id),
                   }))
                   .filter((module) => module?.visibility === "Yes")
-                  .sort((a, b) => a.id - b.id);
+                  .sort((a, b) => (a.module_rank ?? a.id) - (b.module_rank ?? b.id));
               }
 
               if (visibleModules.length === 0) {
                 return (
-                  <div className="p-4 bg-gray-800 rounded-lg text-center">
-                    <p>No visible modules available at this time.</p>
+                  <div className="p-8 bg-gray-800 rounded-lg text-center">
+                    <svg
+                      className="mx-auto h-12 w-12 text-gray-600 mb-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                      No Modules Available
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      No modules are currently visible. Your instructor may release them as the course progresses.
+                    </p>
                     <button
-                      onClick={refreshModules}
-                      className="mt-4 text-blue-400 hover:text-blue-300 underline"
+                      onClick={handleManualRefresh}
+                      className="text-blue-400 hover:text-blue-300 underline"
                     >
                       Check for updates
                     </button>
@@ -316,17 +364,15 @@ export default function Modules() {
               }
 
               return visibleModules.map((module) => {
-                // Extract just the title from module.name (removes "Module #: " prefix)
+                // Extract just the title from module.name
                 const extractTitle = (fullName) => {
                   const match = fullName.match(/Module\s+\d+:\s*(.+)/);
                   return match ? match[1] : fullName;
                 };
 
                 const moduleTitle = extractTitle(module.name);
-
                 const moduleProgress = progressData[moduleTitle];
-                const progressPercentage =
-                  calculateModuleProgress(moduleProgress);
+                const progressPercentage = calculateModuleProgress(moduleProgress);
                 const moduleStatus = getModuleStatus(moduleProgress);
 
                 return (

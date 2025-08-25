@@ -73,39 +73,6 @@ export async function studentJoinCourse(payload: { student_username: string }) {
   }
 }
 
-export async function addStudentToDatabase(payload) {
-  const supabase = await createClient();
-
-  // Insert the student into the students table
-  const { data, error } = await supabase
-    .from("students")
-    .upsert([
-      {
-        id: payload.id || undefined, // If there's an ID, update; otherwise insert
-        student_username: payload.student_username,
-        first_name: payload.first_name,
-        last_name: payload.last_name,
-        gender: payload.gender,
-        grade: payload.grade,
-        other: payload.other,
-        join_date: payload.join_date || new Date().toISOString(),
-        remove_date: payload.remove_date,
-        course_id: payload.course_id
-      }
-    ],
-      {
-        onConflict: 'student_username',  // Update if the username already exists
-        ignoreDuplicates: false
-      });
-
-  if (error) {
-    console.error("❌ Student insert error:", error.message);
-    return { error: error.message };
-  }
-
-  return { success: true, data };
-}
-
 
 export async function retrieveStudentData(payload: any) {
   const supabase = await createClient();

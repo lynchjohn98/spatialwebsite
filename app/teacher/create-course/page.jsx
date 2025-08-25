@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { counties } from "../../library/helpers/helpers";
+import { counties } from "../../library/helpers/clienthelpers";
 import { getTeacherData } from "../../library/services/teacher_actions";
 
 export default function CreateCourse() {

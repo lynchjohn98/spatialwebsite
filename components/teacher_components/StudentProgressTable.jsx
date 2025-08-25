@@ -19,6 +19,11 @@ export default function StudentProgressTable({ courseId }) {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
+      //Fetch student data and each students progress
+      const courseData = sessionStorage.getItem("courseData");
+      console.log("Course Data Here:" ,)
+
+
       // Fetch course settings (students and modules)
       const settingsResponse = await fetch(`/api/course-settings/${courseId}`);
       const settings = await settingsResponse.json();

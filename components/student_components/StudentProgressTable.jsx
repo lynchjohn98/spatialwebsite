@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { fetchStudentProgressPage } from "../../app/library/services/student_actions";
-import { defaultModuleProgress } from "../../app/library/helpers/helpers";
+import { fetchStudentProgressPage } from "../../app/library/services/student_services/student_actions";
+import { defaultModuleProgress } from "../../app/library/helpers/clienthelpers";
 
 export default function StudentProgressTracker({ studentData, courseData }) {
   const [progressData, setProgressData] = useState(null);

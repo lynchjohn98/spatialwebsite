@@ -6,7 +6,7 @@ import ResearchConsentTable from "../../../../components/teacher_components/Rese
 import FileUploadSection from "../../../../components/teacher_components/FileUploadSection";
 import { retrieveCourseSettings, updateStudentConsentSettings } from "../../../library/services/course_actions";
 import { fetchUploadedFiles } from "../../../library/services/teacher_actions";
-import { researchMaterial } from "../../../library/helpers/helpers";
+import { researchMaterial } from "../../../library/helpers/clienthelpers";
 
 export default function ResearchConsent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

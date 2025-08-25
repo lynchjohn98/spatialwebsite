@@ -1,10 +1,18 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { countyNumbers } from "../../app/library/helpers/helpers";
+import { countyNumbers } from "../../app/library/helpers/clienthelpers";
 
-const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyName, courseData }, ref) => {
+const StudentTable = forwardRef(({ 
+  tableTitle, 
+  tableData, 
+  teacherName, 
+  countyName, 
+  courseData,
+  onRemoveStudent // New prop to handle backend deletion
+}, ref) => {
   const [data, setData] = useState([]);
   const [showTable, setShowTable] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false); // Track removal state
   
   // Get default gender from course data
   const getDefaultGender = () => {
@@ -67,23 +75,23 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
   // Current format: firstname2chars + lastname2chars + teacher2chars + countyNumber
   // Example: "jo" + "sm" + "ms" + "01" = "josms01"
   const generateStudentUsername = (firstName, lastName, teacherName, countyName, existingUsernames = []) => {
-  const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-3).padEnd(3, 'x');
-  const cleanTeacher = teacherName.toLowerCase().replace(/[^a-z]/g, '').slice(-2); // Reduced to 2 chars
-  const countyNumber = countyNumbers[countyName] || '00';
-  
-  // Generate random character (a-z or 0-9)
-  const randomChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let username;
-  let attempts = 0;
-  
-  do {
-    const randomChar = randomChars[Math.floor(Math.random() * randomChars.length)];
-    username = `${cleanLastName}${cleanTeacher}${randomChar}${countyNumber}`;
-    attempts++;
-  } while (existingUsernames.includes(username) && attempts < 36);
-  
-  return username;
-};
+    const cleanLastName = lastName.toLowerCase().replace(/[^a-z]/g, '').slice(-3).padEnd(3, 'x');
+    const cleanTeacher = teacherName.toLowerCase().replace(/[^a-z]/g, '').slice(-2); // Reduced to 2 chars
+    const countyNumber = countyNumbers[countyName] || '00';
+    
+    // Generate random character (a-z or 0-9)
+    const randomChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let username;
+    let attempts = 0;
+    
+    do {
+      const randomChar = randomChars[Math.floor(Math.random() * randomChars.length)];
+      username = `${cleanLastName}${cleanTeacher}${randomChar}${countyNumber}`;
+      attempts++;
+    } while (existingUsernames.includes(username) && attempts < 36);
+    
+    return username;
+  };
 
   // Updated regenerateUsername function
   const regenerateUsername = (index) => {
@@ -132,9 +140,65 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
     );
   };
 
-  
-  const removeStudent = (index) => {
-    setData(prevData => prevData.filter((_, i) => i !== index));
+  // Enhanced removeStudent function with confirmation and backend integration
+  const removeStudent = async (index) => {
+    const student = data[index];
+    const studentName = student.first_name && student.last_name 
+      ? `${student.first_name} ${student.last_name}` 
+      : student.student_username || 'this student';
+    
+    // Show confirmation dialog
+    const confirmMessage = `Are you sure you want to remove ${studentName} from this course?\n\n` +
+                          `⚠️ WARNING: This will permanently delete all of the student's data including:\n` +
+                          `• Profile information\n` +
+                          `• Course progress\n` +
+                          `• Assessment results\n` +
+                          `• All associated records\n\n` +
+                          `This action cannot be undone.`;
+    
+    const isConfirmed = window.confirm(confirmMessage);
+    
+    if (!isConfirmed) {
+      return; // User cancelled
+    }
+    
+    setIsRemoving(true);
+    
+    try {
+      // If we have a backend handler function passed as prop
+      if (onRemoveStudent) {
+        // Call the backend function with student data
+        // This should be your purge function from student_management.jsx
+        const result = await onRemoveStudent({
+          studentId: student.id || student.student_id, // Adjust based on your data structure
+          studentUsername: student.student_username,
+          courseId: courseData?.id || courseData?.course_id,
+          index: index,
+          studentData: student
+        });
+        
+        if (result.success) {
+          // Remove from local state only if backend deletion succeeded
+          setData(prevData => prevData.filter((_, i) => i !== index));
+          
+          // Show success message
+          alert(`Successfully removed ${studentName} from the course.`);
+        } else {
+          // Show error message if backend deletion failed
+          alert(`Failed to remove ${studentName}: ${result.error || 'Unknown error occurred'}`);
+        }
+      } else {
+        // Fallback: Just remove from local state if no backend handler provided
+        console.warn("No backend handler provided for student removal. Only removing from UI.");
+        setData(prevData => prevData.filter((_, i) => i !== index));
+        alert(`${studentName} has been removed from the list (local only - no backend handler provided).`);
+      }
+    } catch (error) {
+      console.error("Error removing student:", error);
+      alert(`Error removing student: ${error.message || 'Unknown error occurred'}`);
+    } finally {
+      setIsRemoving(false);
+    }
   };
 
   const validateAge = (value) => {
@@ -182,7 +246,16 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
           </div>
         )}
         
-        <div className="overflow-auto max-h-[400px] mt-2">
+        {/* Loading overlay when removing student */}
+        {isRemoving && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20 rounded-lg">
+            <div className="bg-gray-800 p-4 rounded-lg border border-gray-600">
+              <p className="text-white">Removing student...</p>
+            </div>
+          </div>
+        )}
+        
+        <div className="overflow-auto max-h-[400px] mt-2 relative">
           <table className="table-auto w-full border-collapse border border-gray-600 min-w-[900px]">
             <thead className="bg-gray-700 sticky top-0 z-10">
               <tr>
@@ -208,6 +281,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                         onChange={(e) => updateStudent(index, 'first_name', e.target.value)}
                         className="w-full bg-gray-700 text-white p-1 rounded"
                         placeholder="Enter first name"
+                        disabled={isRemoving}
                       />
                     </td>
                     <td className="border border-gray-600 px-2 py-2">
@@ -217,6 +291,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                         onChange={(e) => updateStudent(index, 'last_name', e.target.value)}
                         className="w-full bg-gray-700 text-white p-1 rounded"
                         placeholder="Enter last name"
+                        disabled={isRemoving}
                       />
                       {student.last_name && !student.student_username && (
                         <p className="text-xs text-yellow-400 mt-1">
@@ -230,6 +305,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                           value={student.gender || 'Not Disclosed'}
                           onChange={(e) => updateStudent(index, 'gender', e.target.value)}
                           className="w-full bg-gray-700 text-white p-1 rounded mb-1"
+                          disabled={isRemoving}
                         >
                           <option value="Male">Male</option>
                           <option value="Female">Female</option>
@@ -243,6 +319,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                             onChange={(e) => updateStudent(index, 'genderOther', e.target.value)}
                             className="w-full bg-gray-600 text-white p-1 rounded text-xs"
                             placeholder="Please specify"
+                            disabled={isRemoving}
                           />
                         )}
                       </td>
@@ -253,6 +330,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                           value={student.age || ''}
                           onChange={(e) => updateStudent(index, 'age', e.target.value)}
                           className="w-full bg-gray-700 text-white p-1 rounded text-sm"
+                          disabled={isRemoving}
                         >
                           <option value="">Select Age</option>
                           {Array.from({ length: 4 }, (_, i) => i + 14).map(age => (
@@ -267,6 +345,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                           onChange={(e) => updateStudent(index, 'age', validateAge(e.target.value))}
                           className="w-full bg-gray-600 text-white p-1 rounded text-xs"
                           placeholder="Or type (14-17)"
+                          disabled={isRemoving}
                         />
                       </div>
                     </td>
@@ -275,6 +354,7 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                         value={student.esl_status || 'No'}
                         onChange={(e) => updateStudent(index, 'esl_status', e.target.value)}
                         className="w-full bg-gray-700 text-white p-1 rounded"
+                        disabled={isRemoving}
                       >
                         <option value="No">No</option>
                         <option value="Yes">Yes</option>
@@ -289,8 +369,9 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                         {student.first_name && student.last_name && (
                           <button
                             onClick={() => regenerateUsername(index)}
-                            className="p-1 rounded-full bg-gray-600 hover:bg-blue-600 transition-colors flex-shrink-0"
+                            className="p-1 rounded-full bg-gray-600 hover:bg-blue-600 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Regenerate username"
+                            disabled={isRemoving}
                           >
                             <svg 
                               xmlns="http://www.w3.org/2000/svg" 
@@ -313,8 +394,9 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
                     <td className="border border-gray-600 px-2 py-2 text-center">
                       <button
                         onClick={() => removeStudent(index)}
-                        className="bg-red-600 hover:bg-red-700 text-white p-1 rounded"
-                        title="Remove student"
+                        className="bg-red-600 hover:bg-red-700 text-white p-1 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Remove student from course"
+                        disabled={isRemoving}
                       >
                         ✕
                       </button>
@@ -343,8 +425,9 @@ const StudentTable = forwardRef(({ tableTitle, tableData, teacherName, countyNam
             )}
           </div>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={addStudent}
+            disabled={isRemoving}
           >
             Add Student
           </button>

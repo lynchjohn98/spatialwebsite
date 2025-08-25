@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { generateStudentUsername } from "../../app/library/helpers/helpers";
+import { generateStudentUsername } from "../../app/library/helpers/clienthelpers";
 import { useRouter } from "next/navigation";
 
 const TeacherHeader = forwardRef(

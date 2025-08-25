@@ -189,6 +189,7 @@ export default function Settings() {
         moduleTableRef.current?.getUpdatedData() || moduleData;
       const updatedQuizData =
         quizTableRef.current?.getUpdatedData() || quizData;
+      
       const payload = {
         courseId: courseData.id,
         moduleSettings: JSON.stringify(updatedModuleData),

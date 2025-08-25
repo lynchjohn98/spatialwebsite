@@ -2,7 +2,7 @@
 import { useState, useEffect, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
-import { fetchCourseProgressData } from "../../../library/services/course_actions";
+import { fetchAllStudentCourseProgress } from "../../../library/services/teacher_services/student_progress";
 import { ChevronDown, ChevronRight, Check, X, Clock, Award, Download, RefreshCw } from "lucide-react";
 
 export default function StudentProgress() {
@@ -21,6 +21,7 @@ export default function StudentProgress() {
 
   useEffect(() => {
     const storedData = sessionStorage.getItem("courseData");
+    console.log("Retrieved courseData from sessionStorage:", storedData);
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       setCourseData(parsedData);
@@ -29,35 +30,12 @@ export default function StudentProgress() {
   }, []);
 
   const fetchAllData = async (courseId) => {
+    console.log("Here!!!");
     setIsLoading(true);
     try {
-      const response = await fetchCourseProgressData(courseId);
-      
+      const response = await fetchAllStudentCourseProgress({ courseId });
       if (response.success) {
-        const { students, moduleSettings: modules, progress, grades } = response.data;
-        
-        setStudentsData(students);
-        setModuleSettings(modules);
-        
-        // Map progress by student_id
-        const progressMap = {};
-        progress.forEach(p => {
-          progressMap[p.student_id] = p.module_progress;
-        });
-        setProgressData(progressMap);
-        
-        // Group grades by student_id and quiz_id
-        const gradesMap = {};
-        grades.forEach(grade => {
-          if (!gradesMap[grade.student_id]) {
-            gradesMap[grade.student_id] = {};
-          }
-          if (!gradesMap[grade.student_id][grade.quiz_id]) {
-            gradesMap[grade.student_id][grade.quiz_id] = [];
-          }
-          gradesMap[grade.student_id][grade.quiz_id].push(grade);
-        });
-        setQuizGrades(gradesMap);
+       console.log("Success on the return of the console item:", response);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -65,6 +43,7 @@ export default function StudentProgress() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
+    console.log("Finished");
   };
 
   const handleRefresh = () => {

@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import StudentTable from "../../../../components/teacher_components/StudentTable";
-import { retrieveCourseSettings, updateStudentSettings } from "../../../library/services/course_actions";
+import { retrieveCourseSettings } from "../../../library/services/course_actions";
+import { updateStudentSettings, deleteStudent } from "../../../library/services/teacher_services/student_management"
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
@@ -17,7 +18,6 @@ export default function Settings() {
   const fetchCourseSettings = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
-    
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       setCourseData(parsedData);
@@ -72,6 +72,69 @@ export default function Settings() {
       }, 5000);
     }
   }
+
+  // Updated handleRemoveStudent to integrate with backend
+  const handleRemoveStudent = async ({ studentId, studentUsername, courseId, index, studentData: student }) => {
+    try {
+      // Call your deleteStudent function from student_management service
+      // Adjust parameters based on what your deleteStudent function expects
+      const deletePayload = {
+        studentId: student.id || student.student_id, // Use the actual student ID from your data
+        courseId: courseData.id,
+        studentUsername: student.student_username,
+        // Add any other required fields for your deleteStudent function
+      };
+
+      console.log("Deleting student with payload:", deletePayload);
+      
+      // Call your backend delete function
+      const result = await deleteStudent(deletePayload);
+      
+      if (result && result.success) {
+        // Update local state to reflect the removal
+        setStudentData(prevData => prevData.filter((_, i) => i !== index));
+        
+        // Show success message
+        setSaveMessage({
+          type: 'success',
+          text: `Successfully removed ${student.first_name} ${student.last_name} from the course.`
+        });
+        
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          setSaveMessage({ type: '', text: '' });
+        }, 5000);
+        
+        return { success: true };
+      } else {
+        // Handle failure
+        const errorMessage = result?.error || 'Failed to remove student from the course.';
+        setSaveMessage({
+          type: 'error',
+          text: errorMessage
+        });
+        
+        setTimeout(() => {
+          setSaveMessage({ type: '', text: '' });
+        }, 5000);
+        
+        return { success: false, error: errorMessage };
+      }
+    } catch (error) {
+      console.error("Error removing student:", error);
+      
+      setSaveMessage({
+        type: 'error',
+        text: `Error removing student: ${error.message || 'Unknown error occurred'}`
+      });
+      
+      setTimeout(() => {
+        setSaveMessage({ type: '', text: '' });
+      }, 5000);
+      
+      return { success: false, error: error.message };
+    }
+  };
 
   if (isLoading || !courseData) {
     return (
@@ -136,15 +199,22 @@ export default function Settings() {
           <div className={`mb-4 p-4 rounded-lg text-center font-semibold flex items-center justify-center gap-2 ${
             saveMessage.type === 'success' 
               ? 'bg-green-800/50 text-green-200 border border-green-600' 
+              : saveMessage.type === 'error'
+              ? 'bg-red-800/50 text-red-200 border border-red-600'
               : 'bg-yellow-800/50 text-yellow-200 border border-yellow-600'
           }`}>
             {saveMessage.type === 'success' ? (
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
+            ) : saveMessage.type === 'error' ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
             ) : (
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              ...</svg>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
             )}
             {saveMessage.text}
           </div>
@@ -156,7 +226,8 @@ export default function Settings() {
           tableData={studentData}
           teacherName={courseData?.course_teacher_name}
           countyName={courseData?.course_county}
-          courseData={courseData} // Now passing the full courseData object
+          courseData={courseData}
+          onRemoveStudent={handleRemoveStudent} // Pass the handler here
         />
         
         <div className="mt-6 border border-gray-600 rounded bg-gray-700/50 p-4 flex flex-col items-center">

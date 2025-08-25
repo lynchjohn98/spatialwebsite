@@ -11,8 +11,6 @@ export default function StudentDashboard() {
   const [courseData, setCourseData] = useState(null);
   const [studentData, setStudentData] = useState(null);
 
-  
-
   useEffect(() => {
     const storedCourseData = sessionStorage.getItem("courseData");
     const storedStudentData = sessionStorage.getItem("studentData");
@@ -20,7 +18,7 @@ export default function StudentDashboard() {
       try {
         setCourseData(JSON.parse(storedCourseData));
         setStudentData(JSON.parse(storedStudentData));
-                console.log(courseData);
+              console.log(courseData);
         console.log(studentData);
       } catch (error) {
         console.error("Error parsing session storage data:", error);

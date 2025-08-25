@@ -5,7 +5,7 @@ import { useStudentSidebar } from "../../../../utils/hooks/useStudentSidebar";
 import StudentSidebar from "../../../../../components/student_components/StudentSidebar";
 import ExpandableVideo from "../../../../../components/module_blocks/ExpandableVideo";
 import ExpandableWebpage from "../../../../../components/module_blocks/ExpandableWebpage";
-import { updateStudentModuleProgress } from "../../../../library/services/student_actions";
+import { updateStudentModuleProgress } from "../../../../library/services/student_services/student_actions";
 
 export default function StudentModulePage() {
   const router = useRouter();
