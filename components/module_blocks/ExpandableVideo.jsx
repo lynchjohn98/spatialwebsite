@@ -5,11 +5,9 @@ import { useState } from 'react';
 export default function ExpandableVideo({ 
   videoId, 
   title = "Training Video",
-  description = "",
-  thumbnailUrl = null 
+  description = ""
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [thumbnailError, setThumbnailError] = useState(false);
 
   // Extract video ID from various YouTube URL formats
   const extractVideoId = (url) => {
@@ -20,20 +18,6 @@ export default function ExpandableVideo({
   };
 
   const finalVideoId = extractVideoId(videoId);
-  const getThumbnailUrl = () => {
-    if (thumbnailUrl) return thumbnailUrl;
-    if (thumbnailError) return `https://img.youtube.com/vi/${finalVideoId}/hqdefault.jpg`;
-    return `https://img.youtube.com/vi/${finalVideoId}/maxresdefault.jpg`;
-  };
-
-/*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * If the thumbnail URL fails to load, set the thumbnailError state
-
-/*******  26da9b0d-1b53-4ad5-84fb-5c49b88c7068  *******/
-  const handleThumbnailError = () => {
-    setThumbnailError(true);
-  };
 
   return (
     <div className="w-full max-w-full mx-auto">
@@ -47,22 +31,12 @@ export default function ExpandableVideo({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
     
-              <div className="relative w-12 h-9 sm:w-16 sm:h-12 bg-gray-700 rounded overflow-hidden flex-shrink-0">
-                <img 
-                  src={getThumbnailUrl()}
-                  alt={`${title} thumbnail`}
-                  className="w-full h-full object-cover"
-                  onError={handleThumbnailError}
-                  loading="lazy"
-                />
-
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                  </svg>
-                </div>
+              {/* Default Play Button Icon */}
+              <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-red-600 to-red-700 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center group-hover:from-red-500 group-hover:to-red-600 transition-all">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                </svg>
               </div>
-
 
               <div className="text-left min-w-0 flex-1">
                 <h3 className="text-white font-semibold text-sm sm:text-lg group-hover:text-blue-300 transition-colors line-clamp-2 break-words">

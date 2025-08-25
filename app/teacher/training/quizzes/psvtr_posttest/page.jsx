@@ -46,6 +46,7 @@ export default function PosttestPage() {
   }, []);
 
   const handleQuizComplete = async (results) => {
+    console.log("Quiz completed with results:", results);
     try {
       const payload = {
         teacherData: teacherData,

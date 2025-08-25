@@ -1,76 +1,186 @@
-"use client"
-import { useRouter } from "next/navigation";
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { CheckCircle, Circle, Lock, BookOpen, PlayCircle, FileText, BookOpenCheck, Monitor } from 'lucide-react';
 
-export default function TrainingCard({ 
-  moduleId, 
-  title, 
-  description, 
-  isCompleted = false,
-  estimatedTime,
-  href 
-}) {
+export const TrainingCard = ({ module, moduleProgress, isPretestComplete, onRestrictedClick }) => {
   const router = useRouter();
-
-  const handleClick = () => {
-    // Only navigate if not completed
-
-      router.push(href);
+  
+  // Calculate progress percentage based on module sections
+  const calculateModuleProgress = (progress) => {
+    if (!progress || typeof progress !== 'object') return 0;
     
+    // Get all keys except 'completed_at' which is metadata
+    const sections = Object.keys(progress).filter(key => 
+      key !== 'completed_at' && key !== 'module_name'
+    );
+    
+    if (sections.length === 0) return 0;
+    
+    // Count how many sections are true/completed
+    const completedSections = sections.filter(key => 
+      progress[key] === true || progress[key] === 'completed'
+    ).length;
+    
+    return Math.round((completedSections / sections.length) * 100);
   };
-
+  
+  // Determine module status based on progress
+  const getModuleStatus = (progressPercentage) => {
+    if (!isPretestComplete && module.requiresPretest) {
+      return {
+        status: 'Locked',
+        bgColor: 'bg-gray-800/50',
+        borderColor: 'border-gray-600',
+        hoverColor: 'hover:bg-gray-800/70',
+        statusColor: 'text-gray-400',
+        icon: <Lock className="w-6 h-6 text-gray-400" />
+      };
+    }
+    
+    if (progressPercentage === 100) {
+      return {
+        status: 'Completed',
+        bgColor: 'bg-green-900/20',
+        borderColor: 'border-green-500',
+        hoverColor: 'hover:bg-green-900/30',
+        statusColor: 'text-green-400',
+        icon: <CheckCircle className="w-6 h-6 text-green-400" />
+      };
+    } else if (progressPercentage > 0) {
+      return {
+        status: 'In Progress',
+        bgColor: 'bg-blue-900/20',
+        borderColor: 'border-blue-500',
+        hoverColor: 'hover:bg-blue-900/30',
+        statusColor: 'text-blue-400',
+        icon: <PlayCircle className="w-6 h-6 text-blue-400" />
+      };
+    } else {
+      return {
+        status: 'Not Started',
+        bgColor: 'bg-gray-800/30',
+        borderColor: 'border-gray-600',
+        hoverColor: 'hover:bg-gray-800/50',
+        statusColor: 'text-gray-300',
+        icon: <Circle className="w-6 h-6 text-gray-400" />
+      };
+    }
+  };
+  
+  const progressPercentage = calculateModuleProgress(moduleProgress);
+  const moduleStatus = getModuleStatus(progressPercentage);
+  
+  const handleClick = () => {
+    if (!isPretestComplete && module.requiresPretest) {
+      onRestrictedClick();
+    } else if (module.href) {
+      router.push(module.href);
+    }
+  };
+  
+  // Map section names to more user-friendly display names and icons
+  const getSectionDetails = () => {
+    if (!moduleProgress || typeof moduleProgress !== 'object') return [];
+    
+    const sectionMap = {
+      'getting_started': { name: 'Getting Started', icon: BookOpen },
+      'introduction_video': { name: 'Introduction Video', icon: PlayCircle },
+      'mini_lecture': { name: 'Mini Lecture', icon: FileText },
+      'quiz': { name: 'Quiz', icon: CheckCircle },
+      'software': { name: 'Software', icon: Monitor },
+      'workbook': { name: 'Workbook', icon: BookOpenCheck },
+      'assessment_completed': { name: 'Assessment', icon: CheckCircle },
+      'video_watched': { name: 'Video', icon: PlayCircle },
+      'slides_viewed': { name: 'Slides', icon: FileText },
+      'activity_completed': { name: 'Activity', icon: BookOpen }
+    };
+    
+    // Get all sections from the progress object
+    return Object.entries(moduleProgress)
+      .filter(([key]) => key !== 'completed_at' && key !== 'module_name' && sectionMap[key])
+      .map(([key, value]) => ({
+        ...sectionMap[key],
+        completed: value === true || value === 'completed',
+        key
+      }))
+      .sort((a, b) => {
+        // Sort by predefined order
+        const order = ['getting_started', 'introduction_video', 'mini_lecture', 'quiz', 'software', 'workbook'];
+        return order.indexOf(a.key) - order.indexOf(b.key);
+      });
+  };
+  
+  const sections = getSectionDetails();
+  
   return (
-    <div 
-      className={`
-        relative p-4 rounded-lg border transition-all duration-200
-        ${isCompleted 
-          ? 'bg-green-900/30 border-green-500 hover:border-green-900 hover:bg-green-700/50 shadow-md shadow-green-500/10 cursor-pointer hover:scale-[1.02]' 
-          : 'bg-gray-800/50 border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 cursor-pointer hover:scale-[1.02]'
-        }
-      `}
+    <div
+      className={`p-6 ${moduleStatus.bgColor} rounded-lg shadow-lg ${moduleStatus.hoverColor} 
+        cursor-pointer transition-all duration-200 border-2 ${moduleStatus.borderColor}
+        ${!isPretestComplete && module.requiresPretest ? 'opacity-60' : ''} w-full`}
       onClick={handleClick}
     >
-      {/* Completion Badge */}
-      {isCompleted && (
-        <div className="absolute top-2 right-2">
-          <div className="bg-green-500 rounded-full p-1.5">
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`text-xs font-semibold uppercase tracking-wider ${moduleStatus.statusColor}`}>
+              {moduleStatus.status}
+            </span>
+   
           </div>
+          <h3 className="text-xl font-bold text-white mb-1">{module.name}</h3>
+          <p className="text-gray-300 text-sm">{module.description}</p>
+        </div>
+        <div className="ml-4">
+          {moduleStatus.icon}
+        </div>
+      </div>
+      
+      {/* Progress Bar */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-xs text-gray-400">Progress</span>
+          <span className="text-xs font-semibold text-gray-300">{progressPercentage}%</span>
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full transition-all duration-300 ${
+              progressPercentage === 100 ? 'bg-green-500' : 
+              progressPercentage > 0 ? 'bg-blue-500' : 'bg-gray-600'
+            }`}
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
+      </div>
+      
+      {/* Section Indicators */}
+      {sections.length > 0 && (
+        <div className="flex gap-3 flex-wrap">
+          {sections.map((section) => {
+            const Icon = section.icon;
+            return (
+              <div 
+                key={section.key}
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs ${
+                  section.completed 
+                    ? 'text-green-400 bg-green-900/20 border border-green-800' 
+                    : 'text-gray-400 bg-gray-800/30 border border-gray-700'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="font-medium">{section.name}</span>
+                {section.completed && <CheckCircle className="w-3 h-3 ml-1" />}
+              </div>
+            );
+          })}
         </div>
       )}
-
-      <div className="pr-6">
-        <h3 className={`text-lg font-semibold mb-1 ${isCompleted ? 'text-green-300' : 'text-white'}`}>
-          {title}
-        </h3>
-        
-        <p className={`text-sm mb-2 leading-relaxed ${isCompleted ? 'text-green-200/90' : 'text-gray-300'}`}>
-          {description}
-        </p>
-        
-        <div className="flex items-center justify-between text-xs">
-  {/* Only show clock and time if estimatedTime exists */}
-  {estimatedTime && (
-    <div className="flex items-center text-gray-400">
-      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-      </svg>
-      {estimatedTime}
-    </div>
-  )}
-  
-  {/* This will be pushed to the right when no time is shown */}
-  <span className={`font-medium ${isCompleted ? 'text-green-400' : 'text-blue-400'} ${!estimatedTime ? 'ml-auto' : ''}`}>
-    {isCompleted ? '✓ Complete' : 'Start →'}
-  </span>
-</div>
-      </div>
-
-      {/* Optional: Overlay to make it clear it's disabled */}
-      {isCompleted && (
-        <div className="absolute inset-0 bg-transparent pointer-events-none" />
+      
+      {/* Show section count if no detailed sections */}
+      {sections.length === 0 && moduleProgress && (
+        <div className="text-xs text-gray-500">
+          No progress data available
+        </div>
       )}
     </div>
   );
-}
+};

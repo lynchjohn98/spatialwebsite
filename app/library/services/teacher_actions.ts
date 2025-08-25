@@ -15,23 +15,37 @@ export async function createTeacherAccount(payload) {
           username: payload.username,
           password: payload.password,
           training_complete: payload.training_complete,
+          research_consent: payload.research_consent,
           pretest_complete: payload.pretest_complete,
           posttest_complete: payload.posttest_complete,
-          premodule_training: payload.premodule_training,
-          module1_training: payload.module1_training,
-          module2_training: payload.module2_training,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }
       ])
       .select("*")
       .single();
+      //Access the unique id that was generated from the submission page:
+      const teacherId = data.id;
+      try {
+        const { data, error } = await supabase
+          .from("teachers_progress")
+          .insert([
+            {
+              teacher_id: teacherId,
+              module_progress: teacherModuleProgress,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+          ]);
 
+      } catch (error) {
+        console.error("❌ Supabase Select Error:", error.message);
+        return { error: "An error occurred while fetching teacher progress." };
+      }
     if (error) {
       console.error("❌ Supabase Insert Error:", error.message);
       return { error: "An error occurred while creating the teacher account. The username " + payload.username + " is already taken. Please choose a different username." };
     }
-
     return { success: true, data };
   } catch (err) {
     console.error("❌ Unexpected error:", err);
@@ -55,7 +69,7 @@ export async function loginTeacherAccount(payload) {
       `)
       .eq("username", payload.username)
       .eq("password", payload.password)
-      .single(); 
+      .single();
     if (error) {
       console.error("❌ Supabase Select Error:", error.message);
       return { error: error.message };
@@ -81,7 +95,8 @@ export async function getTeacherData(payload) {
       .from("teachers")
       .select(`
     *,
-    teachers_grades(*)
+    teachers_grades(*),
+    teachers_progress(*)
   `)
       .eq("id", payload.id)
       .single();
@@ -134,6 +149,7 @@ export async function submitTeacherQuiz(payload) {
       .update(
         {
           pretest_complete: teacherData.pretest_complete,
+          posttest_complete: teacherData.posttest_complete,
           updated_at: new Date().toISOString()
         }
       )
@@ -210,3 +226,63 @@ export async function retrieveTeacherCourse(payload) {
     return { error: "An unexpected error occurred. Please try again." };
   }
 }
+
+// Update teacher progress in backend when they use a checkbox in the module pages
+
+export async function updateTeacherModuleProgress(teacher_id: any, module_title: any, progress_section: any){
+    const supabase = await createClient();
+    console.log("Inside here", teacher_id, module_title, progress_section);
+
+    try {
+        // First, get the current progress
+        const { data, error } = await supabase
+            .from("teachers_progress")
+            .select("module_progress")
+            .eq("teacher_id", teacher_id)
+            .single();
+  
+        if (error) {
+            console.error("❌ Supabase Select Error:", error.message);
+            return { error: error.message };
+        }
+
+        // Toggle the boolean value for the specific field
+        const currentValue = data.module_progress[module_title][progress_section];
+        const newValue = !currentValue; // Toggle from false to true or true to false
+
+        // Create the updated progress object
+        const updatedProgress = {
+            ...data.module_progress,
+            [module_title]: {
+                ...data.module_progress[module_title],
+                [progress_section]: newValue
+            }
+        };
+
+        // Update the database with the new progress
+        const { data: updateData, error: updateError } = await supabase
+            .from("teachers_progress")
+            .update({ 
+                module_progress: updatedProgress,
+                updated_at: new Date().toISOString()
+            })
+            .eq("teacher_id", teacher_id);
+
+        if (updateError) {
+            console.error("❌ Supabase Update Error:", updateError.message);
+            return { error: updateError.message };
+        }
+
+        console.log("✅ Successfully updated:", module_title, progress_section, "to", newValue);
+        return { success: true, data: updateData, newValue };
+        
+    } catch (err) {
+        console.error("❌ Unexpected error:", err);
+        return { error: "An unexpected error occurred. Please try again." };
+    }
+}
+
+
+// Default Teacher Progress for each Module and for Each Quiz
+const teacherModuleProgress = 
+{"Flat Patterns": {"quiz": false, "order": 4, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Combining Solids": {"quiz": true, "order": 1, "software": true, "workbook": true, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": true}, "Orthographic Projection": {"quiz": false, "order": 9, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Reflections and Symmetry": {"quiz": false, "order": 6, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Inclined and Curved Surfaces": {"quiz": false, "order": 10, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Cutting Planes and Cross-Sections": {"quiz": false, "order": 7, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Surfaces and Solids of Revolution": {"quiz": false, "order": 2, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Isometric Sketching and Coded Plans": {"quiz": false, "order": 3, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Rotation of Objects About a Single Axis": {"quiz": false, "order": 5, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Rotation of Objects About Two or More Axes": {"quiz": false, "order": 8, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, "Pre-Module: The Importance of Spatial Skills": {"quiz": true, "order": 0, "software": true, "workbook": true, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": true}}

@@ -3,8 +3,45 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ExpandableVideo from "../../../../components/module_blocks/ExpandableVideo";
 import ExpandableWebpage from "../../../../components/module_blocks/ExpandableWebpage"
-import { updateTeacherAccount, getTeacherData, updateTeacherModuleProgress } from "../../../library/services/teacher_actions";
+import { updateTeacherModuleProgress } from "../../../library/services/teacher_actions";
+
 export default function TeacherModulePage() {
+  // ============ MODULE CONFIGURATION - CHANGE THESE VALUES ============
+  const MODULE_CONFIG = {
+    number: 3,
+    title:  "Isometric Sketching and Coded Plans",
+    shortTitle: "Isometric Sketching", // For the navbar
+    
+    // Learning content
+    learningIntention: "Today, we are learning about isometric sketching.",
+    learningOutcomes: [
+      "Record, define and explain the keywords for this module.",
+      "Recognise isometric drawings.",
+      "Visualize the isometric drawings of an object.",
+      "Understand that objects can look different from different perspectives.",
+      "Create an isometric sketch."
+    ],
+    
+    // Success criteria "I can" statements
+    successCriteria: [
+      "Explain the words: Isometric, Coded plan, Flat surface, Viewpoint.",
+      "Identify examples of isometric drawings and coded plans.",
+      "Count the number of blocks in an isometric drawing.",
+      "Visualise an isometric sketch from a drawing.",
+      "Draw an isometric sketch."
+    ],
+    
+    // Video and resource URLs
+    introVideoUrl: "https://www.youtube.com/watch?v=1jP0TxSbEmQ",
+    miniLectureUrl: "https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/174461467",
+    gettingStartedVideos: [
+      { url: "https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030421", title: "Video 1" },
+      { url: "https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/177254480", title: "Video 2" }
+    ],
+    interactiveSoftwareUrl: "https://www.higheredservices.org/HES01/Module_3/module_3_theme_1.html"
+  };
+  // ====================================================================
+
   const router = useRouter();
   const [teacherData, setTeacherData] = useState(null);
   const [moduleProgressData, setModuleProgressData] = useState(null);
@@ -15,30 +52,31 @@ export default function TeacherModulePage() {
   const [workbookCompleted, setWorkbookCompleted] = useState(false);
   const [miniLectureCompleted, setMiniLectureCompleted] = useState(false);
   const [gettingStartedCompleted, setGettingStartedCompleted] = useState(false);
-  const [introductionVideoCompleted, setIntroductionVideoCompleted] =
-    useState(false);
+  const [introductionVideoCompleted, setIntroductionVideoCompleted] = useState(false);
 
-  useEffect(() => {
+ useEffect(() => {
     const storedTeacherData = sessionStorage.getItem("teacherData");
-    
-    console.log("HERE:", storedTeacherData);
-
-    if (storedTeacherData) {
+    const storedModuleData = sessionStorage.getItem("moduleProgress");
+    if (storedTeacherData && storedModuleData) {
       try {
         const parsedTeacherData = JSON.parse(storedTeacherData);
-        
-        // Extract teacherId and moduleProgress from the parsed data
-        const teacherId = parsedTeacherData?.id;
-        const moduleProgress = parsedTeacherData?.teachers_progress?.[0]?.module_progress;
-
-        console.log("Teacher ID:", teacherId);
-        console.log("Module Progress:", moduleProgress);
-
+        const parsedModuleData = JSON.parse(storedModuleData);
+        const allModules = sessionStorage.getItem("moduleProgress");
         setTeacherData(parsedTeacherData);
-        setModuleProgressData(moduleProgress);
+        setModuleProgressData(allModules[MODULE_CONFIG.title]);
+        const moduleProgress = parsedModuleData;
+        if (moduleProgress) {
+          const moduleData = moduleProgress[MODULE_CONFIG.title];
+          setQuizCompleted(moduleData.quiz || false);
+          setSoftwareCompleted(moduleData.software || false);
+          setWorkbookCompleted(moduleData.workbook || false);
+          setMiniLectureCompleted(moduleData.mini_lecture || false);
+          setGettingStartedCompleted(moduleData.getting_started || false);
+          setIntroductionVideoCompleted(moduleData.introduction_video || false);
+        }
+        console.log("Video boolean:", introductionVideoCompleted);
       } catch (error) {
         console.error("Error parsing session storage data:", error);
-        sessionStorage.removeItem("teacherData");
         router.push("/teacher/training");
       }
     } else {
@@ -46,14 +84,12 @@ export default function TeacherModulePage() {
     }
   }, [router]);
 
-  // Each item below is a specific section update for the backend, they relate to the checkbox inside each of the
-  // subsections (intro video), (getting started etc.)
-
+  // Each item below is a specific section update for the backend
   const handleQuizToggle = async (checked) => {
     setQuizCompleted(checked);
     const result = await updateTeacherModuleProgress(
       teacherData.id,
-      "Combining Solids",
+      MODULE_CONFIG.title,
       "quiz",
       checked
     );
@@ -63,7 +99,7 @@ export default function TeacherModulePage() {
     setSoftwareCompleted(checked);
     const result = await updateTeacherModuleProgress(
       teacherData.id,
-      "Combining Solids",
+      MODULE_CONFIG.title,
       "software",
       checked
     );
@@ -73,7 +109,7 @@ export default function TeacherModulePage() {
     setMiniLectureCompleted(checked);
     const result = await updateTeacherModuleProgress(
       teacherData.id,
-      "Combining Solids",
+      MODULE_CONFIG.title,
       "mini_lecture",
       checked
     );
@@ -83,7 +119,7 @@ export default function TeacherModulePage() {
     setGettingStartedCompleted(checked);
     const result = await updateTeacherModuleProgress(
       teacherData.id,
-      "Combining Solids",
+      MODULE_CONFIG.title,
       "getting_started",
       checked
     );
@@ -93,7 +129,7 @@ export default function TeacherModulePage() {
     setIntroductionVideoCompleted(checked);
     const result = await updateTeacherModuleProgress(
       teacherData.id,
-      "Combining Solids",
+      MODULE_CONFIG.title,
       "introduction_video",
       checked
     );
@@ -103,7 +139,7 @@ export default function TeacherModulePage() {
     setWorkbookCompleted(checked);
     const result = await updateTeacherModuleProgress(
       teacherData.id,
-      "Combining Solids",
+      MODULE_CONFIG.title,
       "workbook",
       checked
     );
@@ -134,9 +170,9 @@ export default function TeacherModulePage() {
             <span className="font-medium">Return to Training List</span>
           </button>
 
-          {/* Module info - you can make this dynamic based on current module */}
+          {/* Module info */}
           <div className="hidden sm:block text-sm text-gray-400">
-            Module 1: Combining Solids
+            Module {MODULE_CONFIG.number}: {MODULE_CONFIG.shortTitle}
           </div>
         </div>
       </div>
@@ -148,7 +184,7 @@ export default function TeacherModulePage() {
         <div className="max-w-5xl mx-auto">
           <div className="mb-8 sm:mb-12">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">
-              Module 1: Combining Solids
+              Module {MODULE_CONFIG.number}: {MODULE_CONFIG.title}
             </h1>
           </div>
           <div className="space-y-6 lg:space-y-8">
@@ -159,8 +195,7 @@ export default function TeacherModulePage() {
 
               <div className="space-y-6">
                 <p className="italic text-lg text-gray-300 bg-gray-700/30 p-4 rounded-lg border-l-4 border-blue-400">
-                  Today, we are learning how 3D shapes can be combined to
-                  form a single object.
+                  {MODULE_CONFIG.learningIntention}
                 </p>
 
                 <div>
@@ -168,30 +203,23 @@ export default function TeacherModulePage() {
                     By the end of this module, I will be able to:
                   </p>
                   <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                    <li>
-                      Record, define and explain the keywords of the module.
-                    </li>
-                    <li>
-                      Match two objects with the appropriate combined solid.
-                    </li>
-                    <li>
-                      Identify the volume of interference from a combined
-                      solid.
-                    </li>
-                    <li>Make a sketch of a composite solid.</li>
+                    {MODULE_CONFIG.learningOutcomes.map((outcome, index) => (
+                      <li key={index}>{outcome}</li>
+                    ))}
                   </ul>
                 </div>
 
                 <div className="bg-gray-700/30 p-6 rounded-lg">
                   <p className="mb-4 text-gray-200 font-medium">
-                    Review the video below for an introduction to Module 1.
+                    Review the video below for an introduction to Module {MODULE_CONFIG.number}.
                   </p>
                   <ExpandableVideo
-                    videoId="https://www.youtube.com/watch?v=Js_UC4fAZns"
-                    title="Module 1 Introduction to Spatial Skills"
+                    videoId={MODULE_CONFIG.introVideoUrl}
+                    title={`Module ${MODULE_CONFIG.number} ${MODULE_CONFIG.shortTitle}`}
                     description="Learn how 3D shapes can be combined."
                   />
                 </div>
+
                 {/* Checkbox for introduction video completion */}
                 <label
                   htmlFor="introduction_video"
@@ -241,8 +269,8 @@ export default function TeacherModulePage() {
 
               <div className="space-y-4">
                 <ExpandableWebpage
-                  url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/174463571"
-                  title="Module 1: Developing Spatial Thinking Teaching & Learning Video Resources"
+                  url={MODULE_CONFIG.miniLectureUrl}
+                  title={`Module ${MODULE_CONFIG.number}: ${MODULE_CONFIG.shortTitle}`}
                 />
                 
                 {/* Checkbox for mini-lecture completion */}
@@ -263,7 +291,7 @@ export default function TeacherModulePage() {
                     <div className="text-sm font-medium text-gray-200">
                       I have completed the mini-lecture
                     </div>
-                      </div>
+                  </div>
                 </label>
 
                 {miniLectureCompleted && (
@@ -285,22 +313,13 @@ export default function TeacherModulePage() {
 
               <div className="space-y-4">
                 <ul className="mb-6 space-y-4">
-                  <ExpandableWebpage
-                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113618"
-                    title="Module 1: Video 1"
-                  />
-                  <ExpandableWebpage
-                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/172113638"
-                    title="Module 1: Video 2"
-                  />
-                  <ExpandableWebpage
-                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030415"
-                    title="Module 1: Video 3"
-                  />
-                  <ExpandableWebpage
-                    url="https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/171030413"
-                    title="Module 1: Video 4"
-                  />
+                  {MODULE_CONFIG.gettingStartedVideos.map((video, index) => (
+                    <ExpandableWebpage
+                      key={index}
+                      url={video.url}
+                      title={`Module ${MODULE_CONFIG.number}: ${video.title}`}
+                    />
+                  ))}
                 </ul>
 
                 {/* Checkbox for videos completion */}
@@ -321,7 +340,6 @@ export default function TeacherModulePage() {
                     <div className="text-sm font-medium text-gray-200">
                       I have watched the getting started videos.
                     </div>
-             
                   </div>
                 </label>
 
@@ -344,8 +362,8 @@ export default function TeacherModulePage() {
               
               <div className="space-y-4">
                 <ExpandableWebpage
-                  url="https://www.higheredservices.org/HES01/Module_2/module_2_theme_1.html"
-                  title="Module 1: Interactive Software"
+                  url={MODULE_CONFIG.interactiveSoftwareUrl}
+                  title={`Module ${MODULE_CONFIG.number}: Interactive Software`}
                 />
 
                 {/* Checkbox for software completion */}
@@ -389,9 +407,8 @@ export default function TeacherModulePage() {
                 Complete the Workbook Activities
               </h2>
 
-                {/* Checkbox for workbook completion */}
+              {/* Checkbox for workbook completion */}
               <div className="space-y-4">
-          
                 <label
                   htmlFor="workbook"
                   className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
@@ -433,19 +450,14 @@ export default function TeacherModulePage() {
               </div>
             </section>
 
-            {/* Module 1 Quiz Section with Link */}
+            {/* Module Quiz Section with Link */}
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
               <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
-                Attempt the Module 1 Quiz
+                Attempt the Module {MODULE_CONFIG.number} Quiz
               </h2>
-              
               <div className="space-y-4">
-            
                 <div className="bg-gray-700/30 p-6 rounded-lg">
-                  
-                  
                   <button
-                   
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center group hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -456,55 +468,49 @@ export default function TeacherModulePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
-
-                  
-
-
                 </div>
-                {/* Checkbox for workbook completion */}
-                  <div className="space-y-4">
-              
-                    <label
-                      htmlFor="quiz"
-                      className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
-                    >
-                      <div className="flex items-center h-5 mt-0.5">
-                        <input
-                          id="quiz"
-                          type="checkbox"
-                          className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
-                          checked={quizCompleted}
-                          onChange={(e) =>
-                            handleQuizToggle(e.target.checked)
-                          }
+
+                {/* Checkbox for quiz completion */}
+                <div className="space-y-4">
+                  <label
+                    htmlFor="quiz"
+                    className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
+                  >
+                    <div className="flex items-center h-5 mt-0.5">
+                      <input
+                        id="quiz"
+                        type="checkbox"
+                        className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                        checked={quizCompleted}
+                        onChange={(e) =>
+                          handleQuizToggle(e.target.checked)
+                        }
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-200">
+                        I have attempted the quiz at least once
+                      </div>
+                    </div>
+                  </label>
+
+                  {quizCompleted && (
+                    <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
+                      <svg
+                        className="w-5 h-5"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
                         />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-200">
-                          I have attempted the quiz at least once
-                        </div>
-                      </div>
-                    </label>
-
-                    {quizCompleted && (
-                      <div className="flex items-center gap-2 text-green-400 text-sm mt-2">
-                        <svg
-                          className="w-5 h-5"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span>Quiz attempted at least once</span>
-                      </div>
-                    )}
-                  </div>
-
-
+                      </svg>
+                      <span>Quiz attempted at least once</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
 
@@ -613,7 +619,6 @@ export default function TeacherModulePage() {
                     >
                       <span className="flex-1">
                         Reviewed the Getting Started videos.
-                    
                       </span>
                       {gettingStartedCompleted && (
                         <svg
@@ -639,7 +644,6 @@ export default function TeacherModulePage() {
                     >
                       <span className="flex-1">
                         Reviewed the interactive software.
-                    
                       </span>
                       {softwareCompleted && (
                         <svg
@@ -680,7 +684,6 @@ export default function TeacherModulePage() {
                         </svg>
                       )}
                     </li>
-
                   </ul>
                 </div>
 
@@ -700,18 +703,9 @@ export default function TeacherModulePage() {
                     I can:
                   </p>
                   <ul className="list-disc pl-6 space-y-3 text-gray-300 leading-relaxed">
-                    <li>
-                      Explain the words: volume of interference; join; cut; intersect; combined.
-                    </li>
-                    <li>
-                      Classify a combining operation.
-                    </li>
-                    <li>
-                      Identify the correct volume of interference of two overlapping solids.
-                    </li>
-                    <li>
-                      Sketch the edges of a composite solid obtained from a combining operation.
-                    </li>
+                    {MODULE_CONFIG.successCriteria.map((criteria, index) => (
+                      <li key={index}>{criteria}</li>
+                    ))}
                   </ul>
                 </div>
               </div>

@@ -58,31 +58,22 @@ export default function TeacherCreatePage() {
       name: name.trim(),
       username: username.trim(),
       password,
+      training_complete: false,
+      research_consent: false,
       pretest_complete: false,
       posttest_complete: false,
-      training_complete: false,
-      premodule_training: false,
-      module1_training: false,
-      module2_training: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-
     if (trainingStatus && psvtrStatus) {
       payload.training_complete = true;
       payload.pretest_complete = true;
-      payload.posttest_complete = true;
-      payload.premodule_training = true;
-      payload.module1_training = true;
-      payload.module2_training = true;
+      payload.research_consent = true;
     } else if (psvtrStatus) {
       payload.pretest_complete = true;
-      payload.posttest_complete = true;
     } else if (trainingStatus) {
       payload.training_complete = true;
-      payload.premodule_training = true;
-      payload.module1_training = true;
-      payload.module2_training = true;
+      payload.research_consent = true;
     }
 
     try {

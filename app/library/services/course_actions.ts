@@ -121,8 +121,7 @@ export async function updateCourseSettings(payload: { courseId: any; moduleSetti
 
 
 export async function updateStudentSettings(payload) {
-  const defaultModules = defaultModuleProgress;
-  console.log("INSIDE UPDATE:", defaultModuleProgress);
+
   const supabase = await createClient();
   try {
     // Parse and prepare all students at once

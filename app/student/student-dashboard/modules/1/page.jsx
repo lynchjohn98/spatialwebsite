@@ -9,6 +9,7 @@ import ExpandableVideo from "../../../../../components/module_blocks/ExpandableV
 import ExpandableWebpage from "../../../../../components/module_blocks/ExpandableWebpage";
 import { updateStudentModuleProgress } from "../../../../library/services/student_actions";
 
+
 export default function StudentModulePage() {
   const router = useRouter();
   const { isSidebarOpen, setIsSidebarOpen } = useStudentSidebar();
