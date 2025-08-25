@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 
 export function validateTeacherCode(inputtedCode) {
   //Use environment teacher code
-  if (inputtedCode === "1234") {
+  if (inputtedCode === "SPA2025") {
     console.log("Teecher code is correct");
     return true;
   } else {

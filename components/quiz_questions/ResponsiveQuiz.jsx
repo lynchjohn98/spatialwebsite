@@ -15,6 +15,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isNoTimeLimit, setIsNoTimeLimit] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(
     quizData?.timeLimit || 600
   );
@@ -51,6 +52,40 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
       );
   };
 
+  // After setting initial timeRemaining, check if it's no-limit mode
+useEffect(() => {
+  // Check if time limit is 3600 seconds or more (1 hour+)
+  const noLimit = quizData?.timeLimit >= 3600;
+  setIsNoTimeLimit(noLimit);
+  
+  // If no time limit, set a large value for tracking purposes
+  if (noLimit) {
+    setTimeRemaining(quizData?.timeLimit || 3600);
+  }
+}, [quizData]);
+
+useEffect(() => {
+  if (isSubmitted || (timeRemaining <= 0 && !isNoTimeLimit)) return;
+
+  const timer = setInterval(() => {
+    setTimeRemaining((prev) => {
+      // For no-limit mode, count UP instead of down
+      if (isNoTimeLimit) {
+        return prev + 1; // Count up to track time spent
+      }
+      
+      // Normal countdown mode
+      if (prev <= 1) {
+        forceSubmit();
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [timeRemaining, isSubmitted, isNoTimeLimit]);
+
   // Timer functionality
   useEffect(() => {
     if (isSubmitted || timeRemaining <= 0) return;
@@ -70,11 +105,20 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   }, [timeRemaining, isSubmitted]);
 
   // Format time display
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+ const formatTime = (seconds) => {
+  if (isNoTimeLimit) {
+    // For no-limit mode, show elapsed time
+    const elapsedSeconds = seconds - (quizData?.timeLimit || 3600);
+    const mins = Math.floor(Math.abs(elapsedSeconds) / 60);
+    const secs = Math.abs(elapsedSeconds) % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  }
+  
+  // Normal countdown display
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
 
   // Handle different answer types
   const handleAnswerSelect = (questionId, answer, questionType) => {
@@ -190,8 +234,17 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   const forceSubmit = useCallback(() => {
     if (isSubmitted) return;
 
+    
     const results = calculateResults();
+    const timeSpent = isNoTimeLimit 
+  ? timeRemaining - (quizData?.timeLimit || 3600) // Actual elapsed time
+  : (quizData?.timeLimit || 600) - timeRemaining; // Time used from limit
+
     setIsSubmitted(true);
+
+
+
+    
 
     if (onQuizComplete) {
       onQuizComplete({
@@ -199,7 +252,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
         quizTitle: quizData.title,
         answers,
         results,
-        timeSpent: (quizData?.timeLimit || 600) - timeRemaining,
+        timeSpent: (quizData?.timeLimit || 600) - timeSpent,
         completedAt: new Date().toISOString(),
       });
     }
@@ -629,7 +682,8 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       {/* Warning Banner */}
-      {showWarning && (
+
+      {showWarning && !isNoTimeLimit && (
         <div className="bg-red-600 text-white p-2 text-center flex items-center justify-center gap-2">
           <AlertTriangle className="w-4 h-4" />
           <span className="text-sm">
@@ -708,22 +762,32 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-          <div
-            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
-              timeRemaining < 60 ? "bg-red-600" : "bg-blue-600"
-            }`}
-          >
-            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="font-mono">{formatTime(timeRemaining)}</span>
-          </div>
-          <button
-            onClick={handleSubmit}
-            className="bg-green-600 hover:bg-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm"
-          >
-            Submit
-          </button>
-        </div>
+<div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+  {!isNoTimeLimit ? (
+    // Show countdown timer for regular mode
+    <div
+      className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
+        timeRemaining < 60 ? "bg-red-600" : "bg-blue-600"
+      }`}
+    >
+      <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+      <span className="font-mono">{formatTime(timeRemaining)}</span>
+    </div>
+  ) : (
+    // Show elapsed time indicator for no-limit mode
+    <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-gray-600">
+      <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+      <span className="font-mono">Time: {formatTime(timeRemaining)}</span>
+    </div>
+  )}
+  
+  <button
+    onClick={handleSubmit}
+    className="bg-green-600 hover:bg-green-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium text-xs sm:text-sm"
+  >
+    Submit
+  </button>
+</div>
       </header>
 
       <div className="flex-1 flex overflow-hidden relative">
