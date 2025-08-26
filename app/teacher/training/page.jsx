@@ -275,55 +275,98 @@ export default function TeacherTraining() {
           </div>
 
           {/* All Training Modules */}
-          <div className="space-y-4">
-            {sortedModules.map((module) => {
-              const progressPercentage = calculateModuleProgress(module);
-              const moduleStatus = getModuleStatus(module);
-              const displayNumber = module.order === 0 ? "Pre-Module" : `Module ${module.order}`;
+<div className="space-y-4">
+  {sortedModules.map((module) => {
+    const progressPercentage = calculateModuleProgress(module);
+    const moduleStatus = getModuleStatus(module);
+    const displayNumber = module.order === 0 ? "Pre-Module" : `Module ${module.order}`;
+    const isPretestComplete = teacherData?.pretest_complete || false;
+    const isLocked = !isPretestComplete;
 
-              return (
-                <div
-                  key={module.name}
-                  className={`p-5 ${moduleStatus.bgColor} rounded-lg shadow-md ${moduleStatus.hoverColor} cursor-pointer transition-all duration-200 border-2 ${moduleStatus.borderColor}`}
-                  onClick={() => navigateToModule(module.order)}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-xs font-medium ${moduleStatus.statusColor}`}>
-                          {moduleStatus.status}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-bold">
-                        {displayNumber}: {module.name}
-                      </h3>
-                    </div>
-                    {moduleStatus.icon}
-                  </div>
-
-                  <p className="text-gray-300 mb-3">
-                    Complete activities to master spatial visualization concepts.
-                  </p>
-
-                  {/* Progress Bar */}
-                  <div className="mt-3">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-gray-400">Progress</span>
-                      <span className={progressPercentage === 100 ? "text-green-400" : "text-gray-400"}>
-                        {progressPercentage}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full ${getProgressBarColor(progressPercentage)} transition-all duration-500`}
-                        style={{ width: `${progressPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+    return (
+      <div
+        key={module.name}
+        className={`p-5 ${
+          isLocked 
+            ? 'bg-gray-800/30 border-gray-700 opacity-60 cursor-not-allowed' 
+            : `${moduleStatus.bgColor} ${moduleStatus.hoverColor} cursor-pointer`
+        } rounded-lg shadow-md transition-all duration-200 border-2 ${
+          isLocked ? 'border-gray-700' : moduleStatus.borderColor
+        }`}
+        onClick={() => {
+          if (isLocked) {
+            alert('Please complete the PSVTR Pre-Test before accessing training modules');
+            return;
+          }
+          navigateToModule(module.order);
+        }}
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              {isLocked ? (
+                <span className="text-xs font-medium text-yellow-400">
+                  LOCKED - Complete Pre-Test First
+                </span>
+              ) : (
+                <span className={`text-xs font-medium ${moduleStatus.statusColor}`}>
+                  {moduleStatus.status}
+                </span>
+              )}
+            </div>
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              {isLocked && (
+                <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+              )}
+              {displayNumber}: {module.name}
+            </h3>
           </div>
+          {isLocked ? (
+            <svg className="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clipRule="evenodd" />
+            </svg>
+          ) : (
+            moduleStatus.icon
+          )}
+        </div>
+
+        <p className="text-gray-300 mb-3">
+          {isLocked 
+            ? 'Complete the pre-test to unlock this module'
+            : 'Complete activities to master spatial visualization concepts.'}
+        </p>
+
+        {/* Progress Bar - Still visible even when locked */}
+        <div className="mt-3">
+          <div className="flex justify-between text-xs mb-1">
+            <span className="text-gray-400">Progress</span>
+            <span className={
+              isLocked 
+                ? "text-gray-500" 
+                : progressPercentage === 100 
+                  ? "text-green-400" 
+                  : "text-gray-400"
+            }>
+              {progressPercentage}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div
+              className={`h-full ${
+                isLocked 
+                  ? 'bg-gray-600' 
+                  : getProgressBarColor(progressPercentage)
+              } transition-all duration-500`}
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
 
           {/* PSVTR Post-Test - Always Accessible - Using TrainingCard */}
           <div className="mb-6 mt-4">
@@ -334,7 +377,7 @@ export default function TeacherTraining() {
                 description: 'Purdue Spatial Visualization Post-Test. Must complete before accessing other course content.',
                 estimatedTime: '20 minutes',
                 href: '/teacher/training/quizzes/psvtr_posttest',
-                requiresPretest: false
+                requiresPretest: true
               }}
               moduleProgress={{
                 module_name: 'PSVTR Post-Test',

@@ -173,7 +173,7 @@ export const quizData = {
             ]
         },
         {
-            id: "13",
+            id: "q13",
             type: "multiple-choice",
             imageUrl: "/quiz_images/psvtr/psvtr_q13.png",
             text: "Please select the rotation of the object shown below.",

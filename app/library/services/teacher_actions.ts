@@ -300,7 +300,7 @@ export async function fetchTeacherModuleProgress(teacher_id: any) {
 const teacherModuleProgress =
 {
   "Flat Patterns":{"quiz": false, "order": 4, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, 
-  "Combining Solids": {"quiz": true, "order": 1, "software": true, "workbook": true, "completed_at": null,"mini_lecture": true, "getting_started": true, "introduction_video": true}, 
+  "Combining Solids": {"quiz": false, "order": 1, "software": false, "workbook": false, "completed_at": null,"mini_lecture": false, "getting_started": false, "introduction_video": false}, 
   "Orthographic Projection": { "quiz": false, "order": 9, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Reflections and Symmetry": { "quiz": false, "order": 6, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Inclined and Curved Surfaces": { "quiz": false, "order": 10, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
@@ -309,7 +309,7 @@ const teacherModuleProgress =
   "Isometric Drawings and Coded Plans": { "quiz": false, "order": 3, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Rotation of Objects About a Single Axis": { "quiz": false, "order": 5, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Rotation of Objects About Two or More Axes": { "quiz": false, "order": 8, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
-  "Pre-Module: The Importance of Spatial Skills": { "quiz": true, "order": 0, "software": true, "workbook": true, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": true }
+  "Pre-Module: The Importance of Spatial Skills": { "quiz": true, "order": 0, "software": true, "workbook": false, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": false }
 }
 
 

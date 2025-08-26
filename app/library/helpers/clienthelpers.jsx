@@ -15,6 +15,16 @@ export function validateTeacherCode(inputtedCode) {
   }
 }
 
+export function validatePasswordResetCode(inputtedCode) {
+  if (inputtedCode === "SpatialReset2025") {
+    console.log("Password reset code is correct");
+    return true;
+  } else {
+    console.log("Another ERROR");
+    return false;
+  }
+}
+
 // export const schools = [
 //   //Can you add these as strings and put a comma after each one
 //   "Ard Scoil Mhuire",
