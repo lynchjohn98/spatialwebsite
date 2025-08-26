@@ -445,3 +445,42 @@ const defaultModuleProgress =
   }
 };
 export { defaultModuleProgress };
+
+
+
+
+// Modules for mapping on the student progress page:
+// Quiz ID to Module mapping - you should move this to a config file
+export const QUIZ_MODULE_MAPPING = {
+    1: "PSVT:R Pre-Test",
+    2: "DAT:SR Pre-Test",
+    3: "Math Instrument Pre-Test",
+    4: "Combining Solids",
+    5: "Surfaces and Solids of Revolution",
+    6: "Isometric Drawings and Coded Plans",
+    7: "Flat Patterns",
+    8: "Rotation of Objects About a Single Axis",
+    9: "Reflections and Symmetry",
+    10: "Cutting Planes and Cross-Sections",
+    11: "Rotation of Objects About Two or More Axes",
+    12: "Orthographic Projection",
+    13: "Inclined and Curved Surfaces",
+    14: "PSVT:R Post-Test",
+    15: "DAT:SR Post-Test",
+    16: "Math Instrument Post-Test"
+};
+
+// Module display order - customize as needed
+export const MODULE_ORDER = [
+    "Pre-Module: The Importance of Spatial Skills",
+    "Combining Solids",
+    "Surfaces and Solids of Revolution",
+    "Isometric Drawings and Coded Plans",
+    "Flat Patterns",
+    "Rotation of Objects About a Single Axis",
+    "Reflections and Symmetry",
+    "Cutting Planes and Cross-Sections",
+    "Rotation of Objects About Two or More Axes",
+    "Orthographic Projection",
+    "Inclined and Curved Surfaces",
+];

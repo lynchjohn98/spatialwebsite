@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import StudentResponsiveQuiz from "../../../../../components/student_components/StudentResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/combining_solids_quiz.js";
-import { submitStudentQuiz } from "../../../../library/services/student_services/student_actions";
+import { submitStudentQuiz } from "../../../../library/services/student_services/student_quiz"
 
 export default function Module1Quiz() {
 
@@ -82,9 +82,7 @@ export default function Module1Quiz() {
     } catch (error) {
       console.error("Error saving pretest results:", error);
     }
-    setTimeout(() => {
-      router.push("/student/student-dashboard");
-    }, 20000);
+    
   };
 
   if (!quizStarted) {
