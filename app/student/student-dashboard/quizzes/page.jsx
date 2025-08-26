@@ -74,7 +74,6 @@ export default function StudentQuizzesPage() {
             setCourseData(updatedCourseData);
             sessionStorage.setItem("courseData", JSON.stringify(updatedCourseData));
           }
-          
           console.log("Refreshed quizzes:", visibleQuizzes);
           return true;
         }
