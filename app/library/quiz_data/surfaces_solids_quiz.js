@@ -9,7 +9,7 @@ export const quizData = {
       id: "q1",
       type: "multiple-select",
       text: "Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.",
-      imageUrl: "/quiz_images/surfaces_solids/surfacesSolids_question1.png",
+      imageUrl: "/quiz_images/surfaces_solids/question1.png",
       points: 1,
       options: [
         { id: "A", text: "A", correct: true },
@@ -22,7 +22,7 @@ export const quizData = {
       id: "q2",
       type: "multiple-select",
       text: "Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.",
-      imageUrl: "/quiz_images/surfaces_solids/surfacesSolids_question2.png",
+      imageUrl: "/quiz_images/surfaces_solids/question2.png",
       points: 1,
       options: [
         { id: "A", text: "A" },
@@ -35,7 +35,7 @@ export const quizData = {
       id: "q3",
       type: "multiple-select",
       text: "Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.",
-      imageUrl: "/quiz_images/surfaces_solids/surfacesSolids_question3.png",
+      imageUrl: "/quiz_images/surfaces_solids/question3.png",
       points: 1,
       options: [
         { id: "A", text: "A", correct: true },
@@ -48,7 +48,7 @@ export const quizData = {
       id: "q4",
       type: "multiple-select",
       text: "Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.",
-      imageUrl: "/quiz_images/surfaces_solids/surfacesSolids_question4.png",
+      imageUrl: "/quiz_images/surfaces_solids/question4.png",
       points: 1,
       options: [
         { id: "A", text: "A" },
@@ -61,7 +61,7 @@ export const quizData = {
       id: "q5",
       type: "multiple-select",
       text: "Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.",
-      imageUrl: "/quiz_images/surfaces_solids/surfacesSolids_question5.png",
+      imageUrl: "/quiz_images/surfaces_solids/question5.png",
       points: 1,
       options: [
         { id: "A", text: "A", correct: true },
@@ -74,7 +74,7 @@ export const quizData = {
       id: "q6",
       type: "multiple-select",
       text: "Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.",
-      imageUrl: "/quiz_images/surfaces_solids/surfacesSolids_question6.png",
+      imageUrl: "/quiz_images/surfaces_solids/question6.png",
       points: 1,
       options: [
         { id: "A", text: "A" },
@@ -101,7 +101,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question7_a.png",
+            "/quiz_images/surfaces_solids/question7_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -115,7 +115,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question7_b.png",
+            "/quiz_images/surfaces_solids/question7_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -129,7 +129,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question7_c.png",
+            "/quiz_images/surfaces_solids/question7_c.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -143,7 +143,7 @@ export const quizData = {
           id: "part_d",
           label: "D.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question7_d.png",
+            "/quiz_images/surfaces_solids/question7_d.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -173,7 +173,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question8_a.png",
+            "/quiz_images/surfaces_solids/question8_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -187,7 +187,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question8_b.png",
+            "/quiz_images/surfaces_solids/question8_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -201,7 +201,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question8_c.png",
+            "/quiz_images/surfaces_solids/question8_c.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -215,7 +215,7 @@ export const quizData = {
           id: "part_d",
           label: "D.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question8_d.png",
+            "/quiz_images/surfaces_solids/question8_d.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -246,7 +246,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question9_a.png",
+            "/quiz_images/surfaces_solids/question9_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -260,7 +260,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question9_b.png",
+            "/quiz_images/surfaces_solids/question9_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -274,7 +274,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question9_c.png",
+            "/quiz_images/surfaces_solids/question9_c.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -288,7 +288,7 @@ export const quizData = {
           id: "part_d",
           label: "D.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question9_d.png",
+            "/quiz_images/surfaces_solids/question9_d.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -319,7 +319,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question10_a.png",
+            "/quiz_images/surfaces_solids/question10_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -345,7 +345,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question10_b.png",
+            "/quiz_images/surfaces_solids/question10_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -371,7 +371,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question10_c.png",
+            "/quiz_images/surfaces_solids/question10_c.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -397,7 +397,7 @@ export const quizData = {
           id: "part_d",
           label: "D.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question10_d.png",
+            "/quiz_images/surfaces_solids/question10_d.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -440,7 +440,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question11_a.png",
+            "/quiz_images/surfaces_solids/question11_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -466,7 +466,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question11_b.png",
+            "/quiz_images/surfaces_solids/question11_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -492,7 +492,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question11_c.png",
+            "/quiz_images/surfaces_solids/question11_c.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -518,7 +518,7 @@ export const quizData = {
           id: "part_d",
           label: "D.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question11_d.png",
+            "/quiz_images/surfaces_solids/question11_d.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -561,7 +561,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question12_a.png",
+            "/quiz_images/surfaces_solids/question12_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -587,7 +587,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question12_b.png",
+            "/quiz_images/surfaces_solids/question12_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -613,7 +613,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question12_c.png",
+            "/quiz_images/surfaces_solids/question12_c.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -639,7 +639,7 @@ export const quizData = {
           id: "part_d",
           label: "D.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question12_d.png",
+            "/quiz_images/surfaces_solids/question12_d.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -680,7 +680,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question13_a.png",
+            "/quiz_images/surfaces_solids/question13_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -694,7 +694,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question13_b.png",
+            "/quiz_images/surfaces_solids/question13_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -708,7 +708,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question13_c.png",
+            "/quiz_images/surfaces_solids/question13_c.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -737,7 +737,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question14_a.png",
+            "/quiz_images/surfaces_solids/question14_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -751,7 +751,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question14_b.png",
+            "/quiz_images/surfaces_solids/question14_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -765,7 +765,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question14_c.png",
+            "/quiz_images/surfaces_solids/question14_c.png",
          subQuestions: [
             {
               id: "axis_selection",
@@ -794,7 +794,7 @@ export const quizData = {
           id: "part_a",
           label: "A.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question15_a.png",
+            "/quiz_images/surfaces_solids/question15_a.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -808,7 +808,7 @@ export const quizData = {
           id: "part_b",
           label: "B.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question15_b.png",
+            "/quiz_images/surfaces_solids/question15_b.png",
           subQuestions: [
             {
               id: "axis_selection",
@@ -822,7 +822,7 @@ export const quizData = {
           id: "part_c",
           label: "C.",
           imageUrl:
-            "/quiz_images/surfaces_solids/surfacesSolids_question15_c.png",
+            "/quiz_images/surfaces_solids/question15_c.png",
          subQuestions: [
             {
               id: "axis_selection",

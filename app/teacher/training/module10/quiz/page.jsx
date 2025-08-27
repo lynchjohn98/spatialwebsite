@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
-import { quizData } from "../../../../library/quiz_data/surfaces_solids_quiz.js";
+import { quizData } from "../../../../library/quiz_data/orthographic_projection_surfaces.js";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
 export default function Module2Quiz() {

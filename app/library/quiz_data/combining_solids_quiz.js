@@ -115,7 +115,7 @@ export const quizData = {
     },
     {
       id: "q10",
-      type: "multiple-subselect",
+      type: "multiple-parts-subselect",
       text: "For the two overlapping objects shown on the left below, select the combining operation that was performed to obtain each of the three objects shown on the right.",
       imageUrl: "/quiz_images/combining_solids/question10.png",
       points: 3,
