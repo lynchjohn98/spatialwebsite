@@ -9,7 +9,7 @@ export const quizData = {
       id: "q1",
       type: "multiple-choice",
       text: "Select the letter of the isometric sketch that best corresponds to an object with the coded plan shown on the left.",
-      imageUrl: "/quiz_images/isometric_plans/isometricCoded_question1.png",
+      imageUrl: "/quiz_images/isometric_plans/question1.png",
       points: 1,
       options: [
         { id: "A", text: "A", correct: true },
@@ -22,7 +22,7 @@ export const quizData = {
       id: "q2",
       type: "multiple-choice",
       text: "Select the letter of the isometric sketch that best corresponds to an object with the coded plan shown on the left.",
-      imageUrl: "/quiz_images/isometric_plans/isometricCoded_question2.png",
+      imageUrl: "/quiz_images/isometric_plans/question2.png",
       points: 1,
       options: [
         { id: "A", text: "A" },
@@ -35,7 +35,7 @@ export const quizData = {
       id: "q3",
       type: "multiple-choice",
       text: "Select the letter of the isometric sketch that best corresponds to an object with the coded plan shown on the left.",
-      imageUrl: "/quiz_images/isometric_plans/isometricCoded_question3.png",
+      imageUrl: "/quiz_images/isometric_plans/question3.png",
       points: 1,
       options: [
         { id: "A", text: "A" },
@@ -48,7 +48,7 @@ export const quizData = {
       id: "q4",
       type: "single-image-multiple-points",
       text: "Select the letter of the isometric sketch that best corresponds to an object with:",
-      imageUrl: "/quiz_images/isometric_plans/isometricCoded_question4.png",
+      imageUrl: "/quiz_images/isometric_plans/question4.png",
       problems: [
         {
           id: "row1",
@@ -81,7 +81,7 @@ export const quizData = {
       id: "q5",
       type: "single-image-multiple-points",
       text: "Select the letter of the isometric sketch that best corresponds to an object with:",
-      imageUrl: "/quiz_images/isometric_plans/isometricCoded_question5.png",
+      imageUrl: "/quiz_images/isometric_plans/question5.png",
       problems: [
         {
           id: "row1",
@@ -114,7 +114,7 @@ export const quizData = {
       id: "q6",
       type: "single-image-multiple-points",
       text: "Select the letter of the isometric sketch that best corresponds to an object with:",
-      imageUrl: "/quiz_images/isometric_plans/isometricCoded_question6.png",
+      imageUrl: "/quiz_images/isometric_plans/question6.png",
       problems: [
         {
           id: "isometric1",
@@ -165,7 +165,7 @@ export const quizData = {
       id: "q7",
       type: "single-image-multiple-points",
       text: "Select the letter of the isometric sketch that best corresponds to an object with:",
-      imageUrl: "/quiz_images/isometric_plans/isometricCoded_question7.png",
+      imageUrl: "/quiz_images/isometric_plans/question7.png",
       problems: [
         {
           id: "isometric1",

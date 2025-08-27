@@ -9,7 +9,7 @@ export default function TeacherModulePage() {
   // ============ MODULE CONFIGURATION - CHANGE THESE VALUES ============
   const MODULE_CONFIG = {
     number: 3,
-    title:  "Isometric Sketching and Coded Plans",
+    title:  "Isometric Drawings and Coded Plans",
     shortTitle: "Isometric Sketching", // For the navbar
     
     // Learning content
@@ -59,6 +59,7 @@ export default function TeacherModulePage() {
     const storedModuleData = sessionStorage.getItem("moduleProgress");
     if (storedTeacherData && storedModuleData) {
       try {
+        
         const parsedTeacherData = JSON.parse(storedTeacherData);
         const parsedModuleData = JSON.parse(storedModuleData);
         const allModules = sessionStorage.getItem("moduleProgress");
