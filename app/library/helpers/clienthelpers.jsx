@@ -291,7 +291,7 @@ export const supplementalMaterialInformation = [
   {
     title: "Module 2 - Surfaces and Solids of Revolution",
     description: "Powerpoint presentation for Module 2",
-    downloadUrl: "",
+    downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/workbook_surfaces_solids.pptx",
   },
   {
     title: "Module 3 - Isometric Sketching and Coded Plans",

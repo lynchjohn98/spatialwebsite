@@ -13,23 +13,28 @@ import { fetchTeacherModuleProgress } from "../../../library/services/teacher_ac
 import { createClient } from "../../../utils/supabase/supabase";
 
 export default function Settings() {
+  const router = useRouter();
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: "", text: "" });
   const [showTrainingWarning, setShowTrainingWarning] = useState(false);
   const [incompleteModules, setIncompleteModules] = useState([]);
-  const router = useRouter();
   const [courseData, setCourseData] = useState(null);
   const [courseSettings, setCourseSettings] = useState(null);
   const [studentData, setStudentData] = useState([]);
   const [moduleData, setModuleData] = useState([]);
   const [quizData, setQuizData] = useState([]);
+  const [surveyData, setSurveyData] = useState([]);
+  const [prePostData, setPrePostData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [moduleProgress, setModuleProgress] = useState({});
-  const studentTableRef = useRef();
+
   const moduleTableRef = useRef();
   const quizTableRef = useRef();
 
+  const surveyTableRef = useRef();
+  const prePostTableRef = useRef();
+  // In your fetchCourseSettings function, after parsing quiz settings:
   const fetchCourseSettings = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
@@ -47,31 +52,28 @@ export default function Settings() {
           settings.module_settings || "[]"
         );
         const parsedQuizSettings = JSON.parse(settings.quiz_settings || "[]");
+
+        // Filter quiz settings by type
+        const moduleQuizzes = parsedQuizSettings.filter(
+          (q) => !q.type || q.type === "module"
+        );
+        const surveys = parsedQuizSettings.filter((q) => q.type === "survey");
+        const prePostTests = parsedQuizSettings.filter(
+          (q) => q.type === "pre_post_test"
+        );
+
         setCourseSettings(settings);
         setStudentData(parsedStudentSettings);
         setModuleData(parsedModuleSettings);
-        setQuizData(parsedQuizSettings);
-      } else {
-        console.error("Error retrieving course settings:", response.error);
-        setSaveMessage({
-          type: "error",
-          text: "Failed to load course settings. Please try refreshing the page.",
-        });
-      }
+        setQuizData(moduleQuizzes);
+        setSurveyData(surveys);
+        setPrePostData(prePostTests);
 
-      const moduleProgressResponse = await fetchTeacherModuleProgress(
-        teacherData.id
-      );
-      if (moduleProgressResponse.success) {
-        const moduleProgress = moduleProgressResponse.data;
-        setModuleProgress(moduleProgress);
-        console.log("MODULE PROGRESS FETCHED:", moduleProgress);
-      } else {
-        console.error(
-          "Error fetching module progress:",
-          moduleProgressResponse.error
-        );
+        console.log("Module Quizzes:", moduleQuizzes);
+        console.log("Surveys:", surveys);
+        console.log("Pre/Post Tests:", prePostTests);
       }
+      // ... rest of your code
     }
     setIsLoading(false);
   };
@@ -189,15 +191,25 @@ export default function Settings() {
         moduleTableRef.current?.getUpdatedData() || moduleData;
       const updatedQuizData =
         quizTableRef.current?.getUpdatedData() || quizData;
-      
+      const updatedSurveyData =
+        surveyTableRef.current?.getUpdatedData() || surveyData;
+      const updatedPrePostData =
+        prePostTableRef.current?.getUpdatedData() || prePostData;
+
+      // Combine all quiz types back together for storage
+      const allQuizData = [
+        ...updatedQuizData,
+        ...updatedSurveyData,
+        ...updatedPrePostData,
+      ];
+
       const payload = {
         courseId: courseData.id,
         moduleSettings: JSON.stringify(updatedModuleData),
-        quizSettings: JSON.stringify(updatedQuizData),
+        quizSettings: JSON.stringify(allQuizData),
       };
 
       const result = await updateCourseSettings(payload);
-      const supabase = createClient();
       if (result.success) {
         setSaveMessage({
           type: "success",
@@ -268,19 +280,54 @@ export default function Settings() {
           </div>
         )}
 
+        <h3 className="text-xl font-bold mb-2 text-cyan-400">
+          Module Settings
+        </h3>
         <VisibilityTable
           ref={moduleTableRef}
           tableTitle={"Module Visibility"}
           tableData={moduleData}
           moniker={"Module"}
         />
-        <VisibilityTable
-          ref={quizTableRef}
-          tableTitle={"Quiz Visibility"}
-          tableData={quizData}
-          moniker={"Quiz"}
-        />
-        <ExtraResourcesTable tableTitle={"Extra Resources"} />
+
+        {/* Pre/Post Test Visibility */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold mb-2 text-purple-400">
+            Assessment Settings
+          </h3>
+          <VisibilityTable
+            ref={prePostTableRef}
+            tableTitle={"Pre/Post Test Visibility"}
+            tableData={prePostData}
+            moniker={"Assessment"}
+          />
+        </div>
+
+        {/* Module Quiz Visibility */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold mb-2 text-green-400">
+            Quiz Settings
+          </h3>
+          <VisibilityTable
+            ref={quizTableRef}
+            tableTitle={"Module Quiz Visibility"}
+            tableData={quizData}
+            moniker={"Quiz"}
+          />
+        </div>
+
+        {/* Survey Visibility */}
+        <div className="mt-6">
+          <h3 className="text-xl font-bold mb-2 text-orange-400">
+            Survey Settings
+          </h3>
+          <VisibilityTable
+            ref={surveyTableRef}
+            tableTitle={"Survey Visibility"}
+            tableData={surveyData}
+            moniker={"Survey"}
+          />
+        </div>
 
         <div className="mt-3 border border-gray-600 rounded bg-gray-700 p-3 flex justify-center">
           <button

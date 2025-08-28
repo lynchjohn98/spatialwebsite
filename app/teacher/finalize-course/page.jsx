@@ -160,7 +160,7 @@ export default function FinalizeCourse() {
               </p>
               <div className="bg-gray-800 p-4 rounded-md mb-4">
                 <div>
-                  <p className="text-sm text-gray-300 mb-1">Course Name:</p>
+                  <p className="text-sm text-gray-300 mb-1">School Name:</p>
                   <div className="relative">
                     <p className="font-mono text-lg bg-gray-700 p-2 rounded">
                       {successMessage.courseName}
@@ -252,7 +252,7 @@ export default function FinalizeCourse() {
 
               <div className="space-y-6">
                 <label className="block text-lg font-medium mb-2">
-                  Your Course Name (Optional):
+                  Your School Name:
                 </label>
                 <div className="flex space-x-2">
                   <input
