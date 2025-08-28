@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
-import { quizData } from "../../../../library/quiz_data/cutting_plans_cross_quiz.js";
+import { quizData } from "../../../../library/quiz_data/cutting_planes_cross_quiz.js";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
 

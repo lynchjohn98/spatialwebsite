@@ -116,3 +116,7 @@ export async function submitStudentQuiz(payload) {
 
 
 
+// student survey quiz submission
+export async function submitStudentSurvey(payload) {
+
+}

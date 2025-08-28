@@ -88,7 +88,7 @@ export default function FinalizeCourse() {
   };
 
   const handleCopyCredentials = () => {
-    const textToCopy = `Course Join Code: ${joinCode}`;
+    const textToCopy = `${joinCode}`;
     navigator.clipboard.writeText(textToCopy).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -98,6 +98,11 @@ export default function FinalizeCourse() {
   const handleSubmit = async () => {
     if (!joinCode) {
       alert("Please generate a join code before creating the course.");
+      return;
+    }
+
+    if (!courseName) {
+      alert("Please enter your school name before creating the course.");
       return;
     }
 
@@ -260,7 +265,7 @@ export default function FinalizeCourse() {
                     value={courseName}
                     onChange={(e) => setCourseName(e.target.value)}
                     className="flex-1 px-4 py-2 rounded text-black bg-gray-100"
-                    placeholder="Enter course name"
+                    placeholder="Enter school name"
                   />
                 </div>
               </div>

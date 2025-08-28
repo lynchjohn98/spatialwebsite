@@ -472,7 +472,7 @@ export default function StudentModulePage() {
                   <div className="space-y-4">
                     <div className="bg-gray-700/30 p-6 rounded-lg">
                       <button
-                        onClick={() => router.push(`/student/student-dashboard/modules/${MODULE_CONFIG.number}/quiz`)}
+                        onClick={() => router.push(`/student/student-dashboard/quizzes/13`)}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center group hover:scale-[1.02] active:scale-[0.98]"
                       >
                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

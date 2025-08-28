@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
+export default function TeacherResponsiveQuiz({ quizData, onQuizComplete }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showSidebar, setShowSidebar] = useState(false);
@@ -135,96 +135,118 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
     });
   };
 
-  const calculateResults = () => {
+   const calculateResults = () => {
     let totalScore = 0;
     let maxScore = 0;
     const questionResults = [];
 
+    console.log("INSIDE CALCULATE RESULTS", quizData);
+
     quizData.questions.forEach((question) => {
       let questionScore = 0;
-      let questionMaxScore = question.points;
+      let questionMaxScore = question.points || 0;
 
       const userAnswer = answers[question.id];
 
-      if (question.type === "multiple-choice") {
-        const correctOption = question.options.find((opt) => opt.correct);
-        if (userAnswer === correctOption?.id) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "multiple-select") {
-        const correctAnswers = question.options
-          .filter((opt) => opt.correct)
-          .map((opt) => opt.id);
-        const userAnswers = userAnswer || [];
-
-        const isCorrect =
-          correctAnswers.length === userAnswers.length &&
-          correctAnswers.every((ans) => userAnswers.includes(ans));
-
-        if (isCorrect) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "text-input") {
-        const userText = (userAnswer || "").toLowerCase().trim();
-        const correctAnswers = [
-          question.correctAnswer,
-          ...(question.alternateAnswers || []),
-        ].map((ans) => ans.toLowerCase().trim());
-
-        if (correctAnswers.includes(userText)) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "multiple-subselect") {
-        const multiPartAnswers = userAnswer || {};
-        let correctCount = 0;
-
-        question.parts.forEach((part) => {
-          const partAnswer = multiPartAnswers[part.id];
-          const isCorrect = partAnswer && partAnswer === part.correct;
-
-          if (isCorrect) {
-            correctCount += 1;
-          }
-        });
-
-        questionScore = correctCount;
-        questionMaxScore = question.parts.length;
-      } else if (question.type === "multiple-parts-subselect") {
-        const multiPartAnswers = userAnswer || {};
-        let correctCount = 0;
-        let totalSubQuestions = 0;
-
-        question.parts.forEach((part) => {
-          console.log("Evaluating part:", part);
-          const partAnswers = multiPartAnswers[part.id] || {};
-
-          part.subQuestions.forEach((subQuestion) => {
-            totalSubQuestions += 1;
-            const subAnswer = partAnswers[subQuestion.id];
-            const isCorrect = subAnswer && subAnswer === subQuestion.correct;
-            console.log("Inside here:", subAnswer, isCorrect);
-            if (isCorrect) {
-              correctCount += 1;
+      try {
+        if (question.type === "multiple-choice") {
+          if (question.options && Array.isArray(question.options)) {
+            const correctOption = question.options.find((opt) => opt.correct);
+            if (userAnswer === correctOption?.id) {
+              questionScore = question.points || 1;
             }
-          });
-        });
-
-        questionScore = correctCount;
-        questionMaxScore = totalSubQuestions;
-      } else if (question.type === "single-image-multiple-points") {
-        const problemAnswers = userAnswer || {};
-        let correctCount = 0;
-        let totalProblems = question.problems.length;
-
-        question.problems.forEach((problem) => {
-          const userProblemAnswer = problemAnswers[problem.id];
-          if (userProblemAnswer === problem.correctAnswer) {
-            correctCount += 1;
           }
-        });
+        } else if (question.type === "multiple-select") {
+          if (question.options && Array.isArray(question.options)) {
+            const correctAnswers = question.options
+              .filter((opt) => opt.correct)
+              .map((opt) => opt.id);
+            const userAnswers = userAnswer || [];
 
-        questionScore = correctCount;
-        questionMaxScore = totalProblems;
+            const isCorrect =
+              correctAnswers.length === userAnswers.length &&
+              correctAnswers.every((ans) => userAnswers.includes(ans));
+
+            if (isCorrect) {
+              questionScore = question.points || 1;
+            }
+          }
+        } else if (question.type === "text-input") {
+          const userText = (userAnswer || "").toLowerCase().trim();
+          const correctAnswers = [
+            question.correctAnswer,
+            ...(question.alternateAnswers || []),
+          ].filter(Boolean).map((ans) => ans.toLowerCase().trim());
+
+          if (correctAnswers.includes(userText)) {
+            questionScore = question.points || 1;
+          }
+        } else if (question.type === "multiple-subselect") {
+          if (question.parts && Array.isArray(question.parts)) {
+            const multiPartAnswers = userAnswer || {};
+            let correctCount = 0;
+
+            question.parts.forEach((part) => {
+              const partAnswer = multiPartAnswers[part.id];
+              const isCorrect = partAnswer && partAnswer === part.correct;
+
+              if (isCorrect) {
+                correctCount += 1;
+              }
+            });
+
+            questionScore = correctCount;
+            questionMaxScore = question.parts.length;
+          }
+        } else if (question.type === "multiple-parts-subselect") {
+          const multiPartAnswers = userAnswer || {};
+          let correctCount = 0;
+          let totalSubQuestions = 0;
+
+          if (question.parts && Array.isArray(question.parts)) {
+            question.parts.forEach((part) => {
+              console.log("Evaluating part:", part);
+              const partAnswers = multiPartAnswers[part.id] || {};
+
+              if (part.subQuestions && Array.isArray(part.subQuestions)) {
+                part.subQuestions.forEach((subQuestion) => {
+                  totalSubQuestions += 1;
+                  const subAnswer = partAnswers[subQuestion.id];
+                  const isCorrect = subAnswer && subAnswer === subQuestion.correct;
+                  console.log("Inside here:", subAnswer, isCorrect);
+                  if (isCorrect) {
+                    correctCount += 1;
+                  }
+                });
+              }
+            });
+
+            questionScore = correctCount;
+            questionMaxScore = totalSubQuestions > 0 ? totalSubQuestions : question.points || 1;
+          }
+        } else if (question.type === "single-image-multiple-points") {
+          if (question.problems && Array.isArray(question.problems)) {
+            const problemAnswers = userAnswer || {};
+            let correctCount = 0;
+            let totalProblems = question.problems.length;
+            
+            question.problems.forEach((problem) => {
+              const userProblemAnswer = problemAnswers[problem.id];
+              if (userProblemAnswer === problem.correctAnswer) {
+                correctCount += 1;
+              }
+            });
+            
+            questionScore = correctCount;
+            questionMaxScore = totalProblems;
+          }
+        } else {
+          console.warn(`Unknown question type: ${question.type} for question ${question.id}`);
+        }
+      } catch (error) {
+        console.error(`Error calculating score for question ${question.id}:`, error);
+        questionScore = 0;
+        questionMaxScore = question.points || 0;
       }
 
       totalScore += questionScore;

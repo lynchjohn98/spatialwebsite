@@ -353,14 +353,4 @@ export async function updateStudentConsentSettings(updatePayload, courseId) {
 
 
 
-// Fetch Data for the Student Course Progress Page
-export async function fetchAllStudentCourseProgress(payload) {
-  console.log("Here:", payload);
-  const supabase = createClient();
-
-
-}
-
-
-
 

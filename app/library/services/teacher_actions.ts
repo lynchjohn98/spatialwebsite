@@ -284,6 +284,7 @@ export async function updateTeacherModuleProgress(teacher_id: any, module_title:
 
 // Fetch teacher module progress
 export async function fetchTeacherModuleProgress(teacher_id: any) {
+  console.log("INSIDE FETCH PROGRESS FUNCTION:");
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("teachers_progress")

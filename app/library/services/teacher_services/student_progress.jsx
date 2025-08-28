@@ -1,7 +1,6 @@
 "use server";
 import { createClient } from "../../../utils/supabase/server";
-
-
+import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 export async function fetchAllStudentCourseProgress(payload) {
     console.log("payload here:", payload);
     
@@ -9,7 +8,7 @@ export async function fetchAllStudentCourseProgress(payload) {
     
     try {
         // Execute all queries in parallel for better performance
-        const [studentsResult, progressResult, gradesResult] = await Promise.all([
+        const [studentsResult, progressResult, gradesResult, courseSettingsResult] = await Promise.all([
             supabase
                 .from("students")
                 .select("*")
@@ -23,6 +22,11 @@ export async function fetchAllStudentCourseProgress(payload) {
             supabase
                 .from("students_grades")
                 .select("*")
+                .eq("course_id", payload.courseId),
+
+            supabase
+                .from("courses_settings")
+                .select("*")
                 .eq("course_id", payload.courseId)
         ]);
         
@@ -31,16 +35,19 @@ export async function fetchAllStudentCourseProgress(payload) {
         if (studentsResult.error) errors.push(`Students: ${studentsResult.error.message}`);
         if (progressResult.error) errors.push(`Progress: ${progressResult.error.message}`);
         if (gradesResult.error) errors.push(`Grades: ${gradesResult.error.message}`);
-        
+        if (courseSettingsResult.error) errors.push(`Course Settings: ${courseSettingsResult.error.message}`);
+
         // Build return payload
         const returnPayload = {
             students_demographic_data: studentsResult.data || [],
             students_progress_data: progressResult.data || [],
             students_grade_data: gradesResult.data || [],
+            course_settings_data: courseSettingsResult.data || [],
             // Optional: Add some useful computed properties
             total_students: studentsResult.data?.length || 0,
             total_progress_records: progressResult.data?.length || 0,
-            total_grade_records: gradesResult.data?.length || 0
+            total_grade_records: gradesResult.data?.length || 0,
+            total_course_settings_records: courseSettingsResult.data?.length || 0
         };
         
         if (errors.length > 0) {
@@ -52,7 +59,7 @@ export async function fetchAllStudentCourseProgress(payload) {
             };
         }
         
-        console.log("✅ Successfully fetched all student data");
+        console.log("✅ Successfully fetched all student and course data");
         return { 
             success: true, 
             data: returnPayload 
@@ -71,3 +78,4 @@ export async function fetchAllStudentCourseProgress(payload) {
         };
     }
 }
+
