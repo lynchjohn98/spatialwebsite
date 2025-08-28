@@ -116,7 +116,7 @@ export default function TeacherWalkthroughPage() {
         `---\n` +
         `Sent from Teacher Help Center`
     );
-
+    console.log("GENERATING THIS MAIL", subject, body);
     window.location.href = `mailto:lynchjohn98@gmail.com?subject=${subject}&body=${body}`;
     setSupportSent(true);
     setTimeout(() => setSupportSent(false), 5000);
@@ -681,7 +681,7 @@ export default function TeacherWalkthroughPage() {
             {supportSent && (
               <div className="mt-4 p-3 bg-green-500/10 border border-green-500/50 rounded-lg">
                 <p className="text-green-400 text-center">
-                  Support request prepared! Your email client will open shortly.
+                  Email sent successfully, please check your inbox for a response.
                 </p>
               </div>
             )}

@@ -201,7 +201,6 @@ export async function retrieveCourseSettings(payload: { id: any; }) {
 }
 
 
-
 export async function deleteCourse(payload) {
   const supabase = await createClient();
   const { data, error } = await supabase

@@ -153,17 +153,18 @@ export default function StudentQuizzesPage() {
     const categories = {
       pretests: [],
       posttests: [],
-      practice: [],
+      surveys: [],  // Changed from 'practice' to 'surveys'
       modules: []
     };
 
     availableQuizzes.forEach(quiz => {
+
       if (quiz.name.toLowerCase().includes("pre-test")) {
         categories.pretests.push(quiz);
       } else if (quiz.name.toLowerCase().includes("post-test")) {
         categories.posttests.push(quiz);
-      } else if (quiz.name.toLowerCase().includes("practice")) {
-        categories.practice.push(quiz);
+      } else if (quiz.type.toLowerCase().includes("survey")) {  // Changed from 'practice' to 'survey'
+        categories.surveys.push(quiz);
       } else {
         categories.modules.push(quiz);
       }
@@ -197,8 +198,8 @@ export default function StudentQuizzesPage() {
         return categories.pretests;
       case "posttests":
         return categories.posttests;
-      case "practice":
-        return categories.practice;
+      case "surveys":  // Changed from 'practice' to 'surveys'
+        return categories.surveys;
       case "modules":
         return categories.modules;
       default:
@@ -226,10 +227,10 @@ export default function StudentQuizzesPage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2">
-                Available Quizzes
+                Available Quizzes & Surveys
               </h1>
               <p className="text-gray-400">
-                Complete assessments to track your spatial thinking progress
+                Complete assessments and surveys to track your spatial thinking progress
               </p>
             </div>
             <button
@@ -302,14 +303,14 @@ export default function StudentQuizzesPage() {
             </button>
             
             <button
-              onClick={() => setSelectedCategory("practice")}
+              onClick={() => setSelectedCategory("surveys")}  
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCategory === "practice"
+                selectedCategory === "surveys"  
                   ? "bg-blue-600 text-white"
                   : "bg-gray-800 text-gray-400 hover:bg-gray-700"
               }`}
             >
-              Practice ({categories.practice.length})
+              Surveys ({categories.surveys.length})  
             </button>
             
             <button
@@ -320,7 +321,7 @@ export default function StudentQuizzesPage() {
                   : "bg-gray-800 text-gray-400 hover:bg-gray-700"
               }`}
             >
-              All Quizzes ({availableQuizzes.length})
+              All ({availableQuizzes.length})
             </button>
           </div>
 
@@ -352,11 +353,11 @@ export default function StudentQuizzesPage() {
                 />
               </svg>
               <h3 className="text-lg font-medium text-gray-300 mb-2">
-                No Quizzes Available
+                No {selectedCategory === "surveys" ? "Surveys" : "Quizzes"} Available
               </h3>
               <p className="text-gray-500 mb-4">
                 {selectedCategory === "all" 
-                  ? "No quizzes are currently available for this course. Your instructor may release them as the course progresses."
+                  ? "No quizzes or surveys are currently available for this course. Your instructor may release them as the course progresses."
                   : `No ${selectedCategory} are currently available.`}
               </p>
               <button
