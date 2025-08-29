@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useStudentSidebar } from "../../../../utils/hooks/useStudentSidebar";
 import StudentSidebar from "../../../../../components/student_components/StudentSidebar";
 import ResponsiveSurvey from "../../../../../components/quiz_questions/ResponsiveSurvey";
-import { quizData } from "../../../../../app/library/quiz_data/mmq_survey";
+import { quizData } from "../../../../../app/library/quiz_data/student_confidence_survey";
 import { submitStudentSurvey } from "../../../../library/services/student_services/student_quiz";
 export default function MMQSurvey() {
   const router = useRouter();

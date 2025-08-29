@@ -81,10 +81,10 @@ export default function SimpleSurvey({ data, onSurveyComplete }) {
             </p>
           </div>
           <button
-            onClick={() => window.location.href = '/student/student-dashboard/modules'}
+            onClick={() => window.location.href = '/student/student-dashboard/quizzes'}
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
           >
-            Return to Modules
+            Return to Quizzes
           </button>
         </div>
       </div>

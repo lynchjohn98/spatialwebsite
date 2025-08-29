@@ -1,7 +1,138 @@
 export const quizData = {
-    "id": 2,
-    "description": "Pre-Test for the Differential Aptitude Pre-Test.",
-    "questions": [
-        
-    ] 
-}
+  "id": 2,
+  "title": "DAT:SR Pre-Test",
+  "timeLimit": 420, // 20 minutes, all time limits are in seconds
+  "description": "Differential Aptitude Pre-Test.",
+  "questions": [
+    {
+      id: "q1",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question1.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B" },
+        { id: "C", text: "C" },
+        { id: "D", text: "D", correct: true },
+      ],
+    },
+    {
+      id: "q2",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question2.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B" },
+        { id: "C", text: "C" },
+        { id: "D", text: "D", correct: true },
+      ],
+    },
+    {
+      id: "q3",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question3.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B", correct: true },
+        { id: "C", text: "C" },
+        { id: "D", text: "D" },
+      ],
+    },
+    {
+      id: "q4",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question4.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B" },
+        { id: "C", text: "C" },
+        { id: "D", text: "D", correct: true },
+      ],
+    },
+    {
+      id: "q5",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question5.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B", correct: true },
+        { id: "C", text: "C" },
+        { id: "D", text: "D" },
+      ],
+    },
+    {
+      id: "q6",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question6.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B", correct: true },
+        { id: "C", text: "C" },
+        { id: "D", text: "D" },
+      ],
+    },
+    {
+      id: "q7",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question7.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B" },
+        { id: "C", text: "C" },
+        { id: "D", text: "D", correct: true },
+      ],
+    },
+    {
+      id: "q8",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question8.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B", correct: true },
+        { id: "C", text: "C" },
+        { id: "D", text: "D" },
+      ],
+    },
+    {
+      id: "q9",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question9.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B" },
+        { id: "C", text: "C", correct: true },
+        { id: "D", text: "D" },
+      ],
+    },
+    {
+      id: "q10",
+      type: "multiple-choice",
+      text: "Select the figure that can be made from the pattern.",
+      imageUrl: "/quiz_images/datsr/question10.png",
+      points: 1,
+      options: [
+        { id: "A", text: "A" },
+        { id: "B", text: "B", correct: true },
+        { id: "C", text: "C" },
+        { id: "D", text: "D" },
+      ],
+    },
+  ],
+};

@@ -6,13 +6,15 @@ export default function StudentQuizCard({ quiz, onStart, studentData }) {
     if (quizName.toLowerCase().includes("pre-test")) return "bg-yellow-900/20 border-yellow-700";
     if (quizName.toLowerCase().includes("post-test")) return "bg-green-900/20 border-green-700";
     if (quizName.toLowerCase().includes("practice")) return "bg-purple-900/20 border-purple-700";
+    if (quizName.toLowerCase().includes("survey")) return "bg-purple-900/20 border-purple-700";
     return "bg-blue-900/20 border-blue-700";
   };
 
   const getQuizTypeLabel = (quizName) => {
     if (quizName.toLowerCase().includes("pre-test")) return "Pre-Test";
     if (quizName.toLowerCase().includes("post-test")) return "Post-Test";
-    if (quizName.toLowerCase().includes("practice")) return "Practice";
+    if (quizName.toLowerCase().includes("practice")) return "Survey";
+    if (quizName.toLowerCase().includes("survey"))  return "Survey";
     return "Module Quiz";
   };
 
@@ -20,6 +22,7 @@ export default function StudentQuizCard({ quiz, onStart, studentData }) {
     if (quizName.toLowerCase().includes("pre-test")) return "bg-yellow-700 text-yellow-100";
     if (quizName.toLowerCase().includes("post-test")) return "bg-green-700 text-green-100";
     if (quizName.toLowerCase().includes("practice")) return "bg-purple-700 text-purple-100";
+    if (quizName.toLowerCase().includes("survey")) return "bg-purple-700 text-purple-100";
     return "bg-blue-700 text-blue-100";
   };
 

@@ -2,10 +2,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import StudentResponsiveQuiz from "../../../../../components/student_components/StudentResponsiveQuiz";
-import { quizData } from "../../../../library/quiz_data/orthographic_projection_surfaces.js";
-import { submitStudentQuiz } from "../../../../library/services/student_services/student_quiz";
+import { quizData } from "../../../../library/quiz_data/math_instrument_pre";
+import { submitStudentPrePostQuiz } from "../../../../library/services/student_services/student_quiz";
 
-export default function OrthographicInclinedCurvedQuiz() {
+
+export default function MathematicsPreTest() {
 
   const router = useRouter();
   const [quizStarted, setQuizStarted] = useState(false);
@@ -72,16 +73,16 @@ export default function OrthographicInclinedCurvedQuiz() {
       if (sessionStorage.getItem("courseData") !== null) {
         const courseData = JSON.parse(sessionStorage.getItem("courseData"));
         console.log(courseData);
-
-        // Check if quiz settings exist and find the "Inclined and Curved Surfaces" quiz
+        
+        // Check if quiz settings exist and find the "Math Instrument Pre-Test" quiz
         if (courseData?.settings?.quiz_settings) {
-          const inclinedAndCurvedSurfacesQuiz = courseData.settings.quiz_settings.find(
-            quiz => quiz.name === "Inclined and Curved Surfaces"
+          const mathInstrumentPreTestQuiz = courseData.settings.quiz_settings.find(
+            quiz => quiz.name === "Math Instrument Pre-Test"
           );
 
-          if (inclinedAndCurvedSurfacesQuiz) {
+          if (mathInstrumentPreTestQuiz) {
             // Check visibility
-            if (inclinedAndCurvedSurfacesQuiz.visibility === "Yes") {
+            if (mathInstrumentPreTestQuiz.visibility === "Yes") {
               setQuizVisible(true);
               setIsLoading(false);
             } else {
@@ -136,7 +137,7 @@ export default function OrthographicInclinedCurvedQuiz() {
         quizData: results,
       };
      
-      await submitStudentQuiz(payload);
+      await submitStudentPrePostQuiz(payload);
     } catch (error) {
       console.error("Error saving pretest results:", error);
     }
@@ -179,6 +180,7 @@ export default function OrthographicInclinedCurvedQuiz() {
     );
   }
 
+  // Only show quiz content if visibility check passed and not yet started
   if (!quizStarted && quizVisible) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -401,11 +403,17 @@ export default function OrthographicInclinedCurvedQuiz() {
     );
   }
 
-  return (
-    <StudentResponsiveQuiz
-      studentData={studentData}
-      quizData={quizData}
-      onQuizComplete={handleQuizComplete}
-    />
-  );
+  // Show quiz component if started and visible
+  if (quizStarted && quizVisible) {
+    return (
+      <StudentResponsiveQuiz
+        studentData={studentData}
+        quizData={quizData}
+        onQuizComplete={handleQuizComplete}
+      />
+    );
+  }
+
+  // Fallback (should not reach here)
+  return null;
 }
