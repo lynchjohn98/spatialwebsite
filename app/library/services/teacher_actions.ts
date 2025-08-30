@@ -70,8 +70,12 @@ export async function createTeacherAccount(payload) {
     }
     
     return { success: true, data };
-
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    return { error: "An unexpected error occurred. Please try again." };
   }
+}
+
 /*
 Function logins an existing account and access all elements that are associated with the accounts
 - teachers information
@@ -332,7 +336,6 @@ const teacherModuleProgress =
   "Rotation of Objects About Two or More Axes": { "quiz": false, "order": 8, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Pre-Module: The Importance of Spatial Skills": { "quiz": true, "order": 0, "software": true, "workbook": false, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": false }
 }
-
 
 
 
