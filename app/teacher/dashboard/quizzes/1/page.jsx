@@ -1,15 +1,15 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import StudentResponsiveQuiz from "../../../../../components/student_components/StudentResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/psvtr_pre_quiz";
-import { submitStudentPrePostQuiz } from "../../../../library/services/student_services/student_quiz";
+import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
+import { submitTeacherPrePostQuiz } from "../../../../library/services/teacher_services/teacher_quiz";
 
 export default function PSVTRPreTest() {
 
   const router = useRouter();
   const [quizStarted, setQuizStarted] = useState(false);
-  const [studentData, setStudentData] = useState(null);
+  const [teacherData, setTeacherData] = useState(null);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showAnswer1, setShowAnswer1] = useState(false);
   const [showAnswer2, setShowAnswer2] = useState(false);
@@ -63,68 +63,79 @@ export default function PSVTRPreTest() {
 
   useEffect(() => {
     try {
-      // Load student data
-      if (sessionStorage.getItem("studentData") !== null) {
-        setStudentData(JSON.parse(sessionStorage.getItem("studentData")));
+      // Load teacher data
+      if (sessionStorage.getItem("teacherData") !== null) {
+        setTeacherData(JSON.parse(sessionStorage.getItem("teacherData")));
       }
       
-      // Load course data and check quiz visibility
-      if (sessionStorage.getItem("courseData") !== null) {
+      // Load quiz settings from sessionStorage
+      // First check if quiz settings are stored directly
+      let quizSettings = null;
+      
+      // Check if stored directly as quizSettings
+      if (sessionStorage.getItem("quizSettings") !== null) {
+        quizSettings = JSON.parse(sessionStorage.getItem("quizSettings"));
+      }
+      // Or check if it's part of courseData
+      else if (sessionStorage.getItem("courseData") !== null) {
         const courseData = JSON.parse(sessionStorage.getItem("courseData"));
-        console.log(courseData);
+        console.log("Course data:", courseData);
         
-        // Check if quiz settings exist and find the "PSVT:R Pre-Test" quiz
-        if (courseData?.settings?.quiz_settings) {
-          const psvtrPreTest = courseData.settings.quiz_settings.find(
-            quiz => quiz.name === "PSVT:R Pre-Test"
-          );
+        // Check different possible locations for quiz_settings
+        if (courseData?.quiz_settings) {
+          quizSettings = courseData.quiz_settings;
+        } else if (courseData?.settings?.quiz_settings) {
+          quizSettings = courseData.settings.quiz_settings;
+        }
+      }
 
-          if (psvtrPreTest) {
-            // Check visibility
-            if (psvtrPreTest.visibility === "Yes") {
-              setQuizVisible(true);
-              setIsLoading(false);
-            } else {
-              // Quiz is not visible, set message and redirect
-              setQuizVisible(false);
-              setAccessMessage("This quiz is not currently available. Please check back later or contact your instructor.");
-              setIsLoading(false);
-              
-              // Redirect after showing message for 3 seconds
-              setTimeout(() => {
-                router.push("/student/student-dashboard/");
-              }, 3000);
-            }
-          } else {
-            // Quiz not found in settings
-            setAccessMessage("Quiz configuration not found. Please contact your instructor.");
+      // If we found quiz settings, check for the specific quiz
+      if (quizSettings) {
+        console.log("Quiz settings found:", quizSettings);
+        
+        const psvtrPreTest = quizSettings.find(
+          quiz => quiz.name === "PSVT:R Pre-Test"
+        );
+
+        console.log("PSVT:R Pre-Test found:", psvtrPreTest);
+
+        if (psvtrPreTest) {
+          // Check visibility
+          if (psvtrPreTest.visibility === "Yes") {
+            setQuizVisible(true);
             setIsLoading(false);
+          } else {
+            // Quiz is not visible, set message and redirect
+            setQuizVisible(false);
+            setAccessMessage("This quiz is not currently available. Please check back later or contact your instructor.");
+            setIsLoading(false);
+            
+            // Redirect after showing message for 3 seconds
             setTimeout(() => {
-              router.push("/student/student-dashboard/");
+              router.push("/teacher/dashboard");
             }, 3000);
           }
         } else {
-          // No quiz settings found
-          setAccessMessage("Unable to load quiz settings. Please try again later.");
+          // Quiz not found in settings
+          setAccessMessage("Quiz configuration not found. Please contact your instructor.");
           setIsLoading(false);
           setTimeout(() => {
-            router.push("/student/student-dashboard/");
+            router.push("/teacher/dashboard");
           }, 3000);
         }
       } else {
-        // No course data found
-        setAccessMessage("Course data not found. Please log in again.");
+        // No quiz settings found - for teacher, we might want to allow access anyway
+        // Since teachers should be able to preview all quizzes
+        console.log("No quiz settings found, allowing teacher access");
+        setQuizVisible(true);
         setIsLoading(false);
-        setTimeout(() => {
-          router.push("/student/student-dashboard/");
-        }, 3000);
       }
     } catch (error) {
       console.error("Error parsing data from sessionStorage:", error);
       setAccessMessage("An error occurred while loading the quiz. Please try again.");
       setIsLoading(false);
       setTimeout(() => {
-        router.push("/student/student-dashboard/");
+        router.push("/teacher/dashboard");
       }, 3000);
     }
   }, [router]);
@@ -132,16 +143,16 @@ export default function PSVTRPreTest() {
   const handleQuizComplete = async (results) => {
     try {
       const payload = {
-        studentData: studentData,
+        teacherData: teacherData, // Changed from studentData to teacherData
         quizData: results,
       };
      
-      await submitStudentPrePostQuiz(payload);
+      await submitTeacherPrePostQuiz(payload);
     } catch (error) {
       console.error("Error saving pretest results:", error);
     }
     setTimeout(() => {
-      router.push("/student/student-dashboard/");
+      router.push("/teacher/dashboard/");
     }, 7000);
   };
 
@@ -238,6 +249,16 @@ export default function PSVTRPreTest() {
                 <span className="text-white font-medium">Multiple Choice, Multiple Select</span>
               </div>
             </div>
+          </div>
+
+          {/* Teacher Notice */}
+          <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mb-6">
+            <p className="text-blue-300 text-sm flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Teacher Preview Mode - Take this quiz to familiarize yourself with the content
+            </p>
           </div>
 
           {/* Instructions Button */}
@@ -349,12 +370,11 @@ export default function PSVTRPreTest() {
                   </button>
                 </div>
 
-                
-
                 {/* Ready Message */}
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mt-6">
                   <p className="text-gray-200 text-center leading-relaxed">
-                    When you are ready, please close this window and click "Start Quiz" to begin. </p>
+                    When you are ready, please close this window and click "Start Quiz" to begin.
+                  </p>
                 </div>
               </div>
 
@@ -362,7 +382,7 @@ export default function PSVTRPreTest() {
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={closeInstructionsModal}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -405,8 +425,8 @@ export default function PSVTRPreTest() {
   // Show quiz component if started and visible
   if (quizStarted && quizVisible) {
     return (
-      <StudentResponsiveQuiz
-        studentData={studentData}
+      <TeacherResponsiveQuiz
+        teacherData={teacherData}
         quizData={quizData}
         onQuizComplete={handleQuizComplete}
       />

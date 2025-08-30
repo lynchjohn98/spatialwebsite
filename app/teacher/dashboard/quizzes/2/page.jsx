@@ -1,15 +1,16 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import StudentResponsiveQuiz from "../../../../../components/student_components/StudentResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/datsr_pre_quiz";
-import { submitStudentPrePostQuiz } from "../../../../library/services/student_services/student_quiz";
+import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
+import { submitTeacherPrePostQuiz } from "../../../../library/services/teacher_services/teacher_quiz";
+
 
 export default function DATSRPreTest() {
 
   const router = useRouter();
   const [quizStarted, setQuizStarted] = useState(false);
-  const [studentData, setStudentData] = useState(null);
+  const [teacherData, setTeacherData] = useState(null);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showAnswer1, setShowAnswer1] = useState(false);
   const [showAnswer2, setShowAnswer2] = useState(false);
@@ -405,8 +406,8 @@ export default function DATSRPreTest() {
   // Show quiz component if started and visible
   if (quizStarted && quizVisible) {
     return (
-      <StudentResponsiveQuiz
-        studentData={studentData}
+      <TeacherResponsiveQuiz
+        teacherData={teacherData}
         quizData={quizData}
         onQuizComplete={handleQuizComplete}
       />

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { retrieveTeacherQuizPage } from "../../../library/services/teacher_actions";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
+import { updateQuizFile } from "../../../library/services/course_actions";
 
 export default function TeacherQuizzes() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -25,6 +26,8 @@ export default function TeacherQuizzes() {
     };
     window.addEventListener("resize", checkWindowSize);
     checkWindowSize();
+   
+
     return () => window.removeEventListener("resize", checkWindowSize);
   }, []);
 

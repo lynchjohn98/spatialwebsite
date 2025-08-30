@@ -273,6 +273,17 @@ export default function TeacherHomePage() {
 
             <div className="relative">
               <ResponsiveButton
+                onClick={() => handleRestrictedAccess("/teacher/progress")}
+                label="Account Progress"
+                className={`w-full ${!pretestComplete ? 'cursor-not-allowed' : ''}`}
+              />
+              {!pretestComplete && (
+                <div className="absolute inset-0 bg-transparent cursor-not-allowed" title="Complete pretest first" />
+              )}
+            </div>
+
+            <div className="relative">
+              <ResponsiveButton
                 onClick={() => handleRestrictedAccess("/teacher/help")}
                 label="Need help? Click here"
                 className={`w-full ${!pretestComplete ? 'cursor-not-allowed' : ''}`}

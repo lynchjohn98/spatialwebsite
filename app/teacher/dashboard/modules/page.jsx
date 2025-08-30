@@ -83,7 +83,7 @@ export default function TeacherCourseModules() {
   // Map module rank to training module names for progress tracking
   const getModuleNameForProgress = (moduleRank) => {
     const moduleNames = {
-      0: "The Importance of Spatial Skills",
+      0: "Pre-Module: The Importance of Spatial Skills",
       1: "Combining Solids", 
       2: "Surfaces and Solids of Revolution",
       3: "Isometric Drawings and Coded Plans",
