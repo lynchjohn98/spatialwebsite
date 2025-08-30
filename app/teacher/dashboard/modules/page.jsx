@@ -88,12 +88,12 @@ export default function TeacherCourseModules() {
       2: "Surfaces and Solids of Revolution",
       3: "Isometric Drawings and Coded Plans",
       4: "Flat Patterns",
-      5: "Rotation of Objects about a Single Axis",
-      6: "Rotation of Objects about Two or More Axes",
-      7: "Object Reflections and Symmetry",
-      8: "Cutting Planes and Cross Sections",
-      9: "Scaling and Projection Theory",
-      10: "Orthographic Projection"
+      5: "Rotation of Objects About a Single Axis",
+      6: "Reflections and Symmetry",
+      7: "Cutting Planes and Cross-Sections",
+      8: "Rotation of Objects About Two or More Axes",
+      9: "Orthographic Projection",
+      10: "Inclined and Curved Surfaces"
     };
     return moduleNames[moduleRank] || null;
   };
