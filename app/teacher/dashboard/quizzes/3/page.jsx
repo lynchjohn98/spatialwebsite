@@ -1,11 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { quizData } from "../../../../library/quiz_data/psvtr_pre_quiz";
+import { quizData } from "../../../../library/quiz_data/math_instrument_pretest";
 import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
 import { submitTeacherPrePostQuiz } from "../../../../library/services/teacher_services/teacher_quiz";
 
-export default function PSVTRPreTest() {
+export default function MathInstrumentPreTest() {
 
   const router = useRouter();
   const [quizStarted, setQuizStarted] = useState(false);
@@ -92,16 +92,16 @@ export default function PSVTRPreTest() {
       // If we found quiz settings, check for the specific quiz
       if (quizSettings) {
         console.log("Quiz settings found:", quizSettings);
-        
-        const psvtrPreTest = quizSettings.find(
-          quiz => quiz.name === "PSVT:R Pre-Test"
+
+        const mathInstrumentPreTest = quizSettings.find(
+          quiz => quiz.name === "Math Instrument Pre-Test"
         );
 
-        console.log("PSVT:R Pre-Test found:", psvtrPreTest);
+        console.log("Math Instrument Pre-Test found:", mathInstrumentPreTest);
 
-        if (psvtrPreTest) {
+        if (mathInstrumentPreTest) {
           // Check visibility
-          if (psvtrPreTest.visibility === "Yes") {
+          if (mathInstrumentPreTest.visibility === "Yes") {
             setQuizVisible(true);
             setIsLoading(false);
           } else {
