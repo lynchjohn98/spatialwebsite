@@ -1,9 +1,28 @@
 "use server";
 import { createClient } from "../../utils/supabase/server";
 import { v4 as uuidv4, v4 } from "uuid";
-
 export async function createTeacherAccount(payload) {
   const supabase = await createClient();
+  
+  // Create a copy of the module progress
+  let moduleProgress = JSON.parse(JSON.stringify(teacherModuleProgress));
+  
+  // If training is complete, set all boolean fields to true
+  if (payload.training_complete) {
+    Object.keys(moduleProgress).forEach(moduleName => {
+      const module = moduleProgress[moduleName];
+      // Set all boolean properties to true
+      module.quiz = true;
+      module.software = true;
+      module.workbook = true;
+      module.mini_lecture = true;
+      module.getting_started = true;
+      module.introduction_video = true;
+      // Optionally, you might also want to set completed_at
+      module.completed_at = new Date().toISOString();
+    });
+  }
+  
   console.log("Creating teacher account with payload:", payload);
   try {
     const { data, error } = await supabase
@@ -24,15 +43,17 @@ export async function createTeacherAccount(payload) {
       ])
       .select("*")
       .single();
+    
     //Access the unique id that was generated from the submission page:
     const teacherId = data.id;
+    
     try {
       const { data, error } = await supabase
         .from("teachers_progress")
         .insert([
           {
             teacher_id: teacherId,
-            module_progress: teacherModuleProgress,
+            module_progress: moduleProgress, // Use the potentially modified moduleProgress
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }
@@ -42,17 +63,15 @@ export async function createTeacherAccount(payload) {
       console.error("❌ Supabase Select Error:", error.message);
       return { error: "An error occurred while fetching teacher progress." };
     }
+    
     if (error) {
       console.error("❌ Supabase Insert Error:", error.message);
       return { error: "An error occurred while creating the teacher account. The username " + payload.username + " is already taken. Please choose a different username." };
     }
+    
     return { success: true, data };
-  } catch (err) {
-    console.error("❌ Unexpected error:", err);
-    return { error: "An unexpected error occurred. Please try again." };
-  }
-}
 
+  }
 /*
 Function logins an existing account and access all elements that are associated with the accounts
 - teachers information
@@ -313,6 +332,8 @@ const teacherModuleProgress =
   "Rotation of Objects About Two or More Axes": { "quiz": false, "order": 8, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Pre-Module: The Importance of Spatial Skills": { "quiz": true, "order": 0, "software": true, "workbook": false, "completed_at": null, "mini_lecture": true, "getting_started": true, "introduction_video": false }
 }
+
+
 
 
 

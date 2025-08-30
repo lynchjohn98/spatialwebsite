@@ -112,7 +112,7 @@ export default function PSVTRPreTest() {
             
             // Redirect after showing message for 3 seconds
             setTimeout(() => {
-              router.push("/teacher/dashboard");
+              router.push("/teacher/dashboard/quizzes");
             }, 3000);
           }
         } else {
@@ -120,7 +120,7 @@ export default function PSVTRPreTest() {
           setAccessMessage("Quiz configuration not found. Please contact your instructor.");
           setIsLoading(false);
           setTimeout(() => {
-            router.push("/teacher/dashboard");
+            router.push("/teacher/dashboard/quizzes");
           }, 3000);
         }
       } else {
@@ -135,7 +135,7 @@ export default function PSVTRPreTest() {
       setAccessMessage("An error occurred while loading the quiz. Please try again.");
       setIsLoading(false);
       setTimeout(() => {
-        router.push("/teacher/dashboard");
+        router.push("/teacher/dashboard/quizzes");
       }, 3000);
     }
   }, [router]);
