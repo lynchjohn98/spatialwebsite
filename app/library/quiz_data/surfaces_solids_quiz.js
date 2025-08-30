@@ -1,7 +1,7 @@
 export const quizData = {
   id: 5,
   title: "Module 2 Quiz: Surfaces and Solids of Revolution",
-  timeLimit: 6000, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
+  timeLimit: 0, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description:
     "Review the combination of solids in the images and answer the questions.",
   questions: [

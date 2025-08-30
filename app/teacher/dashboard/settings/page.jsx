@@ -125,9 +125,11 @@ const fetchCourseSettings = async () => {
       software: "Software",
       workbook: "Workbook",
     };
+    console.log("MODULE PROGRESS ITEM:", moduleProgress);
     const REQUIRED_FIELDS = Object.keys(pretty);
     const updatedModuleData =
       moduleTableRef.current?.getUpdatedData() || moduleData;
+      
     const allModuleProgress = moduleProgress[0].module_progress || {};
 
     const progressByName = Object.fromEntries(

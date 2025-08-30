@@ -1,7 +1,7 @@
 export const quizData = {
   id: 13,
   title: "Module 10 Quiz: Orthographic Projection of Inclined and Curved Surfaces ",
-  timeLimit: 3600, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
+  timeLimit: 0, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description:
     "Check your understanding of concepts from Module 10.",
   questions: [

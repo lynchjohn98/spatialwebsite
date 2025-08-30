@@ -1,7 +1,7 @@
 export const quizData = {
   id: 10,
   title: "Module 7: Cutting Planes and Cross-Sections",
-  timeLimit: 3600, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
+  timeLimit: 0, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description:
     "Check your understanding on concepts from Module 7.",
   questions: [

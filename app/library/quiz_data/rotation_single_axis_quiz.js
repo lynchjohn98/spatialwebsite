@@ -1,7 +1,7 @@
 export const quizData = {
   id: 8,
   title: "Module 5 Quiz: Rotation of Objects About a Single Axis",
-  timeLimit: 3600, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
+  timeLimit: 0, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description:
     "Check your understanding on concepts from Module 5.",
   questions: [

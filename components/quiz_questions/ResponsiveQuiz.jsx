@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -24,6 +24,10 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const router = useRouter();
+  
+  // Use a ref to track if submission is in progress
+  const isSubmittingRef = useRef(false);
+  const timerRef = useRef(null);
 
   if (!quizData || !quizData.questions || quizData.questions.length === 0) {
     return (
@@ -54,67 +58,20 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
 
   // After setting initial timeRemaining, check if it's no-limit mode
   useEffect(() => {
-    // Check if time limit is 3600 seconds or more (1 hour+)
-    const noLimit = quizData?.timeLimit >= 3600;
+    // Check if time limit is 0 or undefined (no limit)
+    const noLimit = !quizData?.timeLimit || quizData.timeLimit === 0;
     setIsNoTimeLimit(noLimit);
 
-    // If no time limit, set a large value for tracking purposes
-    if (noLimit) {
-      setTimeRemaining(quizData?.timeLimit || 3600);
+    // Set initial time
+    if (!noLimit) {
+      setTimeRemaining(quizData.timeLimit);
+    } else {
+      setTimeRemaining(0); // Start at 0 for elapsed time tracking
     }
   }, [quizData]);
 
-  useEffect(() => {
-    if (isSubmitted || (timeRemaining <= 0 && !isNoTimeLimit)) return;
-
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        // For no-limit mode, count UP instead of down
-        if (isNoTimeLimit) {
-          return prev + 1; // Count up to track time spent
-        }
-
-        // Normal countdown mode
-        if (prev <= 1) {
-          forceSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeRemaining, isSubmitted, isNoTimeLimit]);
-
-  // Timer functionality
-  useEffect(() => {
-    if (isSubmitted || timeRemaining <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          // Force submit when time expires (bypass the incomplete check)
-          forceSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeRemaining, isSubmitted]);
-
   // Format time display
   const formatTime = (seconds) => {
-    if (isNoTimeLimit) {
-      // For no-limit mode, show elapsed time
-      const elapsedSeconds = seconds - (quizData?.timeLimit || 3600);
-      const mins = Math.floor(Math.abs(elapsedSeconds) / 60);
-      const secs = Math.abs(elapsedSeconds) % 60;
-      return `${mins}:${secs.toString().padStart(2, "0")}`;
-    }
-
-    // Normal countdown display
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
@@ -135,96 +92,118 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
     });
   };
 
-  const calculateResults = () => {
+  const calculateResults = useCallback(() => {
     let totalScore = 0;
     let maxScore = 0;
     const questionResults = [];
 
+    console.log("INSIDE CALCULATE RESULTS", quizData);
+
     quizData.questions.forEach((question) => {
       let questionScore = 0;
-      let questionMaxScore = question.points;
+      let questionMaxScore = question.points || 0;
 
       const userAnswer = answers[question.id];
 
-      if (question.type === "multiple-choice") {
-        const correctOption = question.options.find((opt) => opt.correct);
-        if (userAnswer === correctOption?.id) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "multiple-select") {
-        const correctAnswers = question.options
-          .filter((opt) => opt.correct)
-          .map((opt) => opt.id);
-        const userAnswers = userAnswer || [];
-
-        const isCorrect =
-          correctAnswers.length === userAnswers.length &&
-          correctAnswers.every((ans) => userAnswers.includes(ans));
-
-        if (isCorrect) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "text-input") {
-        const userText = (userAnswer || "").toLowerCase().trim();
-        const correctAnswers = [
-          question.correctAnswer,
-          ...(question.alternateAnswers || []),
-        ].map((ans) => ans.toLowerCase().trim());
-
-        if (correctAnswers.includes(userText)) {
-          questionScore = question.points;
-        }
-      } else if (question.type === "multiple-subselect") {
-        const multiPartAnswers = userAnswer || {};
-        let correctCount = 0;
-
-        question.parts.forEach((part) => {
-          const partAnswer = multiPartAnswers[part.id];
-          const isCorrect = partAnswer && partAnswer === part.correct;
-
-          if (isCorrect) {
-            correctCount += 1;
-          }
-        });
-
-        questionScore = correctCount;
-        questionMaxScore = question.parts.length;
-      } else if (question.type === "multiple-parts-subselect") {
-        const multiPartAnswers = userAnswer || {};
-        let correctCount = 0;
-        let totalSubQuestions = 0;
-
-        question.parts.forEach((part) => {
-          console.log("Evaluating part:", part);
-          const partAnswers = multiPartAnswers[part.id] || {};
-
-          part.subQuestions.forEach((subQuestion) => {
-            totalSubQuestions += 1;
-            const subAnswer = partAnswers[subQuestion.id];
-            const isCorrect = subAnswer && subAnswer === subQuestion.correct;
-            console.log("Inside here:", subAnswer, isCorrect);
-            if (isCorrect) {
-              correctCount += 1;
+      try {
+        if (question.type === "multiple-choice") {
+          if (question.options && Array.isArray(question.options)) {
+            const correctOption = question.options.find((opt) => opt.correct);
+            if (userAnswer === correctOption?.id) {
+              questionScore = question.points || 1;
             }
-          });
-        });
-
-        questionScore = correctCount;
-        questionMaxScore = totalSubQuestions;
-      } else if (question.type === "single-image-multiple-points") {
-        const problemAnswers = userAnswer || {};
-        let correctCount = 0;
-        let totalProblems = question.problems.length;
-
-        question.problems.forEach((problem) => {
-          const userProblemAnswer = problemAnswers[problem.id];
-          if (userProblemAnswer === problem.correctAnswer) {
-            correctCount += 1;
           }
-        });
+        } else if (question.type === "multiple-select") {
+          if (question.options && Array.isArray(question.options)) {
+            const correctAnswers = question.options
+              .filter((opt) => opt.correct)
+              .map((opt) => opt.id);
+            const userAnswers = userAnswer || [];
 
-        questionScore = correctCount;
-        questionMaxScore = totalProblems;
+            const isCorrect =
+              correctAnswers.length === userAnswers.length &&
+              correctAnswers.every((ans) => userAnswers.includes(ans));
+
+            if (isCorrect) {
+              questionScore = question.points || 1;
+            }
+          }
+        } else if (question.type === "text-input") {
+          const userText = (userAnswer || "").toLowerCase().trim();
+          const correctAnswers = [
+            question.correctAnswer,
+            ...(question.alternateAnswers || []),
+          ].filter(Boolean).map((ans) => ans.toLowerCase().trim());
+
+          if (correctAnswers.includes(userText)) {
+            questionScore = question.points || 1;
+          }
+        } else if (question.type === "multiple-subselect") {
+          if (question.parts && Array.isArray(question.parts)) {
+            const multiPartAnswers = userAnswer || {};
+            let correctCount = 0;
+
+            question.parts.forEach((part) => {
+              const partAnswer = multiPartAnswers[part.id];
+              const isCorrect = partAnswer && partAnswer === part.correct;
+
+              if (isCorrect) {
+                correctCount += 1;
+              }
+            });
+
+            questionScore = correctCount;
+            questionMaxScore = question.parts.length;
+          }
+        } else if (question.type === "multiple-parts-subselect") {
+          const multiPartAnswers = userAnswer || {};
+          let correctCount = 0;
+          let totalSubQuestions = 0;
+
+          if (question.parts && Array.isArray(question.parts)) {
+            question.parts.forEach((part) => {
+              console.log("Evaluating part:", part);
+              const partAnswers = multiPartAnswers[part.id] || {};
+
+              if (part.subQuestions && Array.isArray(part.subQuestions)) {
+                part.subQuestions.forEach((subQuestion) => {
+                  totalSubQuestions += 1;
+                  const subAnswer = partAnswers[subQuestion.id];
+                  const isCorrect = subAnswer && subAnswer === subQuestion.correct;
+                  console.log("Inside here:", subAnswer, isCorrect);
+                  if (isCorrect) {
+                    correctCount += 1;
+                  }
+                });
+              }
+            });
+
+            questionScore = correctCount;
+            questionMaxScore = totalSubQuestions > 0 ? totalSubQuestions : question.points || 1;
+          }
+        } else if (question.type === "single-image-multiple-points") {
+          if (question.problems && Array.isArray(question.problems)) {
+            const problemAnswers = userAnswer || {};
+            let correctCount = 0;
+            let totalProblems = question.problems.length;
+            
+            question.problems.forEach((problem) => {
+              const userProblemAnswer = problemAnswers[problem.id];
+              if (userProblemAnswer === problem.correctAnswer) {
+                correctCount += 1;
+              }
+            });
+            
+            questionScore = correctCount;
+            questionMaxScore = totalProblems;
+          }
+        } else {
+          console.warn(`Unknown question type: ${question.type} for question ${question.id}`);
+        }
+      } catch (error) {
+        console.error(`Error calculating score for question ${question.id}:`, error);
+        questionScore = 0;
+        questionMaxScore = question.points || 0;
       }
 
       totalScore += questionScore;
@@ -239,16 +218,31 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
     });
 
     return { totalScore, maxScore, questionResults };
-  };
+  }, [answers, quizData]);
 
   // Force submit without checking completion (used for timer expiry)
   const forceSubmit = useCallback(() => {
-    if (isSubmitted) return;
+    // Check both state and ref to prevent double submission
+    if (isSubmitted || isSubmittingRef.current) return;
+    
+    // Set the ref immediately to prevent any other calls
+    isSubmittingRef.current = true;
+    
+    // Clear the timer to prevent any further calls
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
     const results = calculateResults();
-    const timeSpent = isNoTimeLimit
-      ? timeRemaining - (quizData?.timeLimit || 3600) // Actual elapsed time
-      : (quizData?.timeLimit || 600) - timeRemaining; // Time used from limit
+    
+    // Calculate time spent correctly
+    let timeSpent;
+    if (isNoTimeLimit) {
+      timeSpent = 0;
+    } else {
+      timeSpent = (quizData?.timeLimit || 600) - timeRemaining;
+    }
 
     setIsSubmitted(true);
 
@@ -258,15 +252,46 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
         quizTitle: quizData.title,
         answers,
         results,
-        timeSpent: (quizData?.timeLimit || 600) - timeSpent,
+        timeSpent: timeSpent,
         completedAt: new Date().toISOString(),
       });
     }
-  }, [answers, isSubmitted, timeRemaining, quizData, onQuizComplete]);
+  }, [isSubmitted, timeRemaining, quizData, onQuizComplete, isNoTimeLimit, calculateResults, answers]);
+
+  // Timer functionality - separate effect for time expiry
+  useEffect(() => {
+    if (timeRemaining === 0 && !isNoTimeLimit && !isSubmitted && !isSubmittingRef.current) {
+      forceSubmit();
+    }
+  }, [timeRemaining, isNoTimeLimit, isSubmitted, forceSubmit]);
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (isSubmitted || isSubmittingRef.current) return;
+    
+    // Don't run timer if no time limit
+    if (isNoTimeLimit) return;
+
+    timerRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [isSubmitted, isNoTimeLimit]);
 
   // Handle quiz submission with incomplete check
   const handleSubmit = useCallback(() => {
-    if (isSubmitted) return;
+    if (isSubmitted || isSubmittingRef.current) return;
 
     // Check if all questions are answered
     if (!areAllQuestionsAnswered()) {
@@ -278,6 +303,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
     forceSubmit();
   }, [isSubmitted, areAllQuestionsAnswered, forceSubmit]);
 
+  // [Rest of the component remains exactly the same - all the other functions and JSX]
   // Page leave warning
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -325,17 +351,24 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
     if (questionType === "multiple-select") {
       return Array.isArray(answer) && answer.length > 0;
     }
+
     return answer !== "" && answer !== undefined;
   };
 
   const currentQ = quizData.questions[currentQuestion];
 
+  // [All the rest of your component code remains exactly the same]
+  // Including Results screen, renderQuestionContent, and the main return JSX
+  
   // Results screen
   if (isSubmitted) {
     const results = calculateResults();
     const percentage = Math.round(
       (results.totalScore / results.maxScore) * 100
     );
+    
+    // Calculate time spent for display
+    const timeSpent = isNoTimeLimit ? 0 : (quizData?.timeLimit || 600) - timeRemaining;
 
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -360,7 +393,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
             <div className="flex justify-between text-sm">
               <span>Time Spent:</span>
               <span>
-                {formatTime((quizData?.timeLimit || 600) - timeRemaining)}
+                {isNoTimeLimit ? "N/A" : formatTime(timeSpent)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
@@ -371,10 +404,10 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
             </div>
           </div>
           <button
-            onClick={() => router.push("/teacher/training")}
+            onClick={() => router.push("/student/student-dashboard")}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
           >
-            Return to Training Page
+            Return to Student Dashboard
           </button>
         </div>
       </div>
@@ -557,7 +590,7 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
         );
 
       case "multiple-parts-subselect":
-        const multiplePartsAnswers = userAnswer || {}; // Changed variable name to avoid conflict
+        const multiplePartsAnswers = userAnswer || {};
 
         return (
           <div className="space-y-4">
@@ -763,7 +796,6 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
       {/* Warning Banner */}
-
       {showWarning && !isNoTimeLimit && (
         <div className="bg-red-600 text-white p-2 text-center flex items-center justify-center gap-2">
           <AlertTriangle className="w-4 h-4" />
@@ -844,8 +876,8 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-          {!isNoTimeLimit ? (
-            // Show countdown timer for regular mode
+          {!isNoTimeLimit && (
+            // Only show timer if there IS a time limit
             <div
               className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm ${
                 timeRemaining < 60 ? "bg-red-600" : "bg-blue-600"
@@ -853,14 +885,6 @@ export default function ResponsiveQuiz({ quizData, onQuizComplete }) {
             >
               <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="font-mono">{formatTime(timeRemaining)}</span>
-            </div>
-          ) : (
-            // Show elapsed time indicator for no-limit mode
-            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm bg-gray-600">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="font-mono">
-                Time: {formatTime(timeRemaining)}
-              </span>
             </div>
           )}
 

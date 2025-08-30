@@ -283,13 +283,14 @@ export async function updateTeacherModuleProgress(teacher_id: any, module_title:
 }
 
 // Fetch teacher module progress
-export async function fetchTeacherModuleProgress(teacher_id: any) {
-  console.log("INSIDE FETCH PROGRESS FUNCTION:");
+export async function fetchTeacherModuleProgress(payload) {
+  const { teacher_id } = payload;
+  console.log("ASYNC PAYLOAD:", payload);
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("teachers_progress")
     .select("*")
-    .eq("teacher_id", teacher_id);
+    .eq("teacher_id", payload);
   if (error) {
     console.error("❌ Supabase Fetch Error:", error.message);
     return { error: error.message };
@@ -300,8 +301,8 @@ export async function fetchTeacherModuleProgress(teacher_id: any) {
 // Default Teacher Progress for each Module and for Each Quiz
 const teacherModuleProgress =
 {
-  "Flat Patterns":{"quiz": false, "order": 4, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false}, 
-  "Combining Solids": {"quiz": false, "order": 1, "software": false, "workbook": false, "completed_at": null,"mini_lecture": false, "getting_started": false, "introduction_video": false}, 
+  "Flat Patterns": { "quiz": false, "order": 4, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
+  "Combining Solids": { "quiz": false, "order": 1, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Orthographic Projection": { "quiz": false, "order": 9, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Reflections and Symmetry": { "quiz": false, "order": 6, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
   "Inclined and Curved Surfaces": { "quiz": false, "order": 10, "software": false, "workbook": false, "completed_at": null, "mini_lecture": false, "getting_started": false, "introduction_video": false },
@@ -369,6 +370,154 @@ export async function deleteResearchFile(fileId, filePath) {
     return {
       success: false,
       error: error.message
+    };
+  }
+}
+
+export async function retrieveTeacherModulePage(teacherId, courseId) {
+  try {
+    console.log("Running function", { teacherId, courseId });
+    const supabase = await createClient();
+    
+    const payload = {
+      teacher_module_progress: {},
+      module_settings: {}
+    };
+    
+    // Fetch module settings
+    const { data, error } = await supabase
+      .from('courses_settings')
+      .select('module_settings')
+      .eq('course_id', courseId);
+      
+    if (error) {
+      console.error("Error fetching module settings:", error);
+      throw error;
+    }
+    
+    // Parse module_settings if it's a JSON string
+    const moduleSettings = data[0]?.module_settings;
+    if (typeof moduleSettings === 'string') {
+      try {
+        payload.module_settings = JSON.parse(moduleSettings);
+      } catch (parseError) {
+        console.error("Error parsing module settings:", parseError);
+        payload.module_settings = {};
+      }
+    } else {
+      payload.module_settings = moduleSettings || {};
+    }
+
+    // Fetch teacher progress - Note: Check your actual table name
+    // Based on your data structure, it should be 'teachers_progress' not 'teacher_module_progress'
+    const { data: progressData, error: progressError } = await supabase
+      .from('teachers_progress')  // Fixed table name
+      .select('module_progress')  // Select specific field instead of *
+      .eq('teacher_id', teacherId)
+      .single();  // Use single() since one teacher has one progress record
+
+    if (progressError) {
+      console.error("Error fetching teacher module progress:", progressError);
+      // Don't throw, just use empty object
+      payload.teacher_module_progress = {};
+    } else {
+      // Parse module_progress if it's a JSON string
+      const moduleProgress = progressData?.module_progress;
+      if (typeof moduleProgress === 'string') {
+        try {
+          payload.teacher_module_progress = JSON.parse(moduleProgress);
+        } catch (parseError) {
+          console.error("Error parsing module progress:", parseError);
+          payload.teacher_module_progress = {};
+        }
+      } else {
+        payload.teacher_module_progress = moduleProgress || {};
+      }
+    }
+
+    return payload;
+    
+  } catch (error) {
+    console.error("Error in retrieveTeacherModulePage:", error);
+    // Return empty payload on error
+    return {
+      teacher_module_progress: {},
+      module_settings: {}
+    };
+  }
+}
+
+
+
+export async function retrieveTeacherQuizPage(teacherId, courseId) {
+  try {
+    console.log("Running function", { teacherId, courseId });
+    const supabase = await createClient();
+    
+    const payload = {
+      teacher_quiz_progress: {},
+      quiz_settings: {}
+    };
+    
+    // Fetch module settings
+    const { data, error } = await supabase
+      .from('courses_settings')
+      .select('quiz_settings')
+      .eq('course_id', courseId);
+      
+    if (error) {
+      console.error("Error fetching quiz settings:", error);
+      throw error;
+    }
+    
+    // Parse quiz_settings if it's a JSON string
+    const quizSettings = data[0]?.quiz_settings;
+    if (typeof quizSettings === 'string') {
+      try {
+        payload.quiz_settings = JSON.parse(quizSettings);
+      } catch (parseError) {
+        console.error("Error parsing quiz settings:", parseError);
+        payload.quiz_settings = {};
+      }
+    } else {
+      payload.quiz_settings = quizSettings || {};
+    }
+
+    // Fetch teacher progress - Note: Check your actual table name
+    // Based on your data structure, it should be 'teachers_progress' not 'teacher_module_progress'
+    const { data: progressData, error: progressError } = await supabase
+      .from('teachers_progress')  // Fixed table name
+      .select('quiz_progress')  // Select specific field instead of *
+      .eq('teacher_id', teacherId)
+      .single();  // Use single() since one teacher has one progress record
+
+    if (progressError) {
+      console.error("Error fetching teacher module progress:", progressError);
+      // Don't throw, just use empty object
+      payload.teacher_quiz_progress = {};
+    } else {
+      // Parse module_progress if it's a JSON string
+      const moduleProgress = progressData?.quiz_progress;
+      if (typeof moduleProgress === 'string') {
+        try {
+          payload.teacher_quiz_progress = JSON.parse(moduleProgress);
+        } catch (parseError) {
+          console.error("Error parsing module progress:", parseError);
+          payload.teacher_quiz_progress = {};
+        }
+      } else {
+        payload.teacher_quiz_progress = moduleProgress || {};
+      }
+    }
+
+    return payload;
+    
+  } catch (error) {
+    console.error("Error in retrieveTeacherModulePage:", error);
+    // Return empty payload on error
+    return {
+      teacher_quiz_progress: {},
+      quiz_settings: {}
     };
   }
 }

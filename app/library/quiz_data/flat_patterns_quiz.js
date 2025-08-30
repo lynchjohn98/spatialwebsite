@@ -1,7 +1,7 @@
 export const quizData = {
   id: 7,
   title: "Module 4: Flat Patterns",
-  timeLimit: 3600, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
+  timeLimit: 0, // 100 seconds, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description: "Check your understanding on concepts of flat patterns.",
   questions: [
     {

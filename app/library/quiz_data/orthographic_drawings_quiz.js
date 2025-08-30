@@ -1,7 +1,7 @@
 export const quizData = {
   id: 12,
   title: "Module 9 Quiz: Orthographic Drawings",
-  timeLimit: 3600, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
+  timeLimit: 0, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description:
     "Check your understanding of concepts from Module 9.",
   questions: [

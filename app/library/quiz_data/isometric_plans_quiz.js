@@ -1,7 +1,7 @@
 export const quizData = {
   id: 6,
   title: "Module 3 Quiz: Isometric Drawings and Coded Plans",
-  timeLimit: 3600, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
+  timeLimit: 0, // 10 minutes, all time limits are in seconds, look at description for multiple-subselect for more detailed information provided.
   description:
     "Select the option that best corresponds with the isometric sketch.",
   questions: [

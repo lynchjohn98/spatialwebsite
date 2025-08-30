@@ -494,3 +494,68 @@ export const MODULE_ORDER = [
     "Orthographic Projection",
     "Inclined and Curved Surfaces",
 ];
+
+
+
+export const moduleConfigurationOptions = {
+
+    1: {
+      number: 1,
+      title: "The Importance of Spatial Skills",
+      learningIntention: "Today, we are learning about the importance of spatial thinking skills for success in many careers",
+      learningOutcomes: [
+        "Describe what is meant by spatial skills",
+        "Describe the various intelligences and how spatial thinking fits within this structure",
+        "List various careers for which spatial skills are important",
+        "List various careers for which spatial skills are not so important"
+      ],
+      introVideoUrl: "https://www.youtube.com/watch?v=hlOxMQLrqOw",
+      successCriteria: {
+        iHave: [
+          "Completed all activities in my workbook",
+          "Listed careers I am interested in and whether or not they require spatial thinking skills"
+        ],
+        iCan: [
+          "Explain the words: spatial skills; spatial intelligence",
+          "Describe the types of spatial thinking required for various occupations",
+          "Determine if spatial skills are required for various professions",
+          "Describe how spatial thinking skills are used in my everyday life"
+        ]
+      }
+    },
+    2: {
+      number: 2,
+      title: "Surfaces and Solids of Revolution",
+      learningIntention: "Today, we are learning about how 2D shapes can be revolved around an axis to form a 3D Solid",
+      learningOutcomes: [
+        "Record, define and explain the keywords of the module",
+        "Choose the appropriate 3D shape from the revolution of a given 2D shape",
+        "Choose the appropriate 2D shape from a given 3D diagram",
+        "Identify the axis of revolution"
+      ],
+      introVideoUrl: "https://www.youtube.com/watch?v=1jP0TxSbEmQ",
+      miniLectureUrl: "https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/174459909",
+      gettingStartedVideos: [
+        { url: "https://vimeopro.com/sorby/spatial3atyhzoh7ta/video/177263869", title: "Video 1" }
+      ],
+      interactiveSoftwareUrl: "https://www.higheredservices.org/HES01/Module_1/module_1_theme_1.html",
+      successCriteria: {
+        iHave: [
+          "Completed all activities in my workbook",
+          "Reviewed the introduction video",
+          "Reviewed the Mini-Lectures",
+          "Reviewed the Getting Started videos",
+          "Reviewed the interactive software",
+          "Attempted the Module Quiz"
+        ],
+        iCan: [
+          "Explain the words: Revolve, About an axis, Axis of revolution",
+          "Take a 2D shape and revolve it about any axis",
+          "Identify the axis of revolution given a 2D shape and a 3D object",
+          "Write down the number of degrees that a shape was revolved",
+          "Select a 2D shape from a given 3D object"
+        ]
+      }
+    }
+    // Add more module configurations as needed
+  };

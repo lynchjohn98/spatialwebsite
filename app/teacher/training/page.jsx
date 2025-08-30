@@ -425,26 +425,27 @@ export default function TeacherTraining() {
                 })}
             </div>
 
-            {/* PSVTR Post-Test - Placed after required modules */}
-            <div className="my-6">
-              <TrainingCard
-                module={{
-                  id: "posttest",
-                  name: "PSVTR Post-Test: Assessing Your Spatial Skills",
-                  description:
-                    "Complete after finishing all required modules to measure your improvement.",
-                  estimatedTime: "20 minutes",
-                  href: "/teacher/training/quizzes/psvtr_posttest",
-                  requiresPretest: true,
-                }}
-                moduleProgress={{
-                  module_name: "PSVTR Post-Test",
-                  assessment_completed: teacherData?.posttest_complete || false,
-                }}
-                isPostTestComplete={true}
-                onRestrictedClick={handleRestrictedAccess}
-              />
-            </div>
+            
+{/* PSVTR Post-Test - Placed after required modules */}
+<div className="my-6">
+  <TrainingCard
+    module={{
+      id: "posttest",
+      name: "PSVTR Post-Test: Assessing Your Spatial Skills",
+      description:
+        "Complete after finishing all required modules to measure your improvement.",
+      estimatedTime: "20 minutes",
+      href: "/teacher/training/quizzes/psvtr_posttest",
+      requiresPretest: true, // This means it requires the pretest to be complete
+    }}
+    moduleProgress={{
+      module_name: "PSVTR Post-Test",
+      assessment_completed: teacherData?.posttest_complete || false,
+    }}
+    isPretestComplete={isPretestComplete} // Pass the actual pretest completion status
+    onRestrictedClick={handleRestrictedAccess}
+  />
+</div>
 
             {/* OPTIONAL MODULES (7-10) with Banner */}
             {sortedModules.filter((module) => module.order > 6).length > 0 && (
