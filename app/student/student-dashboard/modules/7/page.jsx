@@ -579,7 +579,7 @@ export default function StudentModulePage() {
                               ? "text-green-400"
                               : "text-gray-300"
                           }`}
-                        >
+                        > 
                           <span className="flex-1">
                             Reviewed the Mini-Lectures.
                           </span>
