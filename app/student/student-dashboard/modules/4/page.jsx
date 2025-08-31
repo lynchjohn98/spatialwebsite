@@ -12,11 +12,11 @@ export default function StudentModulePage() {
   // ============ MODULE CONFIGURATION - IDENTICAL TO TEACHER VERSION ============
   const MODULE_CONFIG = {
     number: 3,
-    title:  "Isometric Sketching and Coded Plans",
-    shortTitle: "Isometric Sketching", // For the navbar
-    
+    title:  "Isometric Drawings and Coded Plans",
+    shortTitle: "Isometric Drawings", // For the navbar
+
     // Learning content
-    learningIntention: "Today, we are learning about isometric sketching.",
+    learningIntention: "Today, we are learning about isometric drawings.",
     learningOutcomes: [
       "Record, define and explain the keywords for this module.",
       "Recognise isometric drawings.",
@@ -220,6 +220,8 @@ export default function StudentModulePage() {
                       </ul>
                     </div>
 
+                    {/*
+
                     <div className="bg-gray-700/30 p-6 rounded-lg">
                       <p className="mb-4 text-gray-200 font-medium">
                         Review the video below for an introduction to Module {MODULE_CONFIG.number}.
@@ -230,8 +232,7 @@ export default function StudentModulePage() {
                         description="Learn how 3D shapes can be combined."
                       />
                     </div>
-                    
-                    {/* Checkbox for introduction video completion */}
+               
                     <label
                       htmlFor="introduction_video"
                       className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
@@ -271,6 +272,10 @@ export default function StudentModulePage() {
                       <span>Introduction video completed</span>
                     </div>
                   )}
+
+                  */}
+             
+                  </div>
                 </section>
 
                 <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
@@ -573,30 +578,7 @@ export default function StudentModulePage() {
                             </svg>
                           )}
                         </li>
-                        <li
-                          className={`flex items-start ${
-                            introductionVideoCompleted
-                              ? "text-green-400"
-                              : "text-gray-300"
-                          }`}
-                        >
-                          <span className="flex-1">
-                            Reviewed the introduction video.
-                          </span>
-                          {introductionVideoCompleted && (
-                            <svg
-                              className="w-5 h-5 ml-2 flex-shrink-0 text-green-400"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                        </li>
+                        
 
                         <li
                           className={`flex items-start ${

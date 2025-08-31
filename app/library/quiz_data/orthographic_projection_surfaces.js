@@ -132,7 +132,7 @@ export const quizData = {
     },
 
      {
-      id: "q4",
+      id: "q5",
       type: "single-image-multiple-points",
       text: "Select the correct isometric view for",
       imageUrl: "/quiz_images/orthographic_projection_curved_surfaces/question4.png",

@@ -19,7 +19,7 @@ export default function CombiningSolidsQuiz() {
   const [isLoading, setIsLoading] = useState(true);
   const [accessMessage, setAccessMessage] = useState("");
 
-  const startQuiz = () => {
+  const startQuiz = () => { 
     setQuizStarted(true);
   };
 

@@ -216,11 +216,12 @@ export async function deleteStudent(payload) {
 }
 
 
-// Define default module list to load for new students added to the course.
+// Define default module list to load for new students added to the course. Students will have the intro video auto-true 
+// so that they do not need to watch it. Will be true.
 const defaultModuleProgress = 
 {
   "Pre-Module: The Importance of Spatial Skills": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": true,
     "software": true,
     "getting_started": true,
@@ -229,7 +230,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Combining Solids": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -238,7 +239,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Surfaces and Solids of Revolution": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -247,7 +248,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Isometric Drawings and Coded Plans": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -256,7 +257,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Flat Patterns": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -265,7 +266,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Rotation of Objects About a Single Axis": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -274,7 +275,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Reflections and Symmetry": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -283,7 +284,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Cutting Planes and Cross-Sections": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -292,7 +293,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Rotation of Objects About Two or More Axes": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -301,7 +302,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Orthographic Projection": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,
@@ -310,7 +311,7 @@ const defaultModuleProgress =
     "completed_at": null
   },
   "Inclined and Curved Surfaces": {
-    "introduction_video": false,
+    "introduction_video": true,
     "mini_lecture": false,
     "software": false,
     "getting_started": false,

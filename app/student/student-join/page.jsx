@@ -140,7 +140,7 @@ export default function StudentJoin() {
                   value={studentUsername}
                   onChange={handleJoinCodeChange}
                   className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white text-center font-mono text-lg tracking-wider placeholder-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:outline-none transition-colors"
-                  placeholder="ABCD-1234"
+                  placeholder="8 Character Username"
                   autoComplete="off"
                   maxLength={8}
                 />

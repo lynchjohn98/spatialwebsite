@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { retrieveTeacherQuizPage } from "../../../library/services/teacher_actions";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
-import { updateQuizFile } from "../../../library/services/course_actions";
 
 export default function TeacherQuizzes() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [courseData, setCourseData] = useState(null);
   const [quizSettings, setQuizSettings] = useState([]);
-  const [teacherQuizProgress, setTeacherQuizProgress] = useState({});
+  const [quizGrades, setQuizGrades] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState("all"); // "all", "module", "survey", "pre_post_test"
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedAttempts, setSelectedAttempts] = useState({}); // Track which attempt is selected for each quiz
+  const [expandedResults, setExpandedResults] = useState({}); // Track which quiz results are expanded
   const router = useRouter();
 
   useEffect(() => {
@@ -27,7 +27,6 @@ export default function TeacherQuizzes() {
     window.addEventListener("resize", checkWindowSize);
     checkWindowSize();
    
-
     return () => window.removeEventListener("resize", checkWindowSize);
   }, []);
 
@@ -46,7 +45,7 @@ export default function TeacherQuizzes() {
       const parsedTeacherData = JSON.parse(storedTeacherData || "{}");
       setCourseData(parsedCourseData);
 
-      // Fetch teacher quiz data
+      // Fetch teacher quiz data including grades
       const result = await retrieveTeacherQuizPage(parsedTeacherData.id, parsedCourseData.id);
       console.log("Quiz data:", result);
 
@@ -64,10 +63,10 @@ export default function TeacherQuizzes() {
         setQuizSettings(quizzes);
       }
 
-      // Set teacher quiz progress
-      if (result.teacher_quiz_progress) {
-        setTeacherQuizProgress(result.teacher_quiz_progress);
-        sessionStorage.setItem("quizProgress", JSON.stringify(result.teacher_quiz_progress));
+      // Set quiz grades
+      if (result.quiz_grades) {
+        setQuizGrades(result.quiz_grades);
+        sessionStorage.setItem("quizGrades", JSON.stringify(result.quiz_grades));
       }
 
     } catch (error) {
@@ -87,15 +86,64 @@ export default function TeacherQuizzes() {
     return quizSettings.filter(quiz => quiz.type === viewMode);
   };
 
-  // Get quiz completion status
+  // Get quiz completion status based on quiz_grades
   const getQuizStatus = (quiz) => {
-    // Check if quiz has been attempted in progress
-    const progress = teacherQuizProgress[quiz.name] || teacherQuizProgress[quiz.id];
-    if (progress) {
-      if (progress.completed) return "completed";
-      if (progress.attempts > 0) return "in_progress";
+    // Check if quiz has been completed by checking if it exists in quiz_grades
+    // The quiz can be keyed by either its ID or name in the grades object
+    const quizGrade = quizGrades[quiz.id] || quizGrades[quiz.name];
+    
+    if (quizGrade) {
+      // If there's a grade entry, the quiz is completed
+      return "completed";
     }
+    
+    // If no grade entry exists, the quiz hasn't been started
     return "not_started";
+  };
+
+  // Get quiz grade information from teachers_grades table
+  const getQuizGradeInfo = (quiz) => {
+    const gradesForQuiz = quizGrades[quiz.id];
+    
+    if (!gradesForQuiz) return null;
+    
+    // Grades should already be an array from the backend
+    if (Array.isArray(gradesForQuiz)) {
+      // Sort by submission time (newest first) and add attempt numbers
+      const sortedAttempts = [...gradesForQuiz].sort((a, b) => 
+        new Date(b.time_submitted) - new Date(a.time_submitted)
+      );
+      
+      return sortedAttempts.map((attempt, index) => ({
+        attemptNumber: sortedAttempts.length - index, // Reverse numbering so oldest is #1
+        score: attempt.score || 0,
+        timeSubmitted: attempt.time_submitted,
+        timeTaken: attempt.time_taken,
+        isBest: false // Will be set later
+      }));
+    }
+    
+    return null;
+  };
+
+  // Mark the best attempt
+  const markBestAttempt = (attempts) => {
+    if (!attempts || attempts.length === 0) return attempts;
+    
+    let bestScore = -1;
+    let bestIndex = 0;
+    
+    attempts.forEach((attempt, index) => {
+      if (attempt.score > bestScore) {
+        bestScore = attempt.score;
+        bestIndex = index;
+      }
+    });
+    
+    return attempts.map((attempt, index) => ({
+      ...attempt,
+      isBest: index === bestIndex
+    }));
   };
 
   // Get status color and label
@@ -129,9 +177,12 @@ export default function TeacherQuizzes() {
     router.push(`/teacher/dashboard/quizzes/${quizId}`);
   };
 
-  // Navigate to quiz results
-  const navigateToResults = (quizId) => {
-    router.push(`/teacher/dashboard/quizzes/${quizId}/results`);
+  // Toggle quiz results expansion
+  const toggleResultsExpansion = (quizId) => {
+    setExpandedResults(prev => ({
+      ...prev,
+      [quizId]: !prev[quizId]
+    }));
   };
 
   // Navigate to settings
@@ -150,9 +201,9 @@ export default function TeacherQuizzes() {
     const visible = filtered.filter(q => q.visibility === "Yes").length;
     const hidden = filtered.filter(q => q.visibility === "No").length;
     const completed = filtered.filter(q => getQuizStatus(q) === "completed").length;
-    const inProgress = filtered.filter(q => getQuizStatus(q) === "in_progress").length;
+    const notStarted = filtered.filter(q => getQuizStatus(q) === "not_started").length;
     
-    return { visible, hidden, completed, inProgress, total: filtered.length };
+    return { visible, hidden, completed, notStarted, total: filtered.length };
   };
 
   const stats = getQuizStats();
@@ -187,7 +238,7 @@ export default function TeacherQuizzes() {
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">Course Quizzes</h1>
               <p className="text-gray-400 text-sm mt-1">
-                {stats.total} total quizzes • {stats.visible} visible to students
+                {stats.total} total quizzes • {stats.visible} visible to students • {stats.completed} completed
               </p>
             </div>
             
@@ -254,8 +305,8 @@ export default function TeacherQuizzes() {
               <p className="text-sm text-gray-400">Completed</p>
             </div>
             <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-              <p className="text-3xl font-bold text-yellow-400">{stats.inProgress}</p>
-              <p className="text-sm text-gray-400">In Progress</p>
+              <p className="text-3xl font-bold text-gray-400">{stats.notStarted}</p>
+              <p className="text-sm text-gray-400">Not Started</p>
             </div>
           </div>
 
@@ -271,14 +322,13 @@ export default function TeacherQuizzes() {
                 const statusDisplay = getStatusDisplay(status);
                 const typeDisplay = getQuizTypeDisplay(quiz.type);
                 const isVisible = quiz.visibility === "Yes";
+                const gradeInfo = getQuizGradeInfo(quiz);
                 
                 return (
                   <div
                     key={quiz.id}
                     className={`p-6 bg-gray-800 rounded-lg border-2 transition-all duration-200 hover:shadow-lg ${
-                      status === "completed" ? 'border-green-600/50' : 
-                      status === "in_progress" ? 'border-yellow-600/50' : 
-                      'border-gray-700'
+                      status === "completed" ? 'border-green-600/50' : 'border-gray-700'
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -313,21 +363,20 @@ export default function TeacherQuizzes() {
                         
                         {/* Quiz Details */}
                         <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-4">
-                          {quiz.attempts && (
-                            <div className="flex items-center gap-1">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                              </svg>
-                              <span>{quiz.attempts} attempts allowed</span>
-                            </div>
-                          )}
                           {quiz.total_score && (
                             <div className="flex items-center gap-1">
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                               </svg>
                               <span>{quiz.total_score} points</span>
+                            </div>
+                          )}
+                          {quiz.questions && (
+                            <div className="flex items-center gap-1">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                              </svg>
+                              <span>{quiz.questions} questions</span>
                             </div>
                           )}
                           {quiz.time && (
@@ -340,64 +389,31 @@ export default function TeacherQuizzes() {
                           )}
                         </div>
                         
-                        {/* Progress Info (if available) */}
-                        {status !== "not_started" && teacherQuizProgress[quiz.name] && (
-                          <div className="bg-gray-700/30 rounded p-3 mb-4">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-400">Your Progress</span>
-                              <div className="flex gap-4">
-                                {teacherQuizProgress[quiz.name].score && (
-                                  <span className="text-green-400">
-                                    Score: {teacherQuizProgress[quiz.name].score}/{quiz.total_score}
-                                  </span>
-                                )}
-                                {teacherQuizProgress[quiz.name].attempts && (
-                                  <span className="text-yellow-400">
-                                    Attempts: {teacherQuizProgress[quiz.name].attempts}/{quiz.attempts}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                        
                         
                         {/* Action Buttons */}
                         <div className="flex gap-3">
                           {status === "completed" ? (
                             <>
                               <button
-                                onClick={() => navigateToResults(quiz.id)}
+                                onClick={() => toggleResultsExpansion(quiz.id)}
                                 className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <svg 
+                                  className={`w-5 h-5 transition-transform ${expandedResults[quiz.id] ? 'rotate-180' : ''}`} 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                 </svg>
-                                View Results
+                                {expandedResults[quiz.id] ? 'Hide Results' : 'View Results'}
                               </button>
                               <button
                                 onClick={() => navigateToQuiz(quiz.id)}
                                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
                               >
                                 Retake Quiz
-                              </button>
-                            </>
-                          ) : status === "in_progress" ? (
-                            <>
-                              <button
-                                onClick={() => navigateToQuiz(quiz.id)}
-                                className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                              >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Continue Quiz
-                              </button>
-                              <button
-                                onClick={() => navigateToResults(quiz.id)}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                              >
-                                View Progress
                               </button>
                             </>
                           ) : (
@@ -421,6 +437,95 @@ export default function TeacherQuizzes() {
                             </button>
                           )}
                         </div>
+
+                        {/* Expanded Results Section */}
+                        {expandedResults[quiz.id] && status === "completed" && gradeInfo && (
+                          <div className="mt-4 p-4 bg-gray-700/30 rounded-lg border border-gray-600 animate-fadeIn">
+                            <h4 className="text-lg font-semibold text-white mb-3">Quiz Results Details</h4>
+                            
+                            {/* All Attempts Table */}
+                            <div className="space-y-3">
+                              <div className="bg-gray-800/50 rounded overflow-hidden">
+                                <table className="w-full">
+                                  <thead className="bg-gray-700/50">
+                                    <tr>
+                                      <th className="text-left text-xs text-gray-400 p-3">Attempt</th>
+                                      <th className="text-left text-xs text-gray-400 p-3">Score</th>
+                                      <th className="text-left text-xs text-gray-400 p-3">Time Taken</th>
+                                      <th className="text-left text-xs text-gray-400 p-3">Date Submitted</th>
+                                      <th className="text-left text-xs text-gray-400 p-3">Status</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {markBestAttempt(gradeInfo).map((attempt, index) => (
+                                      <tr 
+                                        key={index}
+                                        className={`border-t border-gray-700 ${
+                                          attempt.isBest ? 'bg-green-600/10' : ''
+                                        }`}
+                                      >
+                                        <td className="p-3 text-sm text-gray-300">
+                                          #{attempt.attemptNumber}
+                                        </td>
+                                        <td className={`p-3 text-sm font-semibold ${
+                                          attempt.isBest ? 'text-green-400' : 'text-gray-300'
+                                        }`}>
+                                          {attempt.score}/{quiz.total_score || "?"}
+                                        </td>
+                                        <td className="p-3 text-sm text-gray-300">
+                                          {attempt.timeTaken ? (
+                                            `${Math.floor(attempt.timeTaken / 60000)}:${String(Math.floor((attempt.timeTaken % 60000) / 1000)).padStart(2, '0')}`
+                                          ) : (
+                                            '-'
+                                          )}
+                                        </td>
+                                        <td className="p-3 text-sm text-gray-300">
+                                          {attempt.timeSubmitted ? (
+                                            <>
+                                              {new Date(attempt.timeSubmitted).toLocaleDateString()}<br/>
+                                              <span className="text-xs text-gray-500">
+                                                {new Date(attempt.timeSubmitted).toLocaleTimeString()}
+                                              </span>
+                                            </>
+                                          ) : (
+                                            '-'
+                                          )}
+                                        </td>
+                                        <td className="p-3">
+                                          {attempt.isBest && (
+                                            <span className="text-xs bg-green-600/30 text-green-300 px-2 py-1 rounded">
+                                              Best
+                                            </span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              {/* Summary Stats */}
+                              <div className="grid grid-cols-3 gap-3">
+                                <div className="bg-gray-800/50 p-3 rounded text-center">
+                                  <p className="text-xs text-gray-400 mb-1">Total Attempts</p>
+                                  <p className="text-xl font-bold text-white">{gradeInfo.length}</p>
+                                </div>
+                                <div className="bg-gray-800/50 p-3 rounded text-center">
+                                  <p className="text-xs text-gray-400 mb-1">Best Score</p>
+                                  <p className="text-xl font-bold text-green-400">
+                                    {Math.max(...gradeInfo.map(a => a.score))}
+                                  </p>
+                                </div>
+                                <div className="bg-gray-800/50 p-3 rounded text-center">
+                                  <p className="text-xs text-gray-400 mb-1">Average Score</p>
+                                  <p className="text-xl font-bold text-blue-400">
+                                    {Math.round(gradeInfo.reduce((sum, a) => sum + a.score, 0) / gradeInfo.length)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

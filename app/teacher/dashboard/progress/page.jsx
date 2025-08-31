@@ -190,6 +190,7 @@ export default function StudentProgress() {
       Object.entries(student.progress).forEach(([moduleNum, progress]) => {
         if (!progress.visible) return;
 
+        // UPDATED: Removed 'introduction_video' from tasks array
         const tasks = ['getting_started', 'mini_lecture', 'workbook', 'software', 'quiz'];
         const moduleTasks = tasks.filter(task => progress[task] !== undefined);
         const moduleCompleted = moduleTasks.filter(task => progress[task] === true);
@@ -249,6 +250,7 @@ export default function StudentProgress() {
         if (!moduleProgress) {
           row.push(0);
         } else {
+          // UPDATED: Removed 'introduction_video' from tasks array
           const tasks = ['getting_started', 'mini_lecture', 'workbook', 'software', 'quiz'];
           const completed = tasks.filter(t => moduleProgress[t] === true).length;
           const percentage = Math.round((completed / tasks.length) * 100);
@@ -449,6 +451,7 @@ export default function StudentProgress() {
                             return <td key={module.id} className="py-3 px-4 text-center">-</td>;
                           }
                           
+                          // UPDATED: Removed 'introduction_video' from tasks array
                           const tasks = ['getting_started', 'mini_lecture', 'workbook', 'software', 'quiz'];
                           const completed = tasks.filter(t => moduleProgress[t] === true).length;
                           const percentage = Math.round((completed / tasks.length) * 100);
@@ -826,7 +829,7 @@ export default function StudentProgress() {
                       </div>
                     </div>
 
-                    {/* Expanded Content */}
+                    {/* Expanded Content - UPDATED: Removed Intro column */}
                     {isExpanded && (
                       <div className="p-4 pt-0">
                         <div className="bg-gray-800 rounded-lg p-4">
@@ -834,9 +837,6 @@ export default function StudentProgress() {
                             <thead>
                               <tr className="border-b border-gray-700">
                                 <th className="text-left py-2">Module</th>
-                                <th className="py-2 text-center">
-                                  <Eye size={14} className="inline" /> Intro
-                                </th>
                                 <th className="py-2 text-center">Getting Started</th>
                                 <th className="py-2 text-center">Mini Lecture</th>
                                 <th className="py-2 text-center">Workbook</th>
@@ -853,9 +853,6 @@ export default function StudentProgress() {
                                   <tr key={module.id} className="border-b border-gray-700/30">
                                     <td className="py-2 font-medium">
                                       {module.name.replace(/^(Pre-)?Module \d+:\s*/, '')}
-                                    </td>
-                                    <td className="py-2 text-center">
-                                      <TaskIcon completed={progress.introduction_video} />
                                     </td>
                                     <td className="py-2 text-center">
                                       <TaskIcon completed={progress.getting_started} />

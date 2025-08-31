@@ -403,11 +403,18 @@ export default function TeacherResponsiveQuiz({ quizData, onQuizComplete }) {
               </span>
             </div>
           </div>
-          <button
-            onClick={() => router.push("/student/student-dashboard")}
+          
+           <button
+            onClick={() => router.push("/teacher/dashboard/quizzes")}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
           >
-            Return to Student Dashboard
+            Return to Teacher Quizzes
+          </button>
+          <button
+            onClick={() => router.push("/teacher/dashboard")}
+            className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
+          >
+            Return to Teacher Dashboard
           </button>
         </div>
       </div>

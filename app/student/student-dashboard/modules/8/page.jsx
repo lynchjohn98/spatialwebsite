@@ -217,6 +217,8 @@ export default function StudentModulePage() {
                       </ul>
                     </div>
 
+                    {/*
+
                     <div className="bg-gray-700/30 p-6 rounded-lg">
                       <p className="mb-4 text-gray-200 font-medium">
                         Review the video below for an introduction to Module {MODULE_CONFIG.number}.
@@ -228,7 +230,7 @@ export default function StudentModulePage() {
                       />
                     </div>
                     
-                    {/* Checkbox for introduction video completion */}
+            
                     <label
                       htmlFor="introduction_video"
                       className="flex items-start gap-3 bg-gray-700/30 p-4 rounded-lg cursor-pointer hover:bg-gray-700/40 transition-colors"
@@ -268,6 +270,8 @@ export default function StudentModulePage() {
                       <span>Introduction video completed</span>
                     </div>
                   )}
+                    */}
+                    </div>
                 </section>
 
                 <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">

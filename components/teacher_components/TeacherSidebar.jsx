@@ -53,10 +53,9 @@ export default function Sidebar({
   const router = useRouter();
   const [activeRoute, setActiveRoute] = useState("");
   useEffect(() => {
-    const path = window.location.pathname;
+    const path = window.location.pathname.replace(/\/$/, ""); // Remove trailing slash
     setActiveRoute(path);
   }, []);
-
 
   const handleMobileNavClick = (route) => {
     setActiveRoute(route);
@@ -243,7 +242,7 @@ export default function Sidebar({
               </svg>
             }
             label="Homepage"
-            route="/teacher/dashboard/"
+            route="/teacher/dashboard"
             isActive={activeRoute === "/teacher/dashboard"}
             onClick={handleMobileNavClick}
           />
@@ -306,7 +305,7 @@ export default function Sidebar({
             isActive={activeRoute === "/teacher/dashboard/students"}
             onClick={handleMobileNavClick}
           />
-           <NavButton
+          <NavButton
             icon={
               <svg
                 width="20"
@@ -345,29 +344,26 @@ export default function Sidebar({
             onClick={handleMobileNavClick}
           />
 
-         
-          
           {courseData.course_research && (
-       
-          <NavButton
-            icon={
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 11l3 3L22 4" />
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-              </svg>
-            }
-            label="Research Consent Management"
-            route="/teacher/dashboard/research"
-            isActive={activeRoute === "/teacher/dashboard/research"}
-            onClick={handleMobileNavClick}
-          />
+            <NavButton
+              icon={
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M9 11l3 3L22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+              }
+              label="Research Consent Management"
+              route="/teacher/dashboard/research"
+              isActive={activeRoute === "/teacher/dashboard/research"}
+              onClick={handleMobileNavClick}
+            />
           )}
 
           <div className="pt-2 mt-6 border-t border-gray-700"></div>
@@ -392,8 +388,6 @@ export default function Sidebar({
             onClick={handleMobileNavClick}
           />
         </nav>
-
-     
       </aside>
     </>
   );

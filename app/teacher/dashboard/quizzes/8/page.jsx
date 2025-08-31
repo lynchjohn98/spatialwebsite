@@ -1,20 +1,19 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import StudentResponsiveQuiz from "../../../../../components/student_components/StudentResponsiveQuiz";
+import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/rotation_single_axis_quiz";
-import { submitStudentQuiz } from "../../../../library/services/student_services/student_quiz";
+import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
 export default function RotationSingleAxisQuiz() {
-
   const router = useRouter();
   const [quizStarted, setQuizStarted] = useState(false);
-  const [studentData, setStudentData] = useState(null);
+  const [teacherData, setTeacherData] = useState(null);
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showAnswer1, setShowAnswer1] = useState(false);
   const [showAnswer2, setShowAnswer2] = useState(false);
   const [zoomedImage, setZoomedImage] = useState(null);
-const [quizVisible, setQuizVisible] = useState(false);
+  const [quizVisible, setQuizVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [accessMessage, setAccessMessage] = useState("");
 
@@ -63,87 +62,64 @@ const [quizVisible, setQuizVisible] = useState(false);
 
   useEffect(() => {
     try {
-      // Load student data
-      if (sessionStorage.getItem("studentData") !== null) {
-        setStudentData(JSON.parse(sessionStorage.getItem("studentData")));
+      // Load teacher data
+      if (sessionStorage.getItem("teacherData") !== null) {
+        setTeacherData(JSON.parse(sessionStorage.getItem("teacherData")));
       }
       
-      // Load course data and check quiz visibility
+      // Load course data and check quiz visibility (if applicable for teachers)
+      // You might want to adjust this logic based on your teacher requirements
       if (sessionStorage.getItem("courseData") !== null) {
         const courseData = JSON.parse(sessionStorage.getItem("courseData"));
         console.log(courseData);
-        
-        // Check if quiz settings exist and find the "Rotation Single Axis" quiz
+        // Check if quiz settings exist and find the "Flat Patterns" quiz
         if (courseData?.settings?.quiz_settings) {
           const rotationSingleAxisQuiz = courseData.settings.quiz_settings.find(
-            quiz => quiz.name === "Rotation Single Axis"
+            quiz => quiz.name === "Rotation of Objects About a Single Axis"
           );
 
           if (rotationSingleAxisQuiz) {
-            // Check visibility
-            if (rotationSingleAxisQuiz.visibility === "Yes") {
-              setQuizVisible(true);
-              setIsLoading(false);
-            } else {
-              // Quiz is not visible, set message and redirect
-              setQuizVisible(false);
-              setAccessMessage("This quiz is not currently available. Please check back later or contact your instructor.");
-              setIsLoading(false);
-              
-              // Redirect after showing message for 3 seconds
-              setTimeout(() => {
-                router.push("/student/student-dashboard/");
-              }, 3000);
-            }
-          } else {
-            // Quiz not found in settings
-            setAccessMessage("Quiz configuration not found. Please contact your instructor.");
+            // For teachers, you might always want to show the quiz
+            // or have different visibility logic
+            setQuizVisible(true);
             setIsLoading(false);
-            setTimeout(() => {
-              router.push("/student/student-dashboard/");
-            }, 3000);
+          } else {
+            // Quiz not found in settings - teachers might still access it
+            setQuizVisible(true);
+            setIsLoading(false);
           }
         } else {
-          // No quiz settings found
-          setAccessMessage("Unable to load quiz settings. Please try again later.");
+          // No quiz settings found - allow teacher access anyway
+          setQuizVisible(true);
           setIsLoading(false);
-          setTimeout(() => {
-            router.push("/student/student-dashboard/");
-          }, 3000);
         }
       } else {
-        // No course data found
-        setAccessMessage("Course data not found. Please log in again.");
+        // No course data found - still allow teacher access
+        // Teachers might be taking the quiz for preview/training purposes
+        setQuizVisible(true);
         setIsLoading(false);
-        setTimeout(() => {
-          router.push("/student/student-dashboard/");
-        }, 3000);
       }
     } catch (error) {
       console.error("Error parsing data from sessionStorage:", error);
-      setAccessMessage("An error occurred while loading the quiz. Please try again.");
+      // For teachers, you might want to allow access even if there's an error
+      setQuizVisible(true);
       setIsLoading(false);
-      setTimeout(() => {
-        router.push("/student/student-dashboard/");
-      }, 3000);
     }
   }, [router]);
 
   const handleQuizComplete = async (results) => {
-    try {
-      const payload = {
-        studentData: studentData,
-        quizData: results,
-      };
-     
-      await submitStudentQuiz(payload);
-    } catch (error) {
-      console.error("Error saving pretest results:", error);
-    }
-    setTimeout(() => {
-      router.push("/student/student-dashboard/");
-    }, 7000);
-  };
+  try {
+    const payload = {
+      teacherData: teacherData,
+      quizData: results,
+    };
+   
+    await submitTeacherQuiz(payload);
+  } catch (error) {
+    console.error("Error saving quiz results:", error);
+  }
+  // Remove the setTimeout redirect
+};
 
   // Show loading state
   if (isLoading) {
@@ -155,13 +131,13 @@ const [quizVisible, setQuizVisible] = useState(false);
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </div>
-          <p className="text-gray-300">Checking quiz availability...</p>
+          <p className="text-gray-300">Loading quiz...</p>
         </div>
       </div>
     );
   }
 
-  // Show access denied message
+  // Show access denied message (if needed for teachers)
   if (!quizVisible && accessMessage) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -173,12 +149,13 @@ const [quizVisible, setQuizVisible] = useState(false);
           </div>
           <h2 className="text-xl font-bold text-white mb-3">Quiz Not Available</h2>
           <p className="text-gray-300 mb-4">{accessMessage}</p>
-          <p className="text-gray-400 text-sm">Redirecting to dashboard...</p>
+          <p className="text-gray-400 text-sm">Redirecting to training dashboard...</p>
         </div>
       </div>
     );
   }
 
+  // Only show quiz content if visibility check passed and not yet started
   if (!quizStarted && quizVisible) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
@@ -255,7 +232,7 @@ const [quizVisible, setQuizVisible] = useState(false);
           {/* Start Button */}
           <button
             onClick={startQuiz}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
@@ -302,10 +279,10 @@ const [quizVisible, setQuizVisible] = useState(false);
                 <div className="space-y-3">
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/question1.png", "Combining Solids Example 1")}
+                    onClick={() => handleImageClick("/quiz_images/combining_solids/combineSolids_q1.png", "Combining Solids Example 1")}
                   >
                     <img
-                      src="/quiz_images/combining_solids/question1.png"
+                      src="/quiz_images/combining_solids/combineSolids_q1.png"
                       alt="Combining Solids Example 1"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
@@ -348,12 +325,11 @@ const [quizVisible, setQuizVisible] = useState(false);
                   </button>
                 </div>
 
-                
-
                 {/* Ready Message */}
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mt-6">
                   <p className="text-gray-200 text-center leading-relaxed">
-                    When you are ready, please close this window and click "Start Quiz" to begin. </p>
+                    When you are ready, please close this window and click "Start Quiz" to begin.
+                  </p>
                 </div>
               </div>
 
@@ -401,11 +377,17 @@ const [quizVisible, setQuizVisible] = useState(false);
     );
   }
 
-  return (
-    <StudentResponsiveQuiz
-      studentData={studentData}
-      quizData={quizData}
-      onQuizComplete={handleQuizComplete}
-    />
-  );
+  // Show quiz component if started and visible
+  if (quizStarted && quizVisible) {
+    return (
+      <TeacherResponsiveQuiz
+        teacherData={teacherData}
+        quizData={quizData}
+        onQuizComplete={handleQuizComplete}
+      />
+    );
+  }
+
+  // Fallback (should not reach here)
+  return null;
 }

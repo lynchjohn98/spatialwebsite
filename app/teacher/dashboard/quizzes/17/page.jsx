@@ -130,20 +130,18 @@ export default function PSVTRPreTest() {
   }, [router]);
 
   const handleQuizComplete = async (results) => {
-    try {
-      const payload = {
-        studentData: studentData,
-        quizData: results,
-      };
-     
-      await submitStudentPrePostQuiz(payload);
-    } catch (error) {
-      console.error("Error saving pretest results:", error);
-    }
-    setTimeout(() => {
-      router.push("/student/student-dashboard/");
-    }, 7000);
-  };
+  try {
+    const payload = {
+      teacherData: teacherData,
+      quizData: results,
+    };
+   
+    await submitTeacherQuiz(payload);
+  } catch (error) {
+    console.error("Error saving quiz results:", error);
+  }
+  // Remove the setTimeout redirect
+};
 
   // Show loading state
   if (isLoading) {

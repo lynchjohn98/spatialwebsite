@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { quizData } from "../../../../library/quiz_data/math_instrument_pretest";
+import { quizData } from  "../../../../library/quiz_data/math_instrument_pre";
 import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
 import { submitTeacherPrePostQuiz } from "../../../../library/services/teacher_services/teacher_quiz";
 
@@ -140,21 +140,19 @@ export default function MathInstrumentPreTest() {
     }
   }, [router]);
 
-  const handleQuizComplete = async (results) => {
-    try {
-      const payload = {
-        teacherData: teacherData, // Changed from studentData to teacherData
-        quizData: results,
-      };
-     
-      await submitTeacherPrePostQuiz(payload);
-    } catch (error) {
-      console.error("Error saving pretest results:", error);
-    }
-    setTimeout(() => {
-      router.push("/teacher/dashboard/");
-    }, 7000);
-  };
+const handleQuizComplete = async (results) => {
+  try {
+    const payload = {
+      teacherData: teacherData,
+      quizData: results,
+    };
+   
+    await submitTeacherQuiz(payload);
+  } catch (error) {
+    console.error("Error saving quiz results:", error);
+  }
+  // Remove the setTimeout redirect
+};
 
   // Show loading state
   if (isLoading) {

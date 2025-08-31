@@ -139,17 +139,20 @@ export default function Modules() {
   const calculateModuleProgress = (moduleProgress) => {
     if (!moduleProgress) return 0;
 
+    // Updated components list - REMOVED introduction_video
     const components = [
       "quiz",
       "software",
       "workbook",
       "mini_lecture",
       "getting_started",
-      "introduction_video",
+      // "introduction_video" - removed from progress calculation
     ];
+    
     const completed = components.filter(
       (comp) => moduleProgress[comp] === true
     ).length;
+    
     return Math.round((completed / components.length) * 100);
   };
 
@@ -172,14 +175,16 @@ export default function Modules() {
       };
     }
 
+    // Updated components list - REMOVED introduction_video
     const components = [
       "quiz",
       "software",
       "workbook",
       "mini_lecture",
       "getting_started",
-      "introduction_video",
+      // "introduction_video" - removed from status calculation
     ];
+    
     const completedCount = components.filter(
       (comp) => moduleProgress[comp] === true
     ).length;
@@ -420,6 +425,24 @@ export default function Modules() {
                         />
                       </div>
                     </div>
+
+                    {/* Component breakdown - Optional, shows what's completed */}
+                    {moduleProgress && (
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                        {["quiz", "software", "workbook", "mini_lecture", "getting_started"].map((comp) => (
+                          <span
+                            key={comp}
+                            className={`px-2 py-1 rounded ${
+                              moduleProgress[comp]
+                                ? "bg-green-600/20 text-green-400"
+                                : "bg-gray-700 text-gray-500"
+                            }`}
+                          >
+                            {comp.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               });

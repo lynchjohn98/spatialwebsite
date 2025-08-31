@@ -470,9 +470,6 @@ export async function retrieveTeacherModulePage(teacherId, courseId) {
     };
   }
 }
-
-
-
 export async function retrieveTeacherQuizPage(teacherId, courseId) {
   try {
     console.log("Running function", { teacherId, courseId });
@@ -480,7 +477,8 @@ export async function retrieveTeacherQuizPage(teacherId, courseId) {
     
     const payload = {
       teacher_quiz_progress: {},
-      quiz_settings: {}
+      quiz_settings: {},
+      quiz_grades: {}
     };
     
     // Fetch module settings
@@ -507,41 +505,46 @@ export async function retrieveTeacherQuizPage(teacherId, courseId) {
       payload.quiz_settings = quizSettings || {};
     }
 
-    // Fetch teacher progress - Note: Check your actual table name
-    // Based on your data structure, it should be 'teachers_progress' not 'teacher_module_progress'
-    const { data: progressData, error: progressError } = await supabase
-      .from('teachers_progress')  // Fixed table name
-      .select('quiz_progress')  // Select specific field instead of *
+    // Fetch all quiz grades for this teacher
+    const { data: quizGradesRows, error: quizGradesError } = await supabase
+      .from('teachers_grades')
+      .select('quiz_id, score, time_submitted, time_taken')
       .eq('teacher_id', teacherId)
-      .single();  // Use single() since one teacher has one progress record
+      .order('time_submitted', { ascending: false });
 
-    if (progressError) {
-      console.error("Error fetching teacher module progress:", progressError);
-      // Don't throw, just use empty object
-      payload.teacher_quiz_progress = {};
-    } else {
-      // Parse module_progress if it's a JSON string
-      const moduleProgress = progressData?.quiz_progress;
-      if (typeof moduleProgress === 'string') {
-        try {
-          payload.teacher_quiz_progress = JSON.parse(moduleProgress);
-        } catch (parseError) {
-          console.error("Error parsing module progress:", parseError);
-          payload.teacher_quiz_progress = {};
+    if (quizGradesError) {
+      console.error("Error fetching quiz grades:", quizGradesError);
+      payload.quiz_grades = {};
+    } else if (quizGradesRows && quizGradesRows.length > 0) {
+      // Group grades by quiz_id
+      const gradesByQuiz = {};
+      
+      quizGradesRows.forEach(row => {
+        if (!gradesByQuiz[row.quiz_id]) {
+          gradesByQuiz[row.quiz_id] = [];
         }
-      } else {
-        payload.teacher_quiz_progress = moduleProgress || {};
-      }
+        gradesByQuiz[row.quiz_id].push({
+          score: row.score || 0,
+          time_submitted: row.time_submitted,
+          time_taken: row.time_taken
+        });
+      });
+      
+      payload.quiz_grades = gradesByQuiz;
+    } else {
+      payload.quiz_grades = {};
     }
+
+    console.log("Processed quiz grades:", Object.keys(payload.quiz_grades).length, "quizzes");
 
     return payload;
     
   } catch (error) {
-    console.error("Error in retrieveTeacherModulePage:", error);
-    // Return empty payload on error
+    console.error("Error in retrieveTeacherQuizPage:", error);
     return {
       teacher_quiz_progress: {},
-      quiz_settings: {}
+      quiz_settings: {},
+      quiz_grades: {}
     };
   }
 }
