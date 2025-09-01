@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
+import TeacherTrainingPageResponsiveQuiz from "../../../../../components/teacher_components/TeacherTrainingPageResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/psvtr_pre_quiz";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
@@ -253,7 +253,7 @@ export default function PretestPage() {
     );
   }
   return (
-    <TeacherResponsiveQuiz
+    <TeacherTrainingPageResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}

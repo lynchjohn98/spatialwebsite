@@ -256,7 +256,7 @@ export default function PosttestPage() {
     );
   }
   return (
-    <TeacherResponsiveQuiz
+    <TeacherTrainingPageResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}
