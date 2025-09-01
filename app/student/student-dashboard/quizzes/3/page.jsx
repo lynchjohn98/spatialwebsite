@@ -77,7 +77,7 @@ export default function MathematicsPreTest() {
         // Check if quiz settings exist and find the "Math Instrument Pre-Test" quiz
         if (courseData?.settings?.quiz_settings) {
           const mathInstrumentPreTestQuiz = courseData.settings.quiz_settings.find(
-            quiz => quiz.name === "Math Instrument Pre-Test"
+            quiz => quiz.name === "Math Instrument Pre-Test  "
           );
 
           if (mathInstrumentPreTestQuiz) {

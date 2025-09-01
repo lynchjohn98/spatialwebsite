@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import { fetchAllStudentCourseProgress } from "../../../library/services/teacher_services/student_progress";
 import { ChevronDown, ChevronRight, Check, X, Clock, Award, Download, RefreshCw, Eye, BookOpen, FileText, Monitor } from "lucide-react";
-
 // Helper function to parse and organize data
 const parseAndOrganizeData = (responseData) => {
   // Parse settings data
@@ -12,6 +11,20 @@ const parseAndOrganizeData = (responseData) => {
   const moduleSettings = JSON.parse(settings.module_settings || "[]");
   const quizSettings = JSON.parse(settings.quiz_settings || "[]");
   const studentSettings = JSON.parse(settings.student_settings || "[]");
+
+  // NEW: Create a mapping of quiz names to their total scores from the quizzes table
+  const quizScoreMap = {};
+  if (responseData.quiz_information_data && Array.isArray(responseData.quiz_information_data)) {
+    responseData.quiz_information_data.forEach(quiz => {
+      // Map by both name and ID for flexible lookup
+      if (quiz.name) {
+        quizScoreMap[quiz.name] = quiz.total_score;
+      }
+      if (quiz.id) {
+        quizScoreMap[quiz.id] = quiz.total_score;
+      }
+    });
+  }
 
   // Create module lookup by name for progress mapping
   const modulesByName = {};
@@ -25,7 +38,7 @@ const parseAndOrganizeData = (responseData) => {
     };
   });
 
-  // Organize quiz settings by type
+  // Organize quiz settings by type and merge with total_score from quizzes table
   const organizedQuizzes = {
     module: [],
     survey: [],
@@ -34,7 +47,13 @@ const parseAndOrganizeData = (responseData) => {
 
   quizSettings.forEach(quiz => {
     if (quiz.visibility === 'Yes') {
-      organizedQuizzes[quiz.type]?.push(quiz);
+      // UPDATED: Merge the total_score from the quizzes table
+      const enhancedQuiz = {
+        ...quiz,
+        // Priority: quizzes table score > existing total_score > default 0
+        total_score: quizScoreMap[quiz.name] || quizScoreMap[quiz.id] || quiz.total_score || 0
+      };
+      organizedQuizzes[quiz.type]?.push(enhancedQuiz);
     }
   });
 
@@ -108,7 +127,8 @@ const parseAndOrganizeData = (responseData) => {
     modules: moduleSettings.sort((a, b) => a.module_rank - b.module_rank),
     quizzes: organizedQuizzes,
     visibleModules: moduleSettings.filter(m => m.visibility === 'Yes').sort((a, b) => a.module_rank - b.module_rank),
-    allGrades: responseData.students_grade_data || [] // Add all grades for easy access
+    allGrades: responseData.students_grade_data || [],
+    quizScoreMap: quizScoreMap // NEW: Add this for reference if needed elsewhere
   };
 };
 

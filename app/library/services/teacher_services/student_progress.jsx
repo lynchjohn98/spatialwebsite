@@ -8,7 +8,7 @@ export async function fetchAllStudentCourseProgress(payload) {
     
     try {
         // Execute all queries in parallel for better performance
-        const [studentsResult, progressResult, gradesResult, courseSettingsResult] = await Promise.all([
+        const [studentsResult, progressResult, gradesResult, courseSettingsResult, quizInformationResult] = await Promise.all([
             supabase
                 .from("students")
                 .select("*")
@@ -27,7 +27,12 @@ export async function fetchAllStudentCourseProgress(payload) {
             supabase
                 .from("courses_settings")
                 .select("*")
-                .eq("course_id", payload.courseId)
+                .eq("course_id", payload.courseId),
+
+            supabase
+                .from("quizzes")
+                .select("*")
+                
         ]);
         
         // Check for errors
@@ -36,6 +41,7 @@ export async function fetchAllStudentCourseProgress(payload) {
         if (progressResult.error) errors.push(`Progress: ${progressResult.error.message}`);
         if (gradesResult.error) errors.push(`Grades: ${gradesResult.error.message}`);
         if (courseSettingsResult.error) errors.push(`Course Settings: ${courseSettingsResult.error.message}`);
+        if (quizInformationResult.error) errors.push(`Quiz Information: ${quizInformationResult.error.message}`);
 
         // Build return payload
         const returnPayload = {
@@ -43,11 +49,13 @@ export async function fetchAllStudentCourseProgress(payload) {
             students_progress_data: progressResult.data || [],
             students_grade_data: gradesResult.data || [],
             course_settings_data: courseSettingsResult.data || [],
+            quiz_information_data: quizInformationResult.data || {},
             // Optional: Add some useful computed properties
             total_students: studentsResult.data?.length || 0,
             total_progress_records: progressResult.data?.length || 0,
             total_grade_records: gradesResult.data?.length || 0,
-            total_course_settings_records: courseSettingsResult.data?.length || 0
+            total_course_settings_records: courseSettingsResult.data?.length || 0,
+            total_quiz_information_records: quizInformationResult.data?.length || 0
         };
         
         if (errors.length > 0) {
@@ -73,7 +81,9 @@ export async function fetchAllStudentCourseProgress(payload) {
             data: {
                 students_demographic_data: null,
                 students_progress_data: null,
-                students_grade_data: null
+                students_grade_data: null,
+                course_settings_data: null,
+                quiz_information_data: null
             }
         };
     }
