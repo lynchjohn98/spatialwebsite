@@ -1,9 +1,10 @@
 "use client";
 import { retrieveTeacherCourse } from "../../library/services/teacher_actions";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function TeacherJoin() {
+// Create a separate component that uses useSearchParams
+function TeacherJoinForm() {
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +77,90 @@ export default function TeacherJoin() {
   };
 
   return (
+    <div className="flex flex-col items-center justify-center flex-1 w-full px-4 py-8">
+      <h1 className="text-3xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+        Join Course as Teacher
+      </h1>
+      <div className="w-full max-w-md">
+        <div className="bg-gray-800/50 border border-gray-600 p-6 rounded-lg shadow-lg mb-8">
+          <p className="text-gray-300 text-center mb-4">
+            Enter the course join code to access the teacher dashboard of the
+            course.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <span className="text-gray-400 text-sm">
+              Need your course codes?
+            </span>
+            <button
+              onClick={() => router.push("/teacher/courses")}
+              className="text-blue-300 hover:text-blue-200 underline transition-colors font-medium"
+            >
+              View Your Courses →
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {error && (
+            <div className="bg-red-800 text-white p-3 rounded-md">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-lg font-medium mb-2">
+              Course Join Code
+            </label>
+            <input
+              type="text"
+              value={joinCode}
+              onChange={handleJoinCodeChange}
+              className="w-full px-4 py-3 rounded bg-blue-200 text-black text-center font-mono text-lg tracking-wider"
+              placeholder="XXXX-XXXX"
+              autoComplete="off"
+            />
+            <p className="text-sm text-gray-400 mt-1">
+              Format: XXXX-XXXX (letters and numbers only)
+            </p>
+          </div>
+
+          <div className="pt-4">
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className={`w-full py-3 rounded-md font-medium transition-colors
+                ${
+                  isLoading
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                }`}
+            >
+              {isLoading ? "Connecting..." : "Access Course"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function LoadingFallback() {
+  return (
+    <div className="flex flex-col items-center justify-center flex-1 w-full px-4 py-8">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <p className="text-gray-400">Loading...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function TeacherJoin() {
+  const router = useRouter();
+
+  return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white">
       {/* Sticky Header with Back Button */}
       <div className="bg-gray-800/50 border-b border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
@@ -105,70 +190,11 @@ export default function TeacherJoin() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-center flex-1 w-full px-4 py-8">
-        <h1 className="text-3xl sm:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-          Join Course as Teacher
-        </h1>
-        <div className="w-full max-w-md">
-          <div className="bg-gray-800/50 border border-gray-600 p-6 rounded-lg shadow-lg mb-8">
-            <p className="text-gray-300 text-center mb-4">
-              Enter the course join code to access the teacher dashboard of the
-              course.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <span className="text-gray-400 text-sm">
-                Need your course codes?
-              </span>
-              <button
-                onClick={() => router.push("/teacher/courses")}
-                className="text-blue-300 hover:text-blue-200 underline transition-colors font-medium"
-              >
-                View Your Courses →
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {error && (
-              <div className="bg-red-800 text-white p-3 rounded-md">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-lg font-medium mb-2">
-                Course Join Code
-              </label>
-              <input
-                type="text"
-                value={joinCode}
-                onChange={handleJoinCodeChange}
-                className="w-full px-4 py-3 rounded bg-blue-200 text-black text-center font-mono text-lg tracking-wider"
-                placeholder="XXXX-XXXX"
-                autoComplete="off"
-              />
-              <p className="text-sm text-gray-400 mt-1">
-                Format: XXXX-XXXX (letters and numbers only)
-              </p>
-            </div>
-
-            <div className="pt-4">
-              <button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className={`w-full py-3 rounded-md font-medium transition-colors
-                  ${
-                    isLoading
-                      ? "bg-gray-500 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700 text-white"
-                  }`}
-              >
-                {isLoading ? "Connecting..." : "Access Course"}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      
+      {/* Wrap the form component in Suspense */}
+      <Suspense fallback={<LoadingFallback />}>
+        <TeacherJoinForm />
+      </Suspense>
     </div>
   );
 }
