@@ -8,11 +8,11 @@ export const quizData = {
     {
       id: "q1",
       type: "text-input",
-      text: "Below is a student’s mathematical model of a farmhouse roof with measurements added. The attic floor, ABCD in the model, is a square. The beams that support the roof are the edges of a block (rectangular prism) EFGHKLMN. E is the middle of AT, F is the middle of BT, G is the middle of CT and H is the middle of DT. All the edges of the pyramid in the model have length 12m. Calculate the area of the attic floor ABCD.",
+      text: "Below is a student’s mathematical model of a farmhouse roof with measurements added. The attic floor, ABCD in the model, is a square. The beams that support the roof are the edges of a block (rectangular prism) EFGHKLMN. E is the middle of AT, F is the middle of BT, G is the middle of CT and H is the middle of DT. All the edges of the pyramid in the model have length 12m. Calculate the area of the attic floor ABCD and answer only using digits (e.g. 10, 20), do not include the measurement unit.",
       imageUrl: "/quiz_images/math_instrument/question2.png",
       points: 1,
-      correctAnswer: "37",
-      alternateAnswers: ["3 7", "thiry-seven", "Thirty Seven", "37"],
+      correctAnswer: "144",
+      alternateAnswers: ["1 4 4", "One Fourty Four", "144"],
     },
     {
       id: "q2",
@@ -20,8 +20,8 @@ export const quizData = {
       text: "Below is a student’s mathematical model of a farmhouse roof with measurements added. The attic floor, ABCD in the model, is a square. The beams that support the roof are the edges of a block (rectangular prism) EFGHKLMN. E is the middle of AT, F is the middle of BT, G is the middle of CT and H is the middle of DT. All the edges of the pyramid in the model have length 12m. Calculate the length of EF, one of the horizontal edges of the block.",
       imageUrl: "/quiz_images/math_instrument/question2.png",
       points: 1,
-      correctAnswer: "37",
-      alternateAnswers: ["3 7", "thiry-seven", "Thirty Seven", "37"],
+      correctAnswer: "6",
+      alternateAnswers: ["6", "six", " 6 ", "SIX", "Six"],
     },
     {
       id: "q3",
@@ -61,8 +61,8 @@ export const quizData = {
       imageUrl: "/quiz_images/math_instrument/question5.png",
       points: 1,
       options: [
-        { id: "A", text: "0.5 km", correct: true },
-        { id: "B", text: "1.5 km" },
+        { id: "A", text: "0.5 km"},
+        { id: "B", text: "1.5 km", correct: true  },
         { id: "C", text: "2.3 km" },
         { id: "D", text: "2.6 km" },
       ],
@@ -75,8 +75,8 @@ export const quizData = {
       imageUrl: "/quiz_images/math_instrument/question6.png",
       points: 1,
       options: [
-        { id: "A", text: "Track A", correct: true },
-        { id: "B", text: "Track B" },
+        { id: "A", text: "Track A"},
+        { id: "B", text: "Track B" , correct: true },
         { id: "C", text: "Track C" },
         { id: "D", text: "Track D" },
       ],
@@ -91,7 +91,7 @@ export const quizData = {
           id: "statement1",
           number: "1",
           label: "A person living in the largest apartment will pay more money for each square meter of his apartment than the person living in the smallest apartment.",
-          correctAnswer: "Correct",
+          correctAnswer: "Incorrect",
         },
         {
           id: "statement2",
@@ -103,7 +103,7 @@ export const quizData = {
           id: "statement3",
           number: "3",
           label: "If we know the price of the building and how much each owner will pay, then the total area of all apartments can be calculated.",
-          correctAnswer: "Correct",
+          correctAnswer: "Incorrect",
         },
         {
           id: "statement4",
@@ -122,21 +122,21 @@ export const quizData = {
     {
       id: "q7",
       type: "text-input",
-      text: "Susan likes to build blocks from small cubes like the one shown in the following diagram. Susan has a lot of small cubes like this one. She uses glue to join cubes together to make other blocks. First, Susan glues eight of the cubes together to make the block shown in Diagram A. Then Susan makes the solid blocks shown in Diagram B and Diagram C below. Susan realizes that she used more small cubes than she really needed to make a block like the one shown in Diagram C. She realizes that she could have glued small cubes together to look like Diagram C, but the block could have been hollow on the inside. What is the minimum number of cubes she needs to make a block that looks like the one shown in Diagram C, but is hollow?",
+      text: "Susan likes to build blocks from small cubes like the one shown in the following diagram. Susan has a lot of small cubes like this one. She uses glue to join cubes together to make other blocks. First, Susan glues eight of the cubes together to make the block shown in Diagram A. Then Susan makes the solid blocks shown in Diagram B and Diagram C below. Susan realizes that she used more small cubes than she really needed to make a block like the one shown in Diagram C. She realizes that she could have glued small cubes together to look like Diagram C, but the block could have been hollow on the inside. What is the minimum number of cubes she needs to make a block that looks like the one shown in Diagram C, but is hollow? Please enter only numbers.",
       imageUrl: "/quiz_images/math_instrument/question7.png",
       points: 1,
-      correctAnswer: "37",
-      alternateAnswers: ["3 7", "thiry-seven", "Thirty Seven", "37"],
+      correctAnswer: "26",
+      alternateAnswers: ["2 6", "26", "TwentySix", "Twenty Six", "Twenty-Six"],
     },
 
      {
       id: "q8",
       type: "text-input",
-      text: "Now Susan wants to make a block that looks like a solid block that is 6 small cubes long, 5 small cubes wide, and 4 small cubes high. She wants to use the smallest number of cubes possible, by leaving the largest possible hollow space inside the block. What is the minimum number of cubes she needs to make this block?",
+      text: "Now Susan wants to make a block that looks like a solid block that is 6 small cubes long, 5 small cubes wide, and 4 small cubes high. She wants to use the smallest number of cubes possible, by leaving the largest possible hollow space inside the block. What is the minimum number of cubes she needs to make this block? Please enter only numbers.",
       imageUrl: "/quiz_images/math_instrument/question7.png",
       points: 1,
       correctAnswer: "37",
-      alternateAnswers: ["3 7", "thiry-seven", "Thirty Seven", "37"],
+      alternateAnswers: ["96", "Ninety Six", "Ninety-Six", " 9 6 ", "ninetysix"],
     },
 
   ],
