@@ -147,7 +147,7 @@ const handleQuizComplete = async (results) => {
       quizData: results,
     };
    
-    await submitTeacherQuiz(payload);
+    await submitTeacherPrePostQuiz(payload);
   } catch (error) {
     console.error("Error saving quiz results:", error);
   }

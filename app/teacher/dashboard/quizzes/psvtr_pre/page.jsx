@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
+import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/psvtr_pre_quiz";
-import { submitStudentQuiz } from "../../../../library/services/student_services/student_actions";
+import { submitTeacherPrePostQuiz } from "../../../../library/services/teacher_services/teacher_quiz"
 
 export default function PretestPage() {
   const router = useRouter();
@@ -66,7 +66,7 @@ export default function PretestPage() {
         quizData: results,
       };
       payload.studentData.pretest_complete = true;
-      await submitStudentQuiz(payload);
+      await submitTeacherPrePostQuiz(payload);
     } catch (error) {
       console.error("Error saving pretest results:", error);
     }
@@ -267,7 +267,7 @@ export default function PretestPage() {
     );
   }
   return (
-    <ResponsiveQuiz
+    <TeacherResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}

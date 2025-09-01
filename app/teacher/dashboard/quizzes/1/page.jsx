@@ -147,7 +147,7 @@ export default function PSVTRPreTest() {
       quizData: results,
     };
    
-    await submitTeacherQuiz(payload);
+    await submitTeacherPrePostQuiz(payload);
   } catch (error) {
     console.error("Error saving quiz results:", error);
   }
