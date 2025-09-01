@@ -354,7 +354,7 @@ export default function TeacherModuleQuiz() {
   }
 
   return (
-    <TeacherResponsiveQuiz
+    <TeacherTrainingPageResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}

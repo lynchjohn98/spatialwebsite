@@ -1,14 +1,22 @@
 "use client";
 import { retrieveTeacherCourse } from "../../library/services/teacher_actions";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function TeacherJoin() {
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Handle pre-filled code from URL parameter
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (code) {
+      setJoinCode(code.toUpperCase());
+    }
+  }, [searchParams]);
 
   const handleJoinCodeChange = (e) => {
     let value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
