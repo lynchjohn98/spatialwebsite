@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
+import TeacherTrainingPageResponsiveQuiz from "../../../../../components/teacher_components/TeacherTrainingPageResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/rotation_two_axis_quiz";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 

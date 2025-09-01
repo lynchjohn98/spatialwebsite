@@ -1,8 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/flat_patterns_quiz";
+import TeacherTrainingPageResponsiveQuiz from "../../../../../components/teacher_components/TeacherTrainingPageResponsiveQuiz";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
 export default function TeacherModulePage() {
@@ -354,7 +354,7 @@ export default function TeacherModulePage() {
   }
 
   return (
-    <TeacherResponsiveQuiz
+    <TeacherTrainingPageResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}
