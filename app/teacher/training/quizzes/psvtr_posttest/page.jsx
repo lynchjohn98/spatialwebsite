@@ -2,7 +2,7 @@
 import { quizData } from "../../../../library/quiz_data/psvtr_post_quiz";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
+import TeacherTrainingPageResponsiveQuiz from "../../../../../components/teacher_components/TeacherTrainingPageResponsiveQuiz";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
 export default function PosttestPage() {

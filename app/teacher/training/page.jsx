@@ -23,6 +23,7 @@ export default function TeacherTraining() {
           return;
         }
         const result = await getTeacherData(storedData);
+        console.log("RESULT:", result);
         if (result.success && result.data) {
           const freshData = result.data;
           setTeacherData(freshData);
