@@ -15,7 +15,7 @@ export default function Modules() {
   const [isLoading, setIsLoading] = useState(true);
   const [moduleData, setModuleData] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false); // Track if initial load is done
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Separate function to fetch progress data
   const setStudentProgressSession = async (student) => {
@@ -139,14 +139,12 @@ export default function Modules() {
   const calculateModuleProgress = (moduleProgress) => {
     if (!moduleProgress) return 0;
 
-    // Updated components list - REMOVED introduction_video
     const components = [
       "quiz",
       "software",
       "workbook",
       "mini_lecture",
       "getting_started",
-      // "introduction_video" - removed from progress calculation
     ];
     
     const completed = components.filter(
@@ -175,14 +173,12 @@ export default function Modules() {
       };
     }
 
-    // Updated components list - REMOVED introduction_video
     const components = [
       "quiz",
       "software",
       "workbook",
       "mini_lecture",
       "getting_started",
-      // "introduction_video" - removed from status calculation
     ];
     
     const completedCount = components.filter(
@@ -198,16 +194,17 @@ export default function Modules() {
         borderColor: "border-green-600",
         statusColor: "text-green-400",
         bgColor: "bg-gray-800",
-        hoverColor: "hover:bg-green-900/20",
+        hoverColor: "hover:shadow-lg hover:shadow-green-600/20",
+        statusBg: "bg-green-600",
         icon: (
           <svg
-            className="w-6 h-6 text-green-400 flex-shrink-0 ml-2"
+            className="w-3 h-3"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
             <path
               fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
               clipRule="evenodd"
             />
           </svg>
@@ -219,20 +216,9 @@ export default function Modules() {
         borderColor: "border-yellow-600",
         statusColor: "text-yellow-400",
         bgColor: "bg-gray-800",
-        hoverColor: "hover:bg-yellow-900/20",
-        icon: (
-          <svg
-            className="w-6 h-6 text-yellow-400 flex-shrink-0 ml-2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-              clipRule="evenodd"
-            />
-          </svg>
-        ),
+        hoverColor: "hover:shadow-lg hover:shadow-yellow-600/20",
+        statusBg: "bg-yellow-600",
+        icon: null,
       };
     } else {
       return {
@@ -241,9 +227,45 @@ export default function Modules() {
         statusColor: "text-gray-400",
         bgColor: "bg-gray-800",
         hoverColor: "hover:bg-gray-700",
+        statusBg: "bg-gray-600",
         icon: null,
       };
     }
+  };
+
+  // Get overall stats
+  const getOverallStats = () => {
+    let visibleModules = [];
+    if (Array.isArray(moduleData) && moduleData.length > 0) {
+      visibleModules = moduleData.filter((module) => module?.visibility === "Yes");
+    } else if (moduleData && typeof moduleData === "object" && Object.keys(moduleData).length > 0) {
+      visibleModules = Object.entries(moduleData)
+        .map(([id, module]) => ({ ...module, id: parseInt(id) }))
+        .filter((module) => module?.visibility === "Yes");
+    }
+
+    const stats = {
+      total: visibleModules.length,
+      completed: 0,
+      inProgress: 0,
+      notStarted: 0
+    };
+
+    visibleModules.forEach((module) => {
+      const extractTitle = (fullName) => {
+        const match = fullName.match(/Module\s+\d+:\s*(.+)/);
+        return match ? match[1] : fullName;
+      };
+      const moduleTitle = extractTitle(module.name);
+      const moduleProgress = progressData[moduleTitle];
+      const status = getModuleStatus(moduleProgress);
+      
+      if (status.status === "Completed") stats.completed++;
+      else if (status.status === "In Progress") stats.inProgress++;
+      else stats.notStarted++;
+    });
+
+    return stats;
   };
 
   if (isLoading || !courseData || !studentData) {
@@ -261,6 +283,8 @@ export default function Modules() {
     router.push(`/student/student-dashboard/modules/${moduleId}`);
   };
 
+  const stats = getOverallStats();
+
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       <StudentSidebar
@@ -270,19 +294,25 @@ export default function Modules() {
         studentData={studentData}
       />
       <main
-        className={`flex-1 p-6 transition-all duration-300 ${
-          isSidebarOpen ? "lg:ml-1/4" : ""
+        className={`flex-1 p-4 sm:p-6 transition-all duration-300 ${
+          isSidebarOpen ? "lg:ml-64" : "lg:ml-0"
         }`}
       >
-        <div className="lg:hidden mb-6 pt-8"></div>
-        <div className="w-full max-w-4xl mx-auto">
+        {/* Spacer for mobile menu button */}
+        <div className="lg:hidden mb-6 pt-12"></div>
+        <div className="w-full max-w-6xl mx-auto">
           {/* Header with title and refresh button */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold">All Modules</h1>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Course Modules</h1>
+              <p className="text-gray-400 text-sm mt-1">
+                {stats.total} modules available • {stats.completed} completed
+              </p>
+            </div>
             <button
               onClick={handleManualRefresh}
               disabled={isRefreshing}
-              className={`flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200 ${
+              className={`flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors duration-200 ${
                 isRefreshing ? "opacity-50 cursor-not-allowed" : ""
               }`}
               title="Refresh to see updated module visibility"
@@ -305,6 +335,39 @@ export default function Modules() {
               </span>
             </button>
           </div>
+
+          {/* Progress Overview Cards */}
+          {stats.total > 0 && (
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700">
+                <p className="text-2xl font-bold text-green-400">
+                  {stats.completed}
+                </p>
+                <p className="text-sm text-gray-400">Completed</p>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700">
+                <p className="text-2xl font-bold text-yellow-400">
+                  {stats.inProgress}
+                </p>
+                <p className="text-sm text-gray-400">In Progress</p>
+              </div>
+              <div className="bg-gray-800 p-4 rounded-lg text-center border border-gray-700">
+                <p className="text-2xl font-bold text-gray-400">
+                  {stats.notStarted}
+                </p>
+                <p className="text-sm text-gray-400">Not Started</p>
+              </div>
+            </div>
+          )}
+
+          {/* Info Banner */}
+          {stats.total > 0 && (
+            <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 mb-6">
+              <p className="text-sm text-blue-300">
+                📚 Complete all components in each module to master the material. Track your progress below.
+              </p>
+            </div>
+          )}
 
           {/* Success message when refreshed */}
           {isRefreshing && (
@@ -383,29 +446,27 @@ export default function Modules() {
                 return (
                   <div
                     key={module.id}
-                    className={`p-5 ${moduleStatus.bgColor} rounded-lg shadow-md ${moduleStatus.hoverColor} cursor-pointer transition-all duration-200 border-2 ${moduleStatus.borderColor}`}
+                    className={`p-6 ${moduleStatus.bgColor} rounded-lg shadow-md ${moduleStatus.hoverColor} cursor-pointer transition-all duration-200 border-2 ${moduleStatus.borderColor}`}
                     onClick={() => navigateToModule(module.id)}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className={`text-xs font-medium ${moduleStatus.statusColor}`}
-                          >
+                    {/* Module Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold">{module.name}</h3>
+                          <span className={`${moduleStatus.statusBg} text-white text-xs px-2 py-1 rounded flex items-center gap-1`}>
+                            {moduleStatus.icon}
                             {moduleStatus.status}
                           </span>
                         </div>
-                        <h3 className="text-xl font-bold">{module.name}</h3>
+                        <p className="text-gray-400 text-sm mb-3">{module.description}</p>
                       </div>
-                      {moduleStatus.icon}
                     </div>
 
-                    <p className="text-gray-300 mb-3">{module.description}</p>
-
                     {/* Progress Bar */}
-                    <div className="mt-3">
+                    <div className="mb-4">
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-gray-400">Progress</span>
+                        <span className="text-gray-400">Module Progress</span>
                         <span
                           className={
                             progressPercentage === 100
@@ -420,29 +481,62 @@ export default function Modules() {
                         <div
                           className={`h-full ${getProgressBarColor(
                             progressPercentage
-                          )} transition-all duration-500`}
+                          )} rounded-full transition-all duration-500`}
                           style={{ width: `${progressPercentage}%` }}
                         />
                       </div>
                     </div>
 
-                    {/* Component breakdown - Optional, shows what's completed */}
-                    {moduleProgress && (
-                      <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                        {["quiz", "software", "workbook", "mini_lecture", "getting_started"].map((comp) => (
-                          <span
-                            key={comp}
-                            className={`px-2 py-1 rounded ${
-                              moduleProgress[comp]
-                                ? "bg-green-600/20 text-green-400"
-                                : "bg-gray-700 text-gray-500"
-                            }`}
-                          >
-                            {comp.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {/* Component Status Grid - Enhanced styling */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                      {[
+                        { key: "getting_started", label: "Getting Started", icon: "🚀" },
+                        { key: "mini_lecture", label: "Mini Lecture", icon: "📖" },
+                        { key: "software", label: "Software", icon: "💻" },
+                        { key: "workbook", label: "Workbook", icon: "📝" },
+                        { key: "quiz", label: "Quiz", icon: "✅" }
+                      ].map((component) => (
+                        <div
+                          key={component.key}
+                          className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors ${
+                            moduleProgress?.[component.key]
+                              ? "bg-green-900/30 text-green-400 border border-green-800"
+                              : "bg-gray-700/30 text-gray-500 border border-gray-700"
+                          }`}
+                        >
+                          <span className="text-lg mb-1">{component.icon}</span>
+                          <span className="text-xs text-center">{component.label}</span>
+                          {moduleProgress?.[component.key] && (
+                            <svg className="w-3 h-3 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          moduleStatus.status === "Completed"
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : moduleStatus.status === "In Progress"
+                            ? "bg-blue-600 hover:bg-blue-700 text-white"
+                            : "bg-gray-700 hover:bg-gray-600 text-white"
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToModule(module.id);
+                        }}
+                      >
+                        {moduleStatus.status === "Completed" 
+                          ? "Review Module" 
+                          : moduleStatus.status === "In Progress"
+                          ? "Continue Learning"
+                          : "Start Module"}
+                      </button>
+                    </div>
                   </div>
                 );
               });

@@ -552,7 +552,7 @@ export default function TeacherWalkthroughPage() {
             {/* Video Component */}
             <div className="mb-6">
               <ExpandableVideo
-                videoId=""
+                videoId="https://youtu.be/tDV6CiMCrXk"
                 title="Spatial Thinking Platform Walkthrough"
                 description="Complete guide to using the teacher portal and training modules"
               />
