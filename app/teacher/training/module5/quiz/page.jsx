@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
+import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
 import { quizData } from "../../../../library/quiz_data/rotation_single_axis_quiz.js";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
@@ -354,7 +354,7 @@ export default function Module5Quiz() {
   }
 
   return (
-    <ResponsiveQuiz
+    <TeacherResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}
