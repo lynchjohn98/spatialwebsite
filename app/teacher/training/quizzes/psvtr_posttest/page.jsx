@@ -1,8 +1,8 @@
 "use client";
+import { quizData } from "../../../../library/quiz_data/psvtr_post_quiz";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import ResponsiveQuiz from "../../../../../components/quiz_questions/ResponsiveQuiz";
-import { quizData } from "../../../../library/quiz_data/psvtr_post_quiz";
+import TeacherResponsiveQuiz from "../../../../../components/teacher_components/TeacherResponsiveQuiz";
 import { submitTeacherQuiz } from "../../../../library/services/teacher_actions";
 
 export default function PosttestPage() {
@@ -256,7 +256,7 @@ export default function PosttestPage() {
     );
   }
   return (
-    <ResponsiveQuiz
+    <TeacherResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}

@@ -253,7 +253,7 @@ export default function PretestPage() {
     );
   }
   return (
-    <ResponsiveQuiz
+    <TeacherResponsiveQuiz
       teacherData={teacherData}
       quizData={quizData}
       onQuizComplete={handleQuizComplete}
