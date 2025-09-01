@@ -24,7 +24,8 @@ export default function TeacherTrainingPageResponsiveQuiz({ quizData, onQuizComp
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showIncompleteModal, setShowIncompleteModal] = useState(false);
   const router = useRouter();
-  
+  const [fullscreenPartImage, setFullscreenPartImage] = useState(null);
+
   // Use a ref to track if submission is in progress
   const isSubmittingRef = useRef(false);
   const timerRef = useRef(null);
@@ -591,137 +592,146 @@ export default function TeacherTrainingPageResponsiveQuiz({ quizData, onQuizComp
           </div>
         );
 
-      case "multiple-parts-subselect":
-        const multiplePartsAnswers = userAnswer || {};
+      
+case "multiple-parts-subselect":
+  const multiplePartsAnswers = userAnswer || {};
 
-        return (
-          <div className="space-y-4">
-            <p className="text-sm text-blue-400 mb-4">
-              Select answers for each part:
-            </p>
-            <div className="space-y-6">
-              {currentQ.parts.map((part) => (
-                <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
-                  {/* Part Header with Label */}
-                  <div className="flex items-center gap-4 mb-4">
-                    <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
-                      {part.label}
-                    </span>
-                    {part.description && (
-                      <span className="text-gray-300 text-sm">
-                        {part.description}
-                      </span>
-                    )}
-                  </div>
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-blue-400 mb-4">
+        Select answers for each part:
+      </p>
+      <div className="space-y-6">
+        {currentQ.parts.map((part) => (
+          <div key={part.id} className="bg-gray-700 p-4 rounded-lg">
+            {/* Part Header with Label */}
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-white font-semibold bg-blue-600 px-3 py-1 rounded">
+                {part.label}
+              </span>
+              {part.description && (
+                <span className="text-gray-300 text-sm">
+                  {part.description}
+                </span>
+              )}
+            </div>
 
-                  {/* Image and Sub-questions Layout */}
-                  <div className="flex flex-col lg:flex-row gap-6">
-                    {/* Image Section */}
-                    {part.imageUrl && (
-                      <div className="flex-shrink-0">
-                        <div className="bg-gray-800 p-3 rounded-lg">
-                          <img
-                            src={part.imageUrl}
-                            alt={`Part ${part.label}`}
-                            className="max-w-full h-auto max-w-xs"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Sub-questions Section */}
-                    <div className="flex-grow space-y-3">
-                      {part.subQuestions?.map((subQuestion) => (
-                        <div
-                          key={subQuestion.id}
-                          className="flex items-center gap-3 flex-wrap"
-                        >
-                          <label className="text-sm font-medium text-gray-300 min-w-[80px]">
-                            {subQuestion.label}
-                          </label>
-
-                          <select
-                            value={
-                              multiplePartsAnswers[part.id]?.[subQuestion.id] ||
-                              ""
-                            }
-                            onChange={(e) => {
-                              const newAnswers = {
-                                ...multiplePartsAnswers,
-                                [part.id]: {
-                                  ...multiplePartsAnswers[part.id],
-                                  [subQuestion.id]: e.target.value,
-                                },
-                              };
-                              handleAnswerSelect(
-                                currentQ.id,
-                                newAnswers,
-                                currentQ.type
-                              );
-                            }}
-                            className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer min-w-[120px]"
-                          >
-                            <option value="" className="text-gray-400">
-                              [ Select ]
-                            </option>
-                            {(
-                              subQuestion.options ||
-                              currentQ.globalOptions ||
-                              currentQ.options
-                            )?.map((option) => (
-                              <option
-                                key={option.id}
-                                value={option.id}
-                                className="text-white"
-                              >
-                                {option.text}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )) || (
-                        // Fallback for simple single dropdown per part (backward compatibility)
-                        <div className="flex items-center gap-3">
-                          <select
-                            value={multiplePartsAnswers[part.id] || ""}
-                            onChange={(e) => {
-                              const newAnswers = {
-                                ...multiplePartsAnswers,
-                                [part.id]: e.target.value,
-                              };
-                              handleAnswerSelect(
-                                currentQ.id,
-                                newAnswers,
-                                currentQ.type
-                              );
-                            }}
-                            className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
-                          >
-                            <option value="" className="text-gray-400">
-                              Select an option...
-                            </option>
-                            {currentQ.options.map((option) => (
-                              <option
-                                key={option.id}
-                                value={option.id}
-                                className="text-white"
-                              >
-                                {option.text}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </div>
+            {/* Image and Sub-questions Layout */}
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Image Section - UPDATED WITH FULLSCREEN */}
+              {part.imageUrl && (
+                <div className="flex-shrink-0">
+                  <div className="bg-gray-800 p-3 rounded-lg relative">
+                    <img
+                      src={part.imageUrl}
+                      alt={`Part ${part.label}`}
+                      className="max-w-full h-auto max-w-xs cursor-pointer hover:scale-105 transition-transform"
+                      onClick={() => setFullscreenPartImage(part.imageUrl)}
+                    />
+                    <button
+                      onClick={() => setFullscreenPartImage(part.imageUrl)}
+                      className="absolute top-4 right-4 p-1.5 bg-gray-900 bg-opacity-75 text-white rounded-lg hover:bg-opacity-100"
+                    >
+                      <Maximize2 className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="text-xs text-gray-400 mt-2">
-              All parts must be answered to complete this question
+              )}
+
+              {/* Sub-questions Section */}
+              <div className="flex-grow space-y-3">
+                {part.subQuestions?.map((subQuestion) => (
+                  <div
+                    key={subQuestion.id}
+                    className="flex items-center gap-3 flex-wrap"
+                  >
+                    <label className="text-sm font-medium text-gray-300 min-w-[80px]">
+                      {subQuestion.label}
+                    </label>
+
+                    <select
+                      value={
+                        multiplePartsAnswers[part.id]?.[subQuestion.id] ||
+                        ""
+                      }
+                      onChange={(e) => {
+                        const newAnswers = {
+                          ...multiplePartsAnswers,
+                          [part.id]: {
+                            ...multiplePartsAnswers[part.id],
+                            [subQuestion.id]: e.target.value,
+                          },
+                        };
+                        handleAnswerSelect(
+                          currentQ.id,
+                          newAnswers,
+                          currentQ.type
+                        );
+                      }}
+                      className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer min-w-[120px]"
+                    >
+                      <option value="" className="text-gray-400">
+                        [ Select ]
+                      </option>
+                      {(
+                        subQuestion.options ||
+                        currentQ.globalOptions ||
+                        currentQ.options
+                      )?.map((option) => (
+                        <option
+                          key={option.id}
+                          value={option.id}
+                          className="text-white"
+                        >
+                          {option.text}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )) || (
+                  // Fallback for simple single dropdown per part (backward compatibility)
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={multiplePartsAnswers[part.id] || ""}
+                      onChange={(e) => {
+                        const newAnswers = {
+                          ...multiplePartsAnswers,
+                          [part.id]: e.target.value,
+                        };
+                        handleAnswerSelect(
+                          currentQ.id,
+                          newAnswers,
+                          currentQ.type
+                        );
+                      }}
+                      className="p-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
+                    >
+                      <option value="" className="text-gray-400">
+                        Select an option...
+                      </option>
+                      {currentQ.options.map((option) => (
+                        <option
+                          key={option.id}
+                          value={option.id}
+                          className="text-white"
+                        >
+                          {option.text}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        );
+        ))}
+      </div>
+      <div className="text-xs text-gray-400 mt-2">
+        All parts must be answered to complete this question
+      </div>
+    </div>
+  );
+
 
       case "single-image-multiple-points":
         const problemAnswers = userAnswer || {};
@@ -1087,27 +1097,33 @@ export default function TeacherTrainingPageResponsiveQuiz({ quizData, onQuizComp
         </main>
       </div>
 
-      {/* Fullscreen Image Modal */}
-      {isFullscreen && currentQ.imageUrl && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
-          onClick={() => setIsFullscreen(false)}
-        >
-          <div className="relative max-w-4xl max-h-full">
-            <img
-              src={currentQ.imageUrl}
-              alt={`Question ${currentQuestion + 1} diagram - fullscreen`}
-              className="max-w-full max-h-full object-contain"
-            />
-            <button
-              onClick={() => setIsFullscreen(false)}
-              className="absolute top-4 right-4 p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Fullscreen Image Modal - Enhanced for both question and part images */}
+{(isFullscreen || fullscreenPartImage) && (currentQ.imageUrl || fullscreenPartImage) && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+    onClick={() => {
+      setIsFullscreen(false);
+      setFullscreenPartImage(null);
+    }}
+  >
+    <div className="relative max-w-4xl max-h-full">
+      <img
+        src={fullscreenPartImage || currentQ.imageUrl}
+        alt={`${fullscreenPartImage ? 'Part' : 'Question'} image - fullscreen`}
+        className="max-w-full max-h-full object-contain"
+      />
+      <button
+        onClick={() => {
+          setIsFullscreen(false);
+          setFullscreenPartImage(null);
+        }}
+        className="absolute top-4 right-4 p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700"
+      >
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 }

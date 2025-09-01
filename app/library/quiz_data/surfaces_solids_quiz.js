@@ -63,12 +63,7 @@ export const quizData = {
       text: "Indicate the axis about which the 2-D shape was revolved around to obtain the given solid.",
       points: 4, // Total points for the entire question
       globalOptions: [
-        { id: "X", text: "X" },
-        { id: "X2", text: "X2" },
-        { id: "Y", text: "Y" },
-        { id: "Y2", text: "Y2" },
-        { id: "Z", text: "Z" },
-        { id: "Z2", text: "Z2" },
+   
       ],
       parts: [
         {
@@ -81,6 +76,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "X2", text: "X2" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+              ],
               correct: "X",
             }
           ],
@@ -95,6 +96,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+                { id: "2", text: "Z2" },
+              ],
               correct: "Z",
             }
           ],
@@ -109,6 +116,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+                { id: "Z2", text: "Z2" },
+              ],
               correct: "Y",
             }
           ],
@@ -123,6 +136,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+                { id: "Z2", text: "Z2" },
+              ],
               correct: "Z",
             }
           ],
@@ -134,14 +153,7 @@ export const quizData = {
       type: "multiple-parts-subselect",
       text: "Indicate the number of degrees and the axis about which the 2-D shape was revolved around to obtain the given solid.",
       points: 8, // Total points for the entire question
-      globalOptions: [
-        { id: "X", text: "X" },
-        { id: "X2", text: "X2" },
-        { id: "Y", text: "Y" },
-        { id: "Y2", text: "Y2" },
-        { id: "Z", text: "Z" },
-        { id: "Z2", text: "Z2" },
-      ],
+
       parts: [
         {
           id: "part_a",
@@ -153,6 +165,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "X2", text: "X2" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+              ],
               correct: "X2",
             },
             {
@@ -179,6 +197,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+                { id: "Z2", text: "Z2" },
+              ],
               correct: "Z2",
             },
             {
@@ -205,6 +229,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "X2", text: "X2" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+              ],
               correct: "X2",
             },
             {
@@ -231,6 +261,12 @@ export const quizData = {
               id: "axis_selection",
               label: "Revolved About Which Axis:",
               type: "dropdown",
+              options: [
+                { id: "X", text: "X" },
+                { id: "Y", text: "Y" },
+                { id: "Z", text: "Z" },
+                { id: "Z2", text: "Z2" },
+              ],
               correct: "Z",
             },
             {
