@@ -187,6 +187,7 @@ export default function Settings() {
           </p>
           <p className="text-sm text-gray-400">
             Once you enter a student's first and last name, a unique username will be automatically generated for them to join the course.
+            <b> REMINDER: </b> the 
             {courseData?.course_gender && (courseData.course_gender === 'Male' || courseData.course_gender === 'Female') && (
               <span className="block mt-1 text-yellow-400">
                 Note: This is a {courseData.course_gender}-only course. All students will be set to {courseData.course_gender} gender by default.

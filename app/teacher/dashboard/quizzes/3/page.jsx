@@ -237,27 +237,10 @@ const handleQuizComplete = async (results) => {
                   {quizData.questions.reduce((sum, q) => sum + q.points, 0)}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                  </svg>
-                  Question Types:
-                </span>
-                <span className="text-white font-medium">Multiple Choice, Multiple Select</span>
-              </div>
+              
             </div>
           </div>
 
-          {/* Teacher Notice */}
-          <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mb-6">
-            <p className="text-blue-300 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Teacher Preview Mode - Take this quiz to familiarize yourself with the content
-            </p>
-          </div>
 
           {/* Instructions Button */}
           <button
@@ -314,59 +297,10 @@ const handleQuizComplete = async (results) => {
               <div className="space-y-6">
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4">
                   <p className="text-gray-200 leading-relaxed">
-                    Please read the following instructions before taking the quiz. This quiz consists of <span className="font-semibold text-white">25 questions</span> that are multiple choice and multiple select.
+                   The following test will contain 8 mathematical questions. Please click the button below when you are ready to begin. Leaving the page or closing the browser will automatically submit the quiz.
                   </p>
                 </div>
 
-                {/* Example 1 */}
-                <div className="space-y-3">
-                  <div 
-                    className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/question1.png", "Combining Solids Example 1")}
-                  >
-                    <img
-                      src="/quiz_images/combining_solids/question1.png"
-                      alt="Combining Solids Example 1"
-                      className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
-                      <svg className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-700/30 rounded-lg p-4">
-                    <p className="text-gray-200 font-medium">
-                      The objects on the left are to be combined, with the result shown on the right. Select if the cut, join, or intersect operation was performed.
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={showAnswer1 ? null : openAnswer1}
-                    disabled={showAnswer1}
-                    className={`w-full bg-yellow-600/20 border border-yellow-600/50 rounded-lg p-4 transition-all duration-200 ${
-                      !showAnswer1 ? "cursor-pointer hover:bg-yellow-600/30" : "cursor-default"
-                    }`}
-                  >
-                    {!showAnswer1 ? (
-                      <p className="text-yellow-300 flex items-center justify-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        View Answer
-                      </p>
-                    ) : (
-                      <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
-                        <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> The cut operation was performed.
-                          The resulting shape is a removed area where the two objects overlapped. These types of questions will be multiple choice.
-                        </p>
-                      </div>
-                    )}
-                  </button>
-                </div>
 
                 {/* Ready Message */}
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mt-6">

@@ -6,7 +6,6 @@ import TeacherResponsiveQuiz from "../../../../../components/teacher_components/
 import { submitTeacherPrePostQuiz } from "../../../../library/services/teacher_services/teacher_quiz";
 
 export default function DATSRPreQuiz() {
-
   const router = useRouter();
   const [quizStarted, setQuizStarted] = useState(false);
   const [teacherData, setTeacherData] = useState(null);
@@ -67,11 +66,11 @@ export default function DATSRPreQuiz() {
       if (sessionStorage.getItem("teacherData") !== null) {
         setTeacherData(JSON.parse(sessionStorage.getItem("teacherData")));
       }
-      
+
       // Load quiz settings from sessionStorage
       // First check if quiz settings are stored directly
       let quizSettings = null;
-      
+
       // Check if stored directly as quizSettings
       if (sessionStorage.getItem("quizSettings") !== null) {
         quizSettings = JSON.parse(sessionStorage.getItem("quizSettings"));
@@ -80,7 +79,7 @@ export default function DATSRPreQuiz() {
       else if (sessionStorage.getItem("courseData") !== null) {
         const courseData = JSON.parse(sessionStorage.getItem("courseData"));
         console.log("Course data:", courseData);
-        
+
         // Check different possible locations for quiz_settings
         if (courseData?.quiz_settings) {
           quizSettings = courseData.quiz_settings;
@@ -92,9 +91,9 @@ export default function DATSRPreQuiz() {
       // If we found quiz settings, check for the specific quiz
       if (quizSettings) {
         console.log("Quiz settings found:", quizSettings);
-        
+
         const datsrPreQuiz = quizSettings.find(
-          quiz => quiz.name === "DAT:SR Pre-Test"
+          (quiz) => quiz.name === "DAT:SR Pre-Test"
         );
 
         console.log("DAT:SR Pre-Test found:", datsrPreQuiz);
@@ -107,9 +106,11 @@ export default function DATSRPreQuiz() {
           } else {
             // Quiz is not visible, set message and redirect
             setQuizVisible(false);
-            setAccessMessage("This quiz is not currently available. Please check back later or contact your instructor.");
+            setAccessMessage(
+              "This quiz is not currently available. Please check back later or contact your instructor."
+            );
             setIsLoading(false);
-            
+
             // Redirect after showing message for 3 seconds
             setTimeout(() => {
               router.push("/teacher/dashboard/quizzes");
@@ -117,7 +118,9 @@ export default function DATSRPreQuiz() {
           }
         } else {
           // Quiz not found in settings
-          setAccessMessage("Quiz configuration not found. Please contact your instructor.");
+          setAccessMessage(
+            "Quiz configuration not found. Please contact your instructor."
+          );
           setIsLoading(false);
           setTimeout(() => {
             router.push("/teacher/dashboard/quizzes");
@@ -132,7 +135,9 @@ export default function DATSRPreQuiz() {
       }
     } catch (error) {
       console.error("Error parsing data from sessionStorage:", error);
-      setAccessMessage("An error occurred while loading the quiz. Please try again.");
+      setAccessMessage(
+        "An error occurred while loading the quiz. Please try again."
+      );
       setIsLoading(false);
       setTimeout(() => {
         router.push("/teacher/dashboard/quizzes");
@@ -140,19 +145,19 @@ export default function DATSRPreQuiz() {
     }
   }, [router]);
 
-const handleQuizComplete = async (results) => {
-  try {
-    const payload = {
-      teacherData: teacherData,
-      quizData: results,
-    };
-   
-    await submitTeacherPrePostQuiz(payload);
-  } catch (error) {
-    console.error("Error saving quiz results:", error);
-  }
-  // Remove the setTimeout redirect
-};
+  const handleQuizComplete = async (results) => {
+    try {
+      const payload = {
+        teacherData: teacherData,
+        quizData: results,
+      };
+
+      await submitTeacherPrePostQuiz(payload);
+    } catch (error) {
+      console.error("Error saving quiz results:", error);
+    }
+    // Remove the setTimeout redirect
+  };
 
   // Show loading state
   if (isLoading) {
@@ -160,8 +165,18 @@ const handleQuizComplete = async (results) => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <div className="bg-gray-800/70 border border-gray-700 rounded-xl shadow-xl p-8 max-w-lg w-full text-center">
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <svg className="w-8 h-8 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className="w-8 h-8 text-white animate-spin"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </div>
           <p className="text-gray-300">Checking quiz availability...</p>
@@ -176,11 +191,23 @@ const handleQuizComplete = async (results) => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <div className="bg-gray-800/70 border border-gray-700 rounded-xl shadow-xl p-8 max-w-lg w-full text-center">
           <div className="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-white mb-3">Quiz Not Available</h2>
+          <h2 className="text-xl font-bold text-white mb-3">
+            Quiz Not Available
+          </h2>
           <p className="text-gray-300 mb-4">{accessMessage}</p>
           <p className="text-gray-400 text-sm">Redirecting to dashboard...</p>
         </div>
@@ -196,12 +223,26 @@ const handleQuizComplete = async (results) => {
           {/* Quiz Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-8 h-8 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-3">{quizData.title}</h1>
-            <p className="text-gray-300 leading-relaxed">{quizData.description}</p>
+            <h1 className="text-3xl font-bold text-white mb-3">
+              {quizData.title}
+            </h1>
+            <p className="text-gray-300 leading-relaxed">
+              {quizData.description}
+            </p>
           </div>
 
           {/* Quiz Stats */}
@@ -209,27 +250,52 @@ const handleQuizComplete = async (results) => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100 4h2a1 1 0 100 2 2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 100 4h2a2 2 0 100 4h2a1 1 0 100 2 2 2 0 01-2 2H4a2 2 0 01-2-2V7a2 2 0 012-2z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Questions:
                 </span>
-                <span className="text-white font-medium">{quizData.questions.length}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                  </svg>
-                 No Time Limit
+                <span className="text-white font-medium">
+                  {quizData.questions.length}
                 </span>
-                
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  No Time Limit
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-400 flex items-center gap-2">
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Total Points:
                 </span>
@@ -239,12 +305,22 @@ const handleQuizComplete = async (results) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   Question Types:
                 </span>
-                <span className="text-white font-medium">Multiple Choice, Multiple Select</span>
+                <span className="text-white font-medium">
+                  Multiple Choice, Multiple Select
+                </span>
               </div>
             </div>
           </div>
@@ -252,10 +328,21 @@ const handleQuizComplete = async (results) => {
           {/* Teacher Notice */}
           <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mb-6">
             <p className="text-blue-300 text-sm flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
-              Teacher Preview Mode - Take this quiz to familiarize yourself with the content
+              Teacher Preview Mode - Take this quiz to familiarize yourself with
+              the content
             </p>
           </div>
 
@@ -265,8 +352,18 @@ const handleQuizComplete = async (results) => {
             className="w-full bg-yellow-600/20 border border-yellow-600/50 rounded-lg p-4 mb-6 hover:bg-yellow-600/30 transition-all duration-200 group"
           >
             <p className="text-yellow-300 group-hover:text-yellow-200 flex items-center justify-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               View Instructions
             </p>
@@ -277,9 +374,24 @@ const handleQuizComplete = async (results) => {
             onClick={startQuiz}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             Start Quiz
           </button>
@@ -287,7 +399,7 @@ const handleQuizComplete = async (results) => {
 
         {/* Instructions Modal */}
         {showInstructionsModal && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn"
             onClick={handleBackdropClick}
           >
@@ -295,8 +407,18 @@ const handleQuizComplete = async (results) => {
               {/* Modal Header */}
               <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-700">
                 <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-6 h-6 text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   Quiz Instructions
                 </h2>
@@ -304,8 +426,18 @@ const handleQuizComplete = async (results) => {
                   onClick={closeInstructionsModal}
                   className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg p-1 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -314,31 +446,56 @@ const handleQuizComplete = async (results) => {
               <div className="space-y-6">
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4">
                   <p className="text-gray-200 leading-relaxed">
-                    Please read the following instructions before taking the quiz. This quiz consists of <span className="font-semibold text-white">25 questions</span> that are multiple choice and multiple select.
+                    This assessment consists of 10 questions designed to see how
+                    well you can visualize the folding of a pattern to make a
+                    three-dimensional object. The assessment consists of
+                    patterns with shading or designs on them. These patterns can
+                    be folded to make three-dimensional shapes. Each problem
+                    shows on pattern, followed by four three-dimensional
+                    figures. You are to choose the one figure that can be made
+                    from the pattern. An example is shown below.{" "}
                   </p>
                 </div>
 
                 {/* Example 1 */}
                 <div className="space-y-3">
-                  <div 
+                  <div
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/question1.png", "Combining Solids Example 1")}
+                    onClick={() =>
+                      handleImageClick(
+                        "/quiz_images/datsr/question1.png",
+                        "DAT:SR Example 1"
+                      )
+                    }
                   >
                     <img
-                      src="/quiz_images/combining_solids/question1.png"
-                      alt="Combining Solids Example 1"
+                      src="/quiz_images/datsr/question1.png"
+                      alt="DAT:SR Example 1"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
-                      <svg className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                      <svg
+                        className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                        />
                       </svg>
                     </div>
                   </div>
 
                   <div className="bg-gray-700/30 rounded-lg p-4">
                     <p className="text-gray-200 font-medium">
-                      The objects on the left are to be combined, with the result shown on the right. Select if the cut, join, or intersect operation was performed.
+                      In the example above the pattern will form a rectangular
+                      box, with the top, bottom, and one of the short sides
+                      shaded. What is the correct answer to the example shown
+                      above?{" "}
                     </p>
                   </div>
 
@@ -346,35 +503,149 @@ const handleQuizComplete = async (results) => {
                     onClick={showAnswer1 ? null : openAnswer1}
                     disabled={showAnswer1}
                     className={`w-full bg-yellow-600/20 border border-yellow-600/50 rounded-lg p-4 transition-all duration-200 ${
-                      !showAnswer1 ? "cursor-pointer hover:bg-yellow-600/30" : "cursor-default"
+                      !showAnswer1
+                        ? "cursor-pointer hover:bg-yellow-600/30"
+                        : "cursor-default"
                     }`}
                   >
                     {!showAnswer1 ? (
                       <p className="text-yellow-300 flex items-center justify-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
                         </svg>
                         View Answer
                       </p>
                     ) : (
                       <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
                         <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> The cut operation was performed.
-                          The resulting shape is a removed area where the two objects overlapped. These types of questions will be multiple choice.
+                          <span className="font-semibold">Answer:</span> The
+                          correct answer is D because the top and one of the
+                          short sides are shaded. The shaded bottom is hidden
+                          from view. Look at the answer figures A, B, C, and D.
+                          Only one of these can be made from the pattern. Answer
+                          A is wrong because the top is not shaded. Answer B is
+                          wrong because one of the long sides is shaded, and the
+                          pattern shows that the long sides are not shaded.
+                          Answer C is wrong because the top is not shaded.{" "}
                         </p>
                       </div>
                     )}
                   </button>
                 </div>
 
+                {/* Example 2 */}
+                <div className="space-y-3">
+                  <div
+                    className="relative group cursor-pointer"
+                    onClick={() =>
+                      handleImageClick(
+                        "/quiz_images/datsr/instructions_2.png",
+                        "DAT:SR Example 2"
+                      )
+                    }
+                  >
+                    <img
+                      src="/quiz_images/datsr/instructions_2.png"
+                      alt="DAT:SR Example 1"
+                      className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
+                      <svg
+                        className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-700/30 rounded-lg p-4">
+                    <p className="text-gray-200 font-medium">
+                      In the example above the pattern will form a rectangular
+                      box, with the top, bottom, and one of the short sides
+                      shaded. What is the correct answer to the example shown
+                      above?{" "}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={showAnswer2 ? null : openAnswer2}
+                    disabled={showAnswer2}
+                    className={`w-full bg-yellow-600/20 border border-yellow-600/50 rounded-lg p-4 transition-all duration-200 ${
+                      !showAnswer2
+                        ? "cursor-pointer hover:bg-yellow-600/30"
+                        : "cursor-default"
+                    }`}
+                  >
+                    {!showAnswer2 ? (
+                      <p className="text-yellow-300 flex items-center justify-center gap-2">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                        View Answer
+                      </p>
+                    ) : (
+                      <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
+                        <p className="text-green-300 text-left">
+  
+                          Look at the answer figures A, B, C, and D. Only one of these can be made from the pattern. Answer A is wrong because the two shaded sides of the roof are next to each other, not on opposite sides. Answer B is wrong because all four sides of the roof are next to each other, not on opposite sides. Answer B is wrong because all four sides of the house are supposed to have windows. Answer D is wrong because one shaded side of the roof should be visible. The correct answer is C because one shaded side of the roof is visible and each visible side of the house has a window.
+                        </p>
+                      </div>
+                    )}
+                  </button>
+                </div>
+
+                
+
                 {/* Ready Message */}
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mt-6">
                   <p className="text-gray-200 text-center leading-relaxed">
-                    When you are ready, please close this window and click "Start Quiz" to begin.
+                    When you are ready, please close this window and click
+                    "Start Quiz" to begin.
                   </p>
                 </div>
               </div>
+
+              
 
               {/* Modal Footer */}
               <div className="mt-6 flex justify-end">
@@ -382,10 +653,20 @@ const handleQuizComplete = async (results) => {
                   onClick={closeInstructionsModal}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
-                  Got it, Close
+                  Close
                 </button>
               </div>
             </div>
@@ -394,7 +675,7 @@ const handleQuizComplete = async (results) => {
 
         {/* Zoomed Image Modal */}
         {zoomedImage && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 z-[60] animate-fadeIn"
             onClick={handleZoomBackdropClick}
           >
@@ -403,8 +684,18 @@ const handleQuizComplete = async (results) => {
                 onClick={closeZoomedImage}
                 className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
               >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <img
@@ -412,7 +703,9 @@ const handleQuizComplete = async (results) => {
                 alt={zoomedImage.alt}
                 className="max-w-full max-h-[85vh] rounded-lg shadow-2xl"
               />
-              <p className="text-center text-gray-300 mt-2 text-sm">{zoomedImage.alt}</p>
+              <p className="text-center text-gray-300 mt-2 text-sm">
+                {zoomedImage.alt}
+              </p>
             </div>
           </div>
         )}

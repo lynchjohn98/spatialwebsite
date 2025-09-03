@@ -443,7 +443,7 @@ export default function TeacherTraining() {
       module_name: "PSVTR Post-Test",
       assessment_completed: teacherData?.posttest_complete || false,
     }}
-    isPretestComplete={isPretestComplete} // Pass the actual pretest completion status
+    isPretestComplete={isPostTestComplete} // Pass the actual pretest completion status
     onRestrictedClick={handleRestrictedAccess}
   />
 </div>

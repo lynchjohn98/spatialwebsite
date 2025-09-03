@@ -204,15 +204,7 @@ const handleQuizComplete = async (results) => {
                   {quizData.questions.reduce((sum, q) => sum + q.points, 0)}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400 flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                  </svg>
-                  Question Types:
-                </span>
-                <span className="text-white font-medium">Multiple Choice, Multiple Select</span>
-              </div>
+              
             </div>
           </div>
 
@@ -279,11 +271,11 @@ const handleQuizComplete = async (results) => {
                 <div className="space-y-3">
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/combineSolids_q1.png", "Combining Solids Example 1")}
+                    onClick={() => handleImageClick("/quiz_images/surfaces_solids/question3.png", "Combining Solids Example 1")}
                   >
                     <img
-                      src="/quiz_images/combining_solids/combineSolids_q1.png"
-                      alt="Combining Solids Example 1"
+                      src="/quiz_images/surfaces_solids/question3.png"
+                      alt="Surfaces and SolidsExample 1"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
@@ -295,7 +287,7 @@ const handleQuizComplete = async (results) => {
 
                   <div className="bg-gray-700/30 rounded-lg p-4">
                     <p className="text-gray-200 font-medium">
-                      The objects on the left are to be combined, with the result shown on the right. Select if the cut, join, or intersect operation was performed.
+                      Select the letter corresponding to the object or objects that were formed by revolving the wire-frame shape shown on the left about an axis. There may be more than one answer per problem.
                     </p>
                   </div>
 
@@ -317,9 +309,8 @@ const handleQuizComplete = async (results) => {
                     ) : (
                       <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
                         <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> The cut operation was performed.
-                          The resulting shape is a removed area where the two objects overlapped. These types of questions will be multiple choice.
-                        </p>
+                          <span className="font-semibold">Answer:</span> A, B, and D.
+                         </p>
                       </div>
                     )}
                   </button>
@@ -327,19 +318,13 @@ const handleQuizComplete = async (results) => {
 
                 {/* Example 2 */}
                 <div className="space-y-3">
-                  <div className="bg-gray-700/30 rounded-lg p-4">
-                    <p className="text-gray-200 font-medium">
-                      For the two overlapping objects shown on the left below, select the combining operation that was performed to obtain each of the three objects shown on the right.
-                    </p>
-                  </div>
-
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/combineSolids_q10.png", "Combining Solids Example 2")}
+                    onClick={() => handleImageClick("/quiz_images/surfaces_solids/question8_a.png", "Surfaces Solids Example 2")}
                   >
                     <img
-                      src="/quiz_images/combining_solids/combineSolids_q10.png"
-                      alt="Combining Solids Example 2"
+                      src="/quiz_images/surfaces_solids/question8_a.png"
+                      alt="Surfaces and Solids Example 2"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
@@ -347,6 +332,11 @@ const handleQuizComplete = async (results) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                       </svg>
                     </div>
+                  </div>
+
+                  <div className="bg-gray-700/30 rounded-lg p-4">
+                    <p className="text-gray-200 font-medium">
+                   Indicate the axis about which the 2-D shape was revolved around to obtain the given solid.  </p>
                   </div>
 
                   <button
@@ -367,18 +357,19 @@ const handleQuizComplete = async (results) => {
                     ) : (
                       <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
                         <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> There are three answers. For A, the operation is cut (Object 1 cuts Object 2). For B, the operation is join (Object 1 joins Object 2). For C, the operation is intersect (Object 1 intersects Object 2). These types of questions will be multiple select.
-                        </p>
+                          <span className="font-semibold">Answer:</span> X2
+                         </p>
                       </div>
                     )}
                   </button>
                 </div>
 
+                
+
                 {/* Ready Message */}
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mt-6">
                   <p className="text-gray-200 text-center leading-relaxed">
-                    When you are ready, please close this window and click "Start Quiz" to begin.
-                  </p>
+                    When you are ready, please close this window and click "Start Quiz" to begin. </p>
                 </div>
               </div>
 
@@ -391,7 +382,7 @@ const handleQuizComplete = async (results) => {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Got it, Close
+                  Close
                 </button>
               </div>
             </div>

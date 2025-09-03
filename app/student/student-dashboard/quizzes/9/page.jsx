@@ -293,20 +293,18 @@ const [quizVisible, setQuizVisible] = useState(false);
               {/* Modal Content */}
               <div className="space-y-6">
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4">
-                  <p className="text-gray-200 leading-relaxed">
-                    Please read the following instructions before taking the quiz. This quiz consists of <span className="font-semibold text-white">25 questions</span> that are multiple choice and multiple select.
-                  </p>
+                
                 </div>
 
-                {/* Example 1 */}
+               {/* Example 1 */}
                 <div className="space-y-3">
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/question1.png", "Combining Solids Example 1")}
+                    onClick={() => handleImageClick("/quiz_images/object_reflections_symmetry/question1.png", "Reflection and Symmetry Example 1")}
                   >
                     <img
-                      src="/quiz_images/combining_solids/question1.png"
-                      alt="Combining Solids Example 1"
+                      src="/quiz_images/object_reflections_symmetry/question1.png"
+                      alt="Reflection and Symmetry Example 1"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
@@ -318,7 +316,7 @@ const [quizVisible, setQuizVisible] = useState(false);
 
                   <div className="bg-gray-700/30 rounded-lg p-4">
                     <p className="text-gray-200 font-medium">
-                      The objects on the left are to be combined, with the result shown on the right. Select if the cut, join, or intersect operation was performed.
+                      Select the number of planes of symmetry the object has. (Don't forget planes on the diagonal.)
                     </p>
                   </div>
 
@@ -340,8 +338,7 @@ const [quizVisible, setQuizVisible] = useState(false);
                     ) : (
                       <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
                         <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> The cut operation was performed.
-                          The resulting shape is a removed area where the two objects overlapped. These types of questions will be multiple choice.
+                          <span className="font-semibold">Answer:</span> 2 Planes of Symmetry
                         </p>
                       </div>
                     )}
@@ -366,7 +363,7 @@ const [quizVisible, setQuizVisible] = useState(false);
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Got it, Close
+                  Close
                 </button>
               </div>
             </div>

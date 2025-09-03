@@ -550,4 +550,261 @@ export async function retrieveTeacherQuizPage(teacherId, courseId) {
 }
 
 
+export async function updateTeacherCourseSettings (updateData, courseId) {
+  console.log("HERE:", { updateData, courseId });
+  const supabase = await createClient();
+  try {
+    const { data, error } = await supabase
+      .from('courses')
+      .update({
+        course_name: updateData.course_name,
+        course_school_name: updateData.course_school_name,
+        course_county: updateData.course_county,
+        course_urbanicity: updateData.course_urbanicity,
+        course_gender: updateData.course_gender,
+        course_deis: updateData.course_deis,
+        course_research: updateData.course_research,
+        course_research_type: updateData.course_research_type,
+        course_language: updateData.course_language,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', courseId)
+      .select();
+
+    if (error) {
+      console.error('Error updating course:', error);
+      return { success: false, message: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error in updateCourse:', error);
+    return { success: false, message: 'Failed to update course' };
+  }
+}
+
+
+export async function fetchTeacherQuizAttempts(teacherId) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('teachers_grades')
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .order('time_submitted', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching quiz attempts:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in fetchTeacherQuizAttempts:", error);
+    return [];
+  }
+}
+
+export async function updateTeacherResearchConsent(teacherId, consentValue) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('teachers')
+      .update({ 
+        research_consent: consentValue,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', teacherId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating research consent:", error);
+      return { success: false, message: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error in updateTeacherResearchConsent:", error);
+    return { success: false, message: 'Failed to update consent' };
+  }
+}
+
+export async function fetchTeacherData(teacherId) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('teachers')
+      .select('*')
+      .eq('id', teacherId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching teacher data:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in fetchTeacherData:", error);
+    return null;
+  }
+}
+
+// Update the existing fetchTeacherProgressPage function if needed
+export async function fetchTeacherProgressPage(teacherId) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('teachers_progress')
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .single(); // Get single record for the teacher
+
+    if (error && error.code !== 'PGRST116') { // Ignore "no rows" error
+      console.error("Error fetching teacher progress:", error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in fetchTeacherProgressPage:", error);
+    return null;
+  }
+}
+
+// Add these functions to your teacher_actions.js file
+
+export async function uploadTeacherConsentFile(teacherId, file) {
+  try {
+    const supabase = await createClient();
+    
+    // Create a unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `teacher_consent_${teacherId}_${Date.now()}.${fileExt}`;
+    
+    // Upload file to Supabase storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('teacher-consent-files') // Make sure this bucket exists in Supabase
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error("Error uploading file:", uploadError);
+      return { success: false, message: uploadError.message };
+    }
+
+    // Save file record to database
+    const { data, error } = await supabase
+      .from('teacher_consent_files') // Create this table if it doesn't exist
+      .insert({
+        teacher_id: teacherId,
+        file_name: file.name,
+        file_path: fileName,
+        file_size: file.size,
+        file_type: file.type,
+        uploaded_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // If database insert fails, delete the uploaded file
+      await supabase.storage
+        .from('teacher-consent-files')
+        .remove([fileName]);
+      
+      console.error("Error saving file record:", error);
+      return { success: false, message: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error in uploadTeacherConsentFile:", error);
+    return { success: false, message: 'Failed to upload file' };
+  }
+}
+
+export async function fetchTeacherConsentFiles(teacherId) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('teacher_consent_files')
+      .select('*')
+      .eq('teacher_id', teacherId)
+      .order('uploaded_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching consent files:", error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error("Error in fetchTeacherConsentFiles:", error);
+    return [];
+  }
+}
+
+export async function deleteTeacherConsentFile(fileId) {
+  try {
+    const supabase = await createClient();
+    
+    // Get file details first
+    const { data: fileData, error: fetchError } = await supabase
+      .from('teacher_consent_files')
+      .select('file_path')
+      .eq('id', fileId)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching file details:", fetchError);
+      return { success: false, message: fetchError.message };
+    }
+
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('teacher-consent-files')
+      .remove([fileData.file_path]);
+
+    if (storageError) {
+      console.error("Error deleting file from storage:", storageError);
+      // Continue to delete database record even if storage deletion fails
+    }
+
+    // Delete database record
+    const { error: deleteError } = await supabase
+      .from('teacher_consent_files')
+      .delete()
+      .eq('id', fileId);
+
+    if (deleteError) {
+      console.error("Error deleting file record:", deleteError);
+      return { success: false, message: deleteError.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in deleteTeacherConsentFile:", error);
+    return { success: false, message: 'Failed to delete file' };
+  }
+}
+
+export async function getTeacherConsentFileUrl(filePath) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.storage
+      .from('teacher-consent-files')
+      .createSignedUrl(filePath, 3600); // URL valid for 1 hour
+
+    if (error) {
+      console.error("Error creating signed URL:", error);
+      return null;
+    }
+
+    return data.signedUrl;
+  } catch (error) {
+    console.error("Error in getTeacherConsentFileUrl:", error);
+    return null;
+  }
+}
 

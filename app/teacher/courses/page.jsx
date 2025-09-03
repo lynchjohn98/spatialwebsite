@@ -2,9 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getAllTeacherCourses
+  getAllTeacherCourses, updateTeacherCourseSettings
 } from "../../library/services/teacher_actions";
-import { deleteCourse } from "../../library/services/course_actions";
+import { deleteCourse, updateCourse } from "../../library/services/course_actions";
 
 export default function TeacherCoursesPage() {
   const router = useRouter();
@@ -16,6 +16,22 @@ export default function TeacherCoursesPage() {
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showActions, setShowActions] = useState({}); // For mobile menu
+  
+  // Edit modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [courseToEdit, setCourseToEdit] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    course_name: '',
+
+    course_county: '',
+    course_urbanicity: '',
+    course_gender: '',
+    course_deis: '',
+    course_research: false,
+    course_research_type: '',
+    course_language: ''
+  });
 
   useEffect(() => {
     const loadTeacherData = async () => {
@@ -104,6 +120,65 @@ export default function TeacherCoursesPage() {
     }
   };
 
+  const handleEditClick = (course) => {
+    setCourseToEdit(course);
+    setEditFormData({
+      course_name: course.course_name || '',
+      course_county: course.course_county || '',
+      course_urbanicity: course.course_urbanicity || '',
+      course_gender: course.course_gender || '',
+      course_deis: course.course_deis || '',
+      course_research: course.course_research || false,
+      course_research_type: course.course_research_type || '',
+      course_language: course.course_language || ''
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEditConfirm = async () => {
+    if (!courseToEdit) return;
+
+    setIsUpdating(true);
+    try {
+      const result = await updateTeacherCourseSettings(editFormData, courseToEdit.id);
+      if (result.success) {
+        // Update the course in the list
+        setAllCourses(allCourses.map(c => 
+          c.id === courseToEdit.id 
+            ? { ...c, ...editFormData, updated_at: new Date().toISOString() }
+            : c
+        ));
+        setShowEditModal(false);
+        setCourseToEdit(null);
+        
+        // Update session storage if needed
+        const storedData = JSON.parse(sessionStorage.getItem("teacherData"));
+        if (storedData && storedData.courses) {
+          storedData.courses = storedData.courses.map(c => 
+            c.id === courseToEdit.id 
+              ? { ...c, ...editFormData }
+              : c
+          );
+          sessionStorage.setItem("teacherData", JSON.stringify(storedData));
+        }
+      } else {
+        alert("Failed to update course. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error updating course:", error);
+      alert("An error occurred while updating the course.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const toggleActions = (courseId) => {
     setShowActions(prev => ({
       ...prev,
@@ -139,6 +214,191 @@ export default function TeacherCoursesPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg max-w-2xl w-full p-6 border border-gray-700 my-8">
+            <h3 className="text-xl font-semibold mb-6 text-white">Edit Course</h3>
+            
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+              {/* Course Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Course Name
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.course_name}
+                  onChange={(e) => handleEditFormChange('course_name', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Enter course name"
+                />
+              </div>
+
+
+              {/* County */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  County
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.course_county}
+                  onChange={(e) => handleEditFormChange('course_county', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Enter county"
+                />
+              </div>
+
+              {/* Language */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Language
+                </label>
+                <select
+                  value={editFormData.course_language}
+                  onChange={(e) => handleEditFormChange('course_language', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Language</option>
+                  <option value="English">English</option>
+                  <option value="Irish">Irish</option>
+                  <option value="Spanish">Spanish</option>
+                  <option value="French">French</option>
+                  <option value="German">German</option>
+                </select>
+              </div>
+
+              {/* Urbanicity */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Area Type
+                </label>
+                <select
+                  value={editFormData.course_urbanicity}
+                  onChange={(e) => handleEditFormChange('course_urbanicity', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Area Type</option>
+                  <option value="Urban">Urban</option>
+                  <option value="Rural">Rural</option>
+                </select>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  School Gender Type
+                </label>
+                <select
+                  value={editFormData.course_gender}
+                  onChange={(e) => handleEditFormChange('course_gender', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Gender Type</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Mixed">Mixed</option>
+                </select>
+              </div>
+
+              {/* DEIS */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  School Type
+                </label>
+                <select
+                  value={editFormData.course_deis}
+                  onChange={(e) => handleEditFormChange('course_deis', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">Select School Type</option>
+                  <option value="DEIS">DEIS</option>
+                  <option value="Non-DEIS">Non-DEIS</option>
+                </select>
+              </div>
+
+              {/* Research */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Research Participation
+                </label>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      checked={editFormData.course_research === true}
+                      onChange={() => handleEditFormChange('course_research', true)}
+                      className="mr-2 text-blue-600"
+                    />
+                    <span>Yes</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      checked={editFormData.course_research === false}
+                      onChange={() => handleEditFormChange('course_research', false)}
+                      className="mr-2"
+                    />
+                    <span>No</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Research Type (shown only if research is true) */}
+              {editFormData.course_research && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Research Type
+                  </label>
+                  <select
+                    value={editFormData.course_research_type}
+                    onChange={(e) => handleEditFormChange('course_research_type', e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Select Research Type</option>
+                    <option value="Control">Control</option>
+                    <option value="Experimental">Experimental</option>
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 justify-end mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setCourseToEdit(null);
+                }}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditConfirm}
+                disabled={isUpdating}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {isUpdating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Save Changes</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -280,7 +540,7 @@ export default function TeacherCoursesPage() {
                                   )}
                                 </button>
                                 
-                                {/* NEW: Join Course button */}
+                                {/* Join Course button */}
                                 <button
                                   onClick={() => router.push(`/teacher/join?code=${course.course_join_code}`)}
                                   className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors flex items-center gap-1"
@@ -303,6 +563,7 @@ export default function TeacherCoursesPage() {
                                 <span>Language: </span>
                                 {course.course_language}
                               </div>
+                             
                             </div>
                           </td>
                           <td className="px-8 py-6">
@@ -339,7 +600,16 @@ export default function TeacherCoursesPage() {
                             {formatDate(course.created_at)}
                           </td>
                           <td className="px-8 py-6">
-                            <div className="flex justify-center">
+                            <div className="flex justify-center gap-2">
+                              <button
+                                onClick={() => handleEditClick(course)}
+                                className="p-2 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg transition-colors group"
+                                title="Edit course"
+                              >
+                                <svg className="w-5 h-5 text-blue-400 group-hover:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
                               <button
                                 onClick={() => handleDeleteClick(course)}
                                 className="p-2 bg-red-600/20 hover:bg-red-600/30 rounded-lg transition-colors group"
@@ -392,9 +662,9 @@ export default function TeacherCoursesPage() {
                           )}
                         </button>
                         
-                        {/* NEW: Join Course button for mobile */}
+                        {/* Join Course button for mobile */}
                         <button
-                          onClick={() => router.push(`/teacher-join?code=${course.course_join_code}`)}
+                          onClick={() => router.push(`/teacher/join?code=${course.course_join_code}`)}
                           className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
                           title="Join this course"
                         >
@@ -422,6 +692,18 @@ export default function TeacherCoursesPage() {
                       
                       {showActions[course.id] && (
                         <div className="absolute right-0 top-10 z-20 bg-gray-700 rounded-lg shadow-lg border border-gray-600 overflow-hidden">
+                          <button
+                            onClick={() => {
+                              handleEditClick(course);
+                              setShowActions({});
+                            }}
+                            className="flex items-center gap-2 px-4 py-3 hover:bg-gray-600 transition-colors text-blue-400 w-full text-left"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>Edit Course</span>
+                          </button>
                           <button
                             onClick={() => {
                               handleDeleteClick(course);
@@ -456,6 +738,7 @@ export default function TeacherCoursesPage() {
                       <span className="text-gray-400">County:</span>
                       <div className="text-white">{course.course_county}</div>
                     </div>
+                    
                     <div>
                       <span className="text-gray-400">Area:</span>
                       <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-white ml-2 ${getBadgeColor('urbanicity', course.course_urbanicity)}`}>

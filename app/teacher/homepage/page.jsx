@@ -274,7 +274,7 @@ export default function TeacherHomePage() {
             <div className="relative">
               <ResponsiveButton
                 onClick={() => handleRestrictedAccess("/teacher/progress")}
-                label="Account Progress"
+                label="Account Progress and Teacher Research Consent"
                 className={`w-full ${!pretestComplete ? 'cursor-not-allowed' : ''}`}
               />
               {!pretestComplete && (

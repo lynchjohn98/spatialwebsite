@@ -272,7 +272,7 @@ export default function CombiningSolidsQuiz() {
               <div className="space-y-6">
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4">
                   <p className="text-gray-200 leading-relaxed">
-                    Please read the following instructions before taking the quiz. This quiz consists of <span className="font-semibold text-white">25 questions</span> that are multiple choice and multiple select.
+                    Please read the following instructions before taking the quiz. 
                   </p>
                 </div>
 
@@ -280,10 +280,10 @@ export default function CombiningSolidsQuiz() {
                 <div className="space-y-3">
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/combineSolids_q1.png", "Combining Solids Example 1")}
+                    onClick={() => handleImageClick("/quiz_images/combining_solids/question1.png", "Combining Solids Example 1")}
                   >
                     <img
-                      src="/quiz_images/combining_solids/combineSolids_q1.png"
+                      src="/quiz_images/combining_solids/question1.png"
                       alt="Combining Solids Example 1"
                       className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
                     />
@@ -326,54 +326,6 @@ export default function CombiningSolidsQuiz() {
                   </button>
                 </div>
 
-                {/* Example 2 */}
-                <div className="space-y-3">
-                  <div className="bg-gray-700/30 rounded-lg p-4">
-                    <p className="text-gray-200 font-medium">
-                      For the two overlapping objects shown on the left below, select the combining operation that was performed to obtain each of the three objects shown on the right.
-                    </p>
-                  </div>
-
-                  <div 
-                    className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("/quiz_images/combining_solids/combineSolids_q10.png", "Combining Solids Example 2")}
-                  >
-                    <img
-                      src="/quiz_images/combining_solids/combineSolids_q10.png"
-                      alt="Combining Solids Example 2"
-                      className="w-full h-auto rounded-lg border border-gray-700 transition-transform group-hover:scale-[1.02]"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors flex items-center justify-center">
-                      <svg className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={showAnswer2 ? null : openAnswer2}
-                    disabled={showAnswer2}
-                    className={`w-full bg-yellow-600/20 border border-yellow-600/50 rounded-lg p-4 transition-all duration-200 ${
-                      !showAnswer2 ? "cursor-pointer hover:bg-yellow-600/30" : "cursor-default"
-                    }`}
-                  >
-                    {!showAnswer2 ? (
-                      <p className="text-yellow-300 flex items-center justify-center gap-2">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        View Answer
-                      </p>
-                    ) : (
-                      <div className="bg-green-600/20 border border-green-600/50 p-3 rounded-lg">
-                        <p className="text-green-300 text-left">
-                          <span className="font-semibold">Answer:</span> There are three answers. For A, the operation is cut (Object 1 cuts Object 2). For B, the operation is join (Object 1 joins Object 2). For C, the operation is intersect (Object 1 intersects Object 2). These types of questions will be multiple select.
-                        </p>
-                      </div>
-                    )}
-                  </button>
-                </div>
 
                 {/* Ready Message */}
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mt-6">

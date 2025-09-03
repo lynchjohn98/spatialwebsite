@@ -296,7 +296,7 @@ export default function CombiningSolidsQuiz() {
               <div className="space-y-6">
                 <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4">
                   <p className="text-gray-200 leading-relaxed">
-                    Please read the following instructions before taking the quiz. This quiz consists of <span className="font-semibold text-white">25 questions</span> that are multiple choice and multiple select.
+                    Please read the following instructions before taking the quiz. 
                   </p>
                 </div>
 
