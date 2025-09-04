@@ -76,3 +76,26 @@ export async function updateStudentModuleProgress(student_id: any, module_title:
         return { error: "An unexpected error occurred. Please try again." };
     }
 }
+
+// In student_actions.js
+export async function fetchStudentQuizAttempts(studentId, courseId) {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('students_grades')
+      .select('*')
+      .eq('student_id', studentId)
+      .eq('course_id', courseId)
+      .order('time_submitted', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching student quiz attempts:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error in fetchStudentQuizAttempts:", error);
+    return { success: false, error: error.message };
+  }
+}

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 
 import { useStudentSidebar } from "../../../utils/hooks/useStudentSidebar";
 import { retrieveCourseSettings } from "../../../library/services/course_actions";
-import StudentSidebar  from "../../../../components/student_components/StudentSidebar";
+import { fetchStudentQuizAttempts } from "../../../library/services/student_services/student_actions";
+import StudentSidebar from "../../../../components/student_components/StudentSidebar";
 import StudentQuizCard from "../../../../components/student_components/StudentQuizCard";
 
 export default function StudentQuizzesPage() {
@@ -14,21 +15,21 @@ export default function StudentQuizzesPage() {
   const [courseData, setCourseData] = useState(null);
   const [studentData, setStudentData] = useState(null);
   const [availableQuizzes, setAvailableQuizzes] = useState([]);
+  const [quizGrades, setQuizGrades] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [expandedResults, setExpandedResults] = useState({});
 
   // Helper function to safely parse JSON
   const safeJsonParse = (data, fallback = null) => {
     if (!data) return fallback;
-    
-    // If it's already an object, return it
-    if (typeof data === 'object' && data !== null) {
+
+    if (typeof data === "object" && data !== null) {
       return data;
     }
-    
-    // If it's a string, try to parse it
-    if (typeof data === 'string') {
+
+    if (typeof data === "string") {
       try {
         return JSON.parse(data);
       } catch (error) {
@@ -36,33 +37,52 @@ export default function StudentQuizzesPage() {
         return fallback;
       }
     }
-    
+
     return fallback;
   };
 
-  // Function to refresh quiz settings
-  const refreshQuizzes = async (courseId, showLoadingState = true) => {
+  const formatTime = (seconds) => {
+    if (!seconds || seconds === 0) return "-";
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
+
+  // Function to refresh quiz settings and grades
+  const refreshQuizzes = async (
+    courseId,
+    studentId,
+    showLoadingState = true
+  ) => {
     if (showLoadingState) {
       setIsRefreshing(true);
     }
-    
+
     try {
       const response = await retrieveCourseSettings({ id: courseId });
-      
+
       if (response.success && response.data) {
         let quizSettings = response.data.quiz_settings;
-        
-        // Safely parse quiz settings
         quizSettings = safeJsonParse(quizSettings, []);
-        
+
         if (Array.isArray(quizSettings)) {
-          const visibleQuizzes = quizSettings.filter(quiz => quiz?.visibility === "Yes");
+          const visibleQuizzes = quizSettings.filter(
+            (quiz) => quiz?.visibility === "Yes"
+          );
           setAvailableQuizzes(visibleQuizzes);
-          
-          // Update course data in state and session storage
+
           const storedData = sessionStorage.getItem("courseData");
           const currentCourseData = safeJsonParse(storedData);
-          
+
           if (currentCourseData) {
             const updatedCourseData = {
               ...currentCourseData,
@@ -72,13 +92,28 @@ export default function StudentQuizzesPage() {
               },
             };
             setCourseData(updatedCourseData);
-            sessionStorage.setItem("courseData", JSON.stringify(updatedCourseData));
+            sessionStorage.setItem(
+              "courseData",
+              JSON.stringify(updatedCourseData)
+            );
           }
-          console.log("Refreshed quizzes:", visibleQuizzes);
-          return true;
         }
       }
-      return false;
+
+      // Fetch student's quiz attempts
+      const gradesResult = await fetchStudentQuizAttempts(studentId, courseId);
+      if (gradesResult.success && gradesResult.data) {
+        const gradesMap = {};
+        gradesResult.data.forEach((grade) => {
+          if (!gradesMap[grade.quiz_id]) {
+            gradesMap[grade.quiz_id] = [];
+          }
+          gradesMap[grade.quiz_id].push(grade);
+        });
+        setQuizGrades(gradesMap);
+      }
+
+      return true;
     } catch (error) {
       console.error("Error refreshing quizzes:", error);
       return false;
@@ -89,48 +124,36 @@ export default function StudentQuizzesPage() {
     }
   };
 
-  // Initial load effect with auto-refresh
+  // Initial load effect
   useEffect(() => {
     const initializePage = async () => {
       const storedCourseData = sessionStorage.getItem("courseData");
       const storedStudentData = sessionStorage.getItem("studentData");
-      
+
       if (storedCourseData && storedStudentData) {
         try {
-          // Safely parse the stored data
           const parsedCourseData = safeJsonParse(storedCourseData);
           const parsedStudentData = safeJsonParse(storedStudentData);
-          
+
           if (!parsedCourseData || !parsedStudentData) {
             console.error("Invalid data in session storage");
-            sessionStorage.removeItem("courseData");
-            sessionStorage.removeItem("studentData");
             router.push("/student/student-dashboard");
             return;
           }
-          
-          // Set initial data
+
           setCourseData(parsedCourseData);
           setStudentData(parsedStudentData);
-          
-          // Set initial quiz data from session storage
-          if (parsedCourseData.settings && parsedCourseData.settings.quiz_settings) {
-            const quizSettings = safeJsonParse(parsedCourseData.settings.quiz_settings, []);
-            if (Array.isArray(quizSettings)) {
-              const visibleQuizzes = quizSettings.filter(quiz => quiz?.visibility === "Yes");
-              setAvailableQuizzes(visibleQuizzes);
-            }
+
+          // Auto-refresh quizzes and grades
+          if (parsedStudentData.course_id && parsedStudentData.id) {
+            await refreshQuizzes(
+              parsedStudentData.course_id,
+              parsedStudentData.id,
+              false
+            );
           }
-          
-          // Auto-refresh quizzes from database to get latest visibility settings
-          if (parsedStudentData.course_id) {
-            await refreshQuizzes(parsedStudentData.course_id, false);
-          }
-          
         } catch (error) {
           console.error("Error initializing page:", error);
-          sessionStorage.removeItem("courseData");
-          sessionStorage.removeItem("studentData");
           router.push("/student/student-dashboard");
         }
       } else {
@@ -145,7 +168,63 @@ export default function StudentQuizzesPage() {
   // Manual refresh handler
   const handleManualRefresh = async () => {
     if (!studentData) return;
-    await refreshQuizzes(studentData.course_id);
+    await refreshQuizzes(studentData.course_id, studentData.id);
+  };
+
+  // Get quiz completion status
+  const getQuizStatus = (quiz) => {
+    const quizGrade = quizGrades[quiz.id];
+    if (quizGrade && quizGrade.length > 0) {
+      return "completed";
+    }
+    return "not_started";
+  };
+
+  // Get quiz grade information
+  const getQuizGradeInfo = (quiz) => {
+    const gradesForQuiz = quizGrades[quiz.id];
+
+    if (!gradesForQuiz || gradesForQuiz.length === 0) return null;
+
+    const sortedAttempts = [...gradesForQuiz].sort(
+      (a, b) => new Date(b.time_submitted) - new Date(a.time_submitted)
+    );
+
+    return sortedAttempts.map((attempt, index) => ({
+      attemptNumber: sortedAttempts.length - index,
+      score: attempt.score || 0,
+      timeSubmitted: attempt.time_submitted,
+      timeTaken: attempt.time_taken,
+      isBest: false,
+    }));
+  };
+
+  // Mark the best attempt
+  const markBestAttempt = (attempts) => {
+    if (!attempts || attempts.length === 0) return attempts;
+
+    let bestScore = -1;
+    let bestIndex = 0;
+
+    attempts.forEach((attempt, index) => {
+      if (attempt.score > bestScore) {
+        bestScore = attempt.score;
+        bestIndex = index;
+      }
+    });
+
+    return attempts.map((attempt, index) => ({
+      ...attempt,
+      isBest: index === bestIndex,
+    }));
+  };
+
+  // Toggle quiz results expansion
+  const toggleResultsExpansion = (quizId) => {
+    setExpandedResults((prev) => ({
+      ...prev,
+      [quizId]: !prev[quizId],
+    }));
   };
 
   // Categorize quizzes
@@ -153,17 +232,23 @@ export default function StudentQuizzesPage() {
     const categories = {
       pretests: [],
       posttests: [],
-      surveys: [],  // Changed from 'practice' to 'surveys'
-      modules: []
+      surveys: [],
+      modules: [],
     };
 
-    availableQuizzes.forEach(quiz => {
+    availableQuizzes.forEach((quiz) => {
+      if (!quiz || !quiz.name) return;
 
-      if (quiz.name.toLowerCase().includes("pre-test")) {
+      const quizName = quiz.name.toLowerCase();
+
+      if (quizName.includes("pre-test")) {
         categories.pretests.push(quiz);
-      } else if (quiz.name.toLowerCase().includes("post-test")) {
+      } else if (quizName.includes("post-test")) {
         categories.posttests.push(quiz);
-      } else if (quiz.type.toLowerCase().includes("survey")) {  // Changed from 'practice' to 'survey'
+      } else if (
+        quiz.type?.toLowerCase().includes("survey") ||
+        quizName.includes("survey")
+      ) {
         categories.surveys.push(quiz);
       } else {
         categories.modules.push(quiz);
@@ -174,9 +259,7 @@ export default function StudentQuizzesPage() {
   };
 
   const handleStartQuiz = (quiz) => {
-    // Store quiz data in session storage
     sessionStorage.setItem("currentQuiz", JSON.stringify(quiz));
-    // Navigate to quiz taking page
     router.push(`/student/student-dashboard/quizzes/${quiz.id}`);
   };
 
@@ -188,17 +271,17 @@ export default function StudentQuizzesPage() {
           Loading quizzes...
         </div>
       </div>
-    );  
+    );
   }
 
   const categories = categorizeQuizzes();
   const getFilteredQuizzes = () => {
-    switch(selectedCategory) {
+    switch (selectedCategory) {
       case "pretests":
         return categories.pretests;
       case "posttests":
         return categories.posttests;
-      case "surveys":  // Changed from 'practice' to 'surveys'
+      case "surveys":
         return categories.surveys;
       case "modules":
         return categories.modules;
@@ -208,7 +291,7 @@ export default function StudentQuizzesPage() {
   };
 
   const filteredQuizzes = getFilteredQuizzes();
-  
+
   return (
     <div className="flex min-h-screen bg-gray-900 text-white">
       <StudentSidebar
@@ -218,19 +301,18 @@ export default function StudentQuizzesPage() {
         studentData={studentData}
       />
       <main className={"lg:ml-72 p-6 transition-all duration-300 w-full"}>
-        <div className="lg:hidden mb-6 pt-8">
-          {/* Space for hamburger button on mobile */}
-        </div>
+        <div className="lg:hidden mb-6 pt-8"></div>
 
         <div className="max-w-7xl mx-auto">
-          {/* Page Header with Refresh Button */}
+          {/* Page Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-2">
                 Available Quizzes & Surveys
               </h1>
               <p className="text-gray-400">
-                Complete assessments and surveys to track your spatial thinking progress
+                Complete assessments and surveys to track your spatial thinking
+                progress
               </p>
             </div>
             <button
@@ -239,7 +321,6 @@ export default function StudentQuizzesPage() {
               className={`flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200 ${
                 isRefreshing ? "opacity-50 cursor-not-allowed" : ""
               }`}
-              title="Refresh to see updated quiz visibility"
             >
               <svg
                 className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`}
@@ -260,104 +341,238 @@ export default function StudentQuizzesPage() {
             </button>
           </div>
 
-          {/* Loading message when refreshing */}
-          {isRefreshing && (
-            <div className="mb-4 p-3 bg-blue-600/20 border border-blue-600 rounded-lg text-blue-300 text-sm">
-              Fetching latest quiz settings...
-            </div>
-          )}
-
           {/* Category Filter Tabs */}
           <div className="flex flex-wrap gap-2 mb-6">
-            <button
-              onClick={() => setSelectedCategory("pretests")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCategory === "pretests"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Pre-Tests ({categories.pretests.length})
-            </button>
-            
-            <button
-              onClick={() => setSelectedCategory("modules")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCategory === "modules"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Module Quizzes ({categories.modules.length})
-            </button>
-            
-            <button
-              onClick={() => setSelectedCategory("posttests")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCategory === "posttests"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Post-Tests ({categories.posttests.length})
-            </button>
-            
-            <button
-              onClick={() => setSelectedCategory("surveys")}  
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCategory === "surveys"  
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              Surveys ({categories.surveys.length})  
-            </button>
-            
-            <button
-              onClick={() => setSelectedCategory("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedCategory === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-              }`}
-            >
-              All ({availableQuizzes.length})
-            </button>
+            {["pretests", "modules", "posttests", "surveys", "all"].map(
+              (category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    selectedCategory === category
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                  }`}
+                >
+                  {category === "all"
+                    ? "All"
+                    : category.charAt(0).toUpperCase() + category.slice(1)}{" "}
+                  (
+                  {category === "all"
+                    ? availableQuizzes.length
+                    : categories[category]?.length || 0}
+                  )
+                </button>
+              )
+            )}
           </div>
 
-          {/* Quiz List */}
+          {/* Enhanced Quiz Cards with Results */}
           {filteredQuizzes.length > 0 ? (
-            <div className="space-y-3">
-              {filteredQuizzes.map((quiz) => (
-                <StudentQuizCard
-                  key={quiz.id}
-                  quiz={quiz}
-                  onStart={handleStartQuiz}
-                  studentData={studentData}
-                />
-              ))}
+            <div className="space-y-4">
+              {filteredQuizzes.map((quiz) => {
+                const status = getQuizStatus(quiz);
+                const gradeInfo = getQuizGradeInfo(quiz);
+                const isCompleted = status === "completed";
+
+                return (
+                  <div
+                    key={quiz.id}
+                    className={`p-6 bg-gray-800 rounded-lg border-2 ${
+                      isCompleted ? "border-green-600/50" : "border-gray-700"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-xl font-bold mb-2">{quiz.name}</h3>
+                        <p className="text-gray-400 text-sm">
+                          {quiz.description}
+                        </p>
+                      </div>
+                      {isCompleted && (
+                        <span className="bg-green-600/20 text-green-400 text-xs px-3 py-1 rounded-full">
+                          ✓ Completed
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex gap-3 mb-4">
+                      {isCompleted ? (
+                        <>
+                          <button
+                            onClick={() => toggleResultsExpansion(quiz.id)}
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2"
+                          >
+                            <svg
+                              className={`w-5 h-5 transition-transform ${
+                                expandedResults[quiz.id] ? "rotate-180" : ""
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                            {expandedResults[quiz.id]
+                              ? "Hide Results"
+                              : "View Results"}
+                          </button>
+                          <button
+                            onClick={() => handleStartQuiz(quiz)}
+                            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg"
+                          >
+                            Retake Quiz
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleStartQuiz(quiz)}
+                          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+                        >
+                          Start Quiz
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Expanded Results Section */}
+                    {expandedResults[quiz.id] && isCompleted && gradeInfo && (
+                      <div className="mt-4 p-4 bg-gray-700/30 rounded-lg border border-gray-600">
+                        <h4 className="text-lg font-semibold mb-3">
+                          Your Quiz Results
+                        </h4>
+
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-gray-700/50">
+                              <tr>
+                                <th className="text-left text-xs text-gray-400 p-3">
+                                  Attempt
+                                </th>
+                                <th className="text-left text-xs text-gray-400 p-3">
+                                  Score
+                                </th>
+                                <th className="text-left text-xs text-gray-400 p-3">
+                                  Time Taken
+                                </th>
+                                <th className="text-left text-xs text-gray-400 p-3">
+                                  Date
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {markBestAttempt(gradeInfo).map(
+                                (attempt, index) => (
+                                  <tr
+                                    key={index}
+                                    className={`border-t border-gray-700 ${
+                                      attempt.isBest ? "bg-green-600/10" : ""
+                                    }`}
+                                  >
+                                    <td className="p-3 text-sm">
+                                      #{attempt.attemptNumber}
+                                      {attempt.isBest && (
+                                        <span className="ml-2 text-xs bg-green-600/30 text-green-300 px-2 py-1 rounded">
+                                          Best
+                                        </span>
+                                      )}
+                                    </td>
+                                    <td
+                                      className={`p-3 text-sm font-semibold ${
+                                        attempt.isBest
+                                          ? "text-green-400"
+                                          : "text-gray-300"
+                                      }`}
+                                    >
+                                      {attempt.score}/{quiz.total_score || "?"}
+                                    </td>
+                                    <td className="p-3 text-sm text-gray-300">
+                                      {attempt.timeTaken
+                                        ? // Convert seconds to minutes and seconds format
+                                          (() => {
+                                            const totalSeconds =
+                                              attempt.timeTaken;
+                                            const minutes = Math.floor(
+                                              totalSeconds / 60
+                                            );
+                                            const seconds = totalSeconds % 60;
+
+                                            // Handle hours if needed
+                                            if (minutes >= 60) {
+                                              const hours = Math.floor(
+                                                minutes / 60
+                                              );
+                                              const remainingMinutes =
+                                                minutes % 60;
+                                              return `${hours}h ${remainingMinutes}m ${seconds}s`;
+                                            }
+
+                                            // Just minutes and seconds
+                                            return `${minutes}m ${seconds}s`;
+                                          })()
+                                        : "-"}
+                                    </td>
+                                    <td className="p-3 text-sm text-gray-300">
+                                      {new Date(
+                                        attempt.timeSubmitted
+                                      ).toLocaleDateString()}
+                                    </td>
+                                  </tr>
+                                )
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Summary Stats */}
+                        <div className="grid grid-cols-3 gap-3 mt-4">
+                          <div className="bg-gray-800/50 p-3 rounded text-center">
+                            <p className="text-xs text-gray-400 mb-1">
+                              Attempts
+                            </p>
+                            <p className="text-xl font-bold">
+                              {gradeInfo.length}
+                            </p>
+                          </div>
+                          <div className="bg-gray-800/50 p-3 rounded text-center">
+                            <p className="text-xs text-gray-400 mb-1">
+                              Best Score
+                            </p>
+                            <p className="text-xl font-bold text-green-400">
+                              {Math.max(...gradeInfo.map((a) => a.score))}
+                            </p>
+                          </div>
+                          <div className="bg-gray-800/50 p-3 rounded text-center">
+                            <p className="text-xs text-gray-400 mb-1">
+                              Average
+                            </p>
+                            <p className="text-xl font-bold text-blue-400">
+                              {Math.round(
+                                gradeInfo.reduce((sum, a) => sum + a.score, 0) /
+                                  gradeInfo.length
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="bg-gray-800 rounded-lg p-8 text-center">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-600 mb-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
               <h3 className="text-lg font-medium text-gray-300 mb-2">
-                No {selectedCategory === "surveys" ? "Surveys" : "Quizzes"} Available
+                No {selectedCategory === "surveys" ? "Surveys" : "Quizzes"}{" "}
+                Available
               </h3>
               <p className="text-gray-500 mb-4">
-                {selectedCategory === "all" 
-                  ? "No quizzes or surveys are currently available for this course. Your instructor may release them as the course progresses."
+                {selectedCategory === "all"
+                  ? "No quizzes or surveys are currently available for this course."
                   : `No ${selectedCategory} are currently available.`}
               </p>
               <button

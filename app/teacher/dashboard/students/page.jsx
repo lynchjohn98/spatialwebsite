@@ -24,7 +24,29 @@ export default function Settings() {
       const response = await retrieveCourseSettings({ id: parsedData.id });
       if (response.success) {
         const settings = response.data;
-        const parsedStudentSettings = JSON.parse(settings.student_settings || "[]");
+        
+        // Properly handle student settings parsing
+        let parsedStudentSettings = [];
+        try {
+          if (typeof settings.student_settings === 'string') {
+            parsedStudentSettings = JSON.parse(settings.student_settings);
+          } else if (settings.student_settings) {
+            parsedStudentSettings = settings.student_settings;
+          }
+          
+          // Ensure it's an array
+          if (!Array.isArray(parsedStudentSettings)) {
+            if (typeof parsedStudentSettings === 'object' && parsedStudentSettings !== null) {
+              parsedStudentSettings = Object.values(parsedStudentSettings);
+            } else {
+              parsedStudentSettings = [];
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing student settings:", error);
+          parsedStudentSettings = [];
+        }
+        
         setCourseSettings(settings);
         setStudentData(parsedStudentSettings);
       } else {
@@ -47,78 +69,116 @@ export default function Settings() {
       setIsSaving(true);
       setSaveMessage({ type: '', text: 'Saving students to your course...' });
       const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
+      
+      // Ensure we're saving an array
+      const dataToSave = Array.isArray(updatedStudentData) ? updatedStudentData : [];
+      
       const payload = {
         courseId: courseData.id,
-        studentSettings: JSON.stringify(updatedStudentData)
+        studentSettings: JSON.stringify(dataToSave)
       };
+      
       const result = await updateStudentSettings(payload);
       if (result.success) {
         setSaveMessage({
           type: 'success',
           text: 'Student Data Updated Successfully.'
         });
+        // Update local state with the saved data
+        setStudentData(dataToSave);
+      } else {
+        throw new Error(result.error || 'Failed to update student data');
       }
     } catch (error) {
       console.error("Error updating student data:", error);
       setSaveMessage({
         type: 'error',
-        text: 'Failed to update student data. Please try again.'
+        text: `Failed to update student data: ${error.message}`
       });
     } finally {
       setIsSaving(false);
-      // Clear the message after 5 seconds
       setTimeout(() => {
         setSaveMessage({ type: '', text: '' });
       }, 5000);
     }
   }
 
-  // Updated handleRemoveStudent to integrate with backend
+  // Fixed handleRemoveStudent with proper data handling
   const handleRemoveStudent = async ({ studentId, studentUsername, courseId, index, studentData: student }) => {
     try {
-      // Call your deleteStudent function from student_management service
-      // Adjust parameters based on what your deleteStudent function expects
-      const deletePayload = {
-        studentId: student.id || student.student_id, // Use the actual student ID from your data
-        courseId: courseData.id,
-        studentUsername: student.student_username,
-        // Add any other required fields for your deleteStudent function
-      };
-
-      console.log("Deleting student with payload:", deletePayload);
+      // First, update the course settings to remove the student
+      const currentSettings = await retrieveCourseSettings({ id: courseData.id });
       
-      // Call your backend delete function
-      const result = await deleteStudent(deletePayload);
-      
-      if (result && result.success) {
-        // Update local state to reflect the removal
-        setStudentData(prevData => prevData.filter((_, i) => i !== index));
+      if (currentSettings.success && currentSettings.data) {
+        let studentSettings = currentSettings.data.student_settings;
         
-        // Show success message
-        setSaveMessage({
-          type: 'success',
-          text: `Successfully removed ${student.first_name} ${student.last_name} from the course.`
-        });
+        // Parse if string
+        if (typeof studentSettings === 'string') {
+          try {
+            studentSettings = JSON.parse(studentSettings);
+          } catch (e) {
+            console.error("Failed to parse student settings:", e);
+            studentSettings = [];
+          }
+        }
         
-        // Clear message after 5 seconds
-        setTimeout(() => {
-          setSaveMessage({ type: '', text: '' });
-        }, 5000);
+        // Ensure array
+        if (!Array.isArray(studentSettings)) {
+          if (typeof studentSettings === 'object' && studentSettings !== null) {
+            studentSettings = Object.values(studentSettings);
+          } else {
+            studentSettings = [];
+          }
+        }
         
-        return { success: true };
+        // Filter out the student
+        const updatedStudents = studentSettings.filter(
+          s => s.student_username !== student.student_username
+        );
+        
+        // Update course settings
+        const updatePayload = {
+          courseId: courseData.id,
+          studentSettings: JSON.stringify(updatedStudents)
+        };
+        
+        const updateResult = await updateStudentSettings(updatePayload);
+        
+        if (updateResult.success) {
+          // If student has an ID in the students table, delete that record too
+          if (student.id || student.student_id) {
+            try {
+              const deletePayload = {
+                studentId: student.id || student.student_id,
+                courseId: courseData.id,
+                studentUsername: student.student_username
+              };
+              
+              await deleteStudent(deletePayload);
+            } catch (deleteError) {
+              console.warn("Could not delete student record:", deleteError);
+              // Continue anyway - the important part is removing from course settings
+            }
+          }
+          
+          // Update local state
+          setStudentData(updatedStudents);
+          
+          setSaveMessage({
+            type: 'success',
+            text: `Successfully removed ${student.first_name || ''} ${student.last_name || ''} from the course.`
+          });
+          
+          setTimeout(() => {
+            setSaveMessage({ type: '', text: '' });
+          }, 5000);
+          
+          return { success: true };
+        } else {
+          throw new Error(updateResult.error || 'Failed to update course settings');
+        }
       } else {
-        // Handle failure
-        const errorMessage = result?.error || 'Failed to remove student from the course.';
-        setSaveMessage({
-          type: 'error',
-          text: errorMessage
-        });
-        
-        setTimeout(() => {
-          setSaveMessage({ type: '', text: '' });
-        }, 5000);
-        
-        return { success: false, error: errorMessage };
+        throw new Error('Failed to retrieve current course settings');
       }
     } catch (error) {
       console.error("Error removing student:", error);
@@ -147,7 +207,6 @@ export default function Settings() {
     );
   }
 
-  // Get course type for display
   const getCourseTypeInfo = () => {
     if (courseData?.course_gender === 'Male') return 'Male-only';
     if (courseData?.course_gender === 'Female') return 'Female-only';
@@ -187,7 +246,6 @@ export default function Settings() {
           </p>
           <p className="text-sm text-gray-400">
             Once you enter a student's first and last name, a unique username will be automatically generated for them to join the course.
-            <b> REMINDER: </b> the 
             {courseData?.course_gender && (courseData.course_gender === 'Male' || courseData.course_gender === 'Female') && (
               <span className="block mt-1 text-yellow-400">
                 Note: This is a {courseData.course_gender}-only course. All students will be set to {courseData.course_gender} gender by default.
@@ -228,7 +286,7 @@ export default function Settings() {
           teacherName={courseData?.course_teacher_name}
           countyName={courseData?.course_county}
           courseData={courseData}
-          onRemoveStudent={handleRemoveStudent} // Pass the handler here
+          onRemoveStudent={handleRemoveStudent}
         />
         
         <div className="mt-6 border border-gray-600 rounded bg-gray-700/50 p-4 flex flex-col items-center">

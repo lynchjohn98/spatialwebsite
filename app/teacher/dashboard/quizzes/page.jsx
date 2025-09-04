@@ -76,6 +76,22 @@ export default function TeacherQuizzes() {
     }
   };
 
+  const formatTime = (seconds) => {
+  if (!seconds || seconds === 0) return '-';
+  
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+};
+
   useEffect(() => {
     loadData();
   }, []);
@@ -473,12 +489,27 @@ export default function TeacherQuizzes() {
                                           {attempt.score}/{quiz.total_score || "?"}
                                         </td>
                                         <td className="p-3 text-sm text-gray-300">
-                                          {attempt.timeTaken ? (
-                                            `${Math.floor(attempt.timeTaken / 60000)}:${String(Math.floor((attempt.timeTaken % 60000) / 1000)).padStart(2, '0')}`
-                                          ) : (
-                                            '-'
-                                          )}
-                                        </td>
+  {attempt.timeTaken ? (
+    // Convert seconds to minutes and seconds format
+    (() => {
+      const totalSeconds = attempt.timeTaken;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      
+      // Handle hours if needed
+      if (minutes >= 60) {
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        return `${hours}h ${remainingMinutes}m ${seconds}s`;
+      }
+      
+      // Just minutes and seconds
+      return `${minutes}m ${seconds}s`;
+    })()
+  ) : (
+    '-'
+  )}
+</td>
                                         <td className="p-3 text-sm text-gray-300">
                                           {attempt.timeSubmitted ? (
                                             <>

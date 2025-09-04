@@ -2,6 +2,7 @@
 import { createClient } from "../../utils/supabase/server";
 import { v4 as uuidv4, v4 } from "uuid";
 export async function createTeacherAccount(payload) {
+  console.log("Payload:", payload);
   const supabase = await createClient();
   
   // Create a copy of the module progress
@@ -44,35 +45,68 @@ export async function createTeacherAccount(payload) {
       .select("*")
       .single();
     
-    //Access the unique id that was generated from the submission page:
-    const teacherId = data.id;
+    if (error) {
+      console.error("❌ Supabase Insert Error:", error);
+      
+      // Check for duplicate username error
+      if (error.code === '23505' || error.message.includes('unique') || error.message.includes('duplicate')) {
+        return { 
+          error: `The username "${payload.username}" is already taken. Please choose a different username.`,
+          success: false 
+        };
+      }
+      
+      // Return other database errors
+      return { 
+        error: "An error occurred while creating the account. Please try again.",
+        success: false 
+      };
+    }
     
+    // Only proceed if we have valid data
+    if (!data || !data.id) {
+      return { 
+        error: "Failed to create account. Please try again.",
+        success: false 
+      };
+    }
+    
+    console.log("Returned data:", data);
+    const teacherId = data.id;
+    console.log("Created teacher account with ID:", teacherId);
+    
+    // Create teacher progress record
     try {
-      const { data, error } = await supabase
+      const { error: progressError } = await supabase
         .from("teachers_progress")
         .insert([
           {
             teacher_id: teacherId,
-            module_progress: moduleProgress, // Use the potentially modified moduleProgress
+            module_progress: moduleProgress,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }
         ]);
-
-    } catch (error) {
-      console.error("❌ Supabase Select Error:", error.message);
-      return { error: "An error occurred while fetching teacher progress." };
-    }
-    
-    if (error) {
-      console.error("❌ Supabase Insert Error:", error.message);
-      return { error: "An error occurred while creating the teacher account. The username " + payload.username + " is already taken. Please choose a different username." };
+      
+      if (progressError) {
+        console.error("❌ Progress Insert Error:", progressError);
+        // Don't fail the whole operation if progress insert fails
+        // The teacher account was created successfully
+      }
+      
+    } catch (progressErr) {
+      console.error("❌ Progress creation error:", progressErr);
+      // Continue - the teacher account was still created
     }
     
     return { success: true, data };
+    
   } catch (err) {
     console.error("❌ Unexpected error:", err);
-    return { error: "An unexpected error occurred. Please try again." };
+    return { 
+      error: "An unexpected error occurred. Please try again.",
+      success: false 
+    };
   }
 }
 

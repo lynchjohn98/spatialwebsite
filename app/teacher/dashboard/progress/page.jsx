@@ -194,6 +194,22 @@ export default function StudentProgress() {
     }
   };
 
+  const formatTime = (seconds) => {
+  if (!seconds || seconds === 0) return 'N/A';
+  
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+};
+
   const getCompletionStats = useMemo(() => {
     if (!organizedData) return { overall: 0, byModule: {}, byStudent: {} };
 
@@ -555,7 +571,7 @@ export default function StudentProgress() {
                                             className="flex items-center justify-between cursor-pointer hover:bg-gray-700/30 p-1"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              setExpandedQuizzes(prev => ({
+                                              setExpandedQuizzes(v => ({
                                                 ...prev,
                                                 [`quiz-${quiz.id}-student-${student.id}`]: !prev[`quiz-${quiz.id}-student-${student.id}`]
                                               }));
@@ -593,8 +609,8 @@ export default function StudentProgress() {
                                                     <div className="flex items-center gap-2">
                                                       <Clock size={12} className="text-gray-500" />
                                                       <span className="text-gray-400">
-                                                        {grade.time_taken ? `${Math.floor(grade.time_taken / 60)}m ${grade.time_taken % 60}s` : 'N/A'}
-                                                      </span>
+  {formatTime(grade.time_taken)}
+</span>
                                                     </div>
                                                     <span className="text-gray-400">
                                                       {new Date(grade.time_submitted).toLocaleDateString('en-US', {
