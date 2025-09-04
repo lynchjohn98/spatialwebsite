@@ -1,13 +1,21 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-export default function AdminDashboard({ onLogout }) {
+export default function AdminPage() {
+  const [passcode, setPasscode] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [dataError, setDataError] = useState("");
+  const router = useRouter();
+  
+  // Dashboard states
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [isLoadingData, setIsLoadingData] = useState(false);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,7 +35,7 @@ export default function AdminDashboard({ onLogout }) {
     posttestComplete: ""
   });
   
-  // Available filter options (will be populated from data)
+  // Available filter options
   const [filterOptions, setFilterOptions] = useState({
     counties: [],
     genders: [],
@@ -39,13 +47,51 @@ export default function AdminDashboard({ onLogout }) {
   
   const supabase = createClientComponentClient();
 
+  // Check for existing admin authorization
   useEffect(() => {
-    fetchAllData();
+    const adminAuth = sessionStorage.getItem("adminAuthorized");
+    if (adminAuth === "true") {
+      setIsAuthorized(true);
+    }
   }, []);
 
-  const fetchAllData = async () => {
+  // Fetch data when authorized
+  useEffect(() => {
+    if (isAuthorized) {
+      fetchAllData();
+    }
+  }, [isAuthorized]);
+
+  const handlePasscodeChange = (e) => {
+    setPasscode(e.target.value);
+    if (error) setError("");
+  };
+
+  const handleSubmit = () => {
     setIsLoading(true);
     setError("");
+    
+    const adminPasscode = "1234"; 
+    
+    if (passcode === adminPasscode) {
+      sessionStorage.setItem("adminAuthorized", "true");
+      setIsAuthorized(true);
+    } else {
+      setError("Invalid admin passcode. Please try again.");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("adminAuthorized");
+    setIsAuthorized(false);
+    setPasscode("");
+  };
+
+  const fetchAllData = async () => {
+    setIsLoadingData(true);
+    setDataError("");
     
     try {
       // Fetch teachers data
@@ -96,9 +142,9 @@ export default function AdminDashboard({ onLogout }) {
       
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError("Failed to load data. Please try again.");
+      setDataError("Failed to load data. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsLoadingData(false);
     }
   };
 
@@ -289,14 +335,77 @@ export default function AdminDashboard({ onLogout }) {
     URL.revokeObjectURL(link.href);
   };
 
-  if (isLoading) {
+  // Login screen
+  if (!isAuthorized) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+        <div className="flex flex-col items-center justify-center flex-1 w-full px-4 py-8">
+          <div className="w-full max-w-md">
+            <div className="p-6 rounded-lg shadow-lg mb-8">
+              <h1 className="text-2xl font-bold mb-1 text-center">Admin Access</h1>
+              <p className="text-center">
+                Enter the admin passcode to access the administrative dashboard.
+              </p>
+            </div>
+            
+            <div className="space-y-6">
+              {error && (
+                <div className="bg-red-800 text-white p-3 rounded-md">
+                  {error}
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-lg font-medium mb-2">
+                  Admin Passcode
+                </label>
+                <input
+                  type="password"
+                  value={passcode}
+                  onChange={handlePasscodeChange}
+                  className="w-full px-4 py-3 rounded bg-blue-200 text-black"
+                  placeholder="Enter admin passcode"
+                />
+              </div>
+              
+              <div className="pt-4">
+                <button
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                  className={`w-full py-3 rounded-md font-medium transition-colors
+                    ${isLoading 
+                      ? 'bg-gray-500 cursor-not-allowed' 
+                      : 'bg-green-600 hover:bg-green-700 text-white'}`}
+                >
+                  {isLoading ? 'Verifying...' : 'Access Admin Panel'}
+                </button>
+              </div>
+              
+              <div className="text-center">
+                <button
+                  onClick={() => router.push("/")}
+                  className="text-blue-300 hover:text-blue-200 transition-colors text-sm"
+                >
+                  Return to Home
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for data
+  if (isLoadingData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
         <div className="text-xl">Loading data...</div>
       </div>
     );
   }
 
+  // Dashboard view
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
       {/* Header */}
@@ -304,7 +413,7 @@ export default function AdminDashboard({ onLogout }) {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
           <button
-            onClick={onLogout}
+            onClick={handleLogout}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md transition-colors"
           >
             Logout
@@ -697,7 +806,7 @@ export default function AdminDashboard({ onLogout }) {
         )}
       </div>
 
-      {/* Download Section - Moved to Bottom */}
+      {/* Download Section - At the Bottom */}
       <div className="bg-gray-800 p-6 rounded-lg">
         <h2 className="text-xl font-bold mb-4">Export Data</h2>
         
@@ -760,9 +869,9 @@ export default function AdminDashboard({ onLogout }) {
         </div>
       </div>
       
-      {error && (
+      {dataError && (
         <div className="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg">
-          {error}
+          {dataError}
         </div>
       )}
     </div>
