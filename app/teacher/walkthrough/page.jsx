@@ -21,10 +21,6 @@ export default function TeacherWalkthroughPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Support form states
-  const [supportEmail, setSupportEmail] = useState("");
-  const [supportMessage, setSupportMessage] = useState("");
-  const [supportSent, setSupportSent] = useState(false);
   const handleValidateCredentials = async () => {
     setResetError("");
     setIsValidating(true);
@@ -36,7 +32,6 @@ export default function TeacherWalkthroughPage() {
     }
 
     try {
-      // Call the combined server action
       const validationResult = await validateTeacherCredentials(
         resetUsername,
         adminCode
@@ -102,26 +97,6 @@ export default function TeacherWalkthroughPage() {
     }
   };
 
-  const handleSendSupport = () => {
-    if (!supportEmail || !supportMessage) {
-      alert("Please fill in both your email and message");
-      return;
-    }
-
-    const subject = encodeURIComponent("Teacher Support Request");
-    const body = encodeURIComponent(
-      `Support Request from Teacher Portal\n\n` +
-        `From: ${supportEmail}\n\n` +
-        `Message:\n${supportMessage}\n\n` +
-        `---\n` +
-        `Sent from Teacher Help Center`
-    );
-    console.log("GENERATING THIS MAIL", subject, body);
-    window.location.href = `mailto:lynchjohn98@gmail.com?subject=${subject}&body=${body}`;
-    setSupportSent(true);
-    setTimeout(() => setSupportSent(false), 5000);
-  };
-
   const resetForm = () => {
     setResetStep("validate");
     setResetUsername("");
@@ -168,13 +143,12 @@ export default function TeacherWalkthroughPage() {
             Teacher Help Center
           </h1>
           <p className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
-            Reset your password, create a new account, or watch a video
-            walkthrough of the platform.
+            Reset your password, create a new account, or watch video walkthroughs of the platform.
           </p>
         </div>
 
-        {/* Help Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Top Two Columns: Password Reset & Getting Started */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Password Reset Section */}
           <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-6 hover:border-blue-500 transition-all duration-200">
             <div className="text-center">
@@ -203,7 +177,6 @@ export default function TeacherWalkthroughPage() {
                     Enter your username and admin code to reset your password.
                   </p>
 
-                  {/* Username Input */}
                   <div className="mb-4">
                     <input
                       type="text"
@@ -215,7 +188,6 @@ export default function TeacherWalkthroughPage() {
                     />
                   </div>
 
-                  {/* Admin Code Input with Show/Hide */}
                   <div className="mb-4">
                     <div className="relative">
                       <input
@@ -290,7 +262,6 @@ export default function TeacherWalkthroughPage() {
                     </span>
                   </p>
 
-                  {/* New Password Input with Show/Hide */}
                   <div className="mb-4">
                     <div className="relative">
                       <input
@@ -345,7 +316,6 @@ export default function TeacherWalkthroughPage() {
                     </div>
                   </div>
 
-                  {/* Confirm Password Input with Show/Hide */}
                   <div className="mb-4">
                     <div className="relative">
                       <input
@@ -419,7 +389,6 @@ export default function TeacherWalkthroughPage() {
                 </>
               )}
 
-              {/* Error Message */}
               {resetError && (
                 <div className="mt-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg">
                   <p className="text-red-400 text-sm">{resetError}</p>
@@ -428,7 +397,7 @@ export default function TeacherWalkthroughPage() {
             </div>
           </div>
 
-          {/* Account Creation Guide */}
+          {/* Getting Started Guide */}
           <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-6 hover:border-green-500 transition-all duration-200">
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -455,7 +424,6 @@ export default function TeacherWalkthroughPage() {
               </p>
             </div>
 
-            {/* Step-by-step guide */}
             <div className="text-left space-y-4">
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -515,42 +483,43 @@ export default function TeacherWalkthroughPage() {
               Start Creating Account
             </button>
           </div>
+        </div>
 
-          {/* Video Walkthrough */}
-          <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-6 hover:border-purple-500 transition-all duration-200">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-8 h-8 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+        {/* Video Tutorials Section */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8 text-white">Video Tutorials</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* First Video */}
+            <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-6 hover:border-purple-500 transition-all duration-200">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold mb-4 text-white">
+                  Platform Walkthrough
+                </h3>
+                <p className="text-gray-400 mb-6 leading-relaxed">
+                  Learn how to create an account and navigate the application.
+                </p>
               </div>
-              <h3 className="text-2xl font-semibold mb-4 text-white">
-                Video Tutorial
-              </h3>
-              <p className="text-gray-400 mb-6 leading-relaxed">
-                Watch our comprehensive walkthrough video to see the platform in
-                action and learn key features.
-              </p>
-            </div>
-
-            {/* Video Component */}
-            <div className="mb-6">
               <ExpandableVideo
                 videoId="https://youtu.be/tDV6CiMCrXk"
                 title="Spatial Thinking Platform Walkthrough"
@@ -558,112 +527,52 @@ export default function TeacherWalkthroughPage() {
               />
             </div>
 
-            {/* Video Topics */}
-            <div className="text-left">
-              <h4 className="text-white font-medium mb-3">Video covers:</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li className="flex items-center gap-2">
+            {/* Second Video */}
+            <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-6 hover:border-purple-500 transition-all duration-200">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <svg
-                    className="w-4 h-4 text-purple-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
                     <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
                     />
-                  </svg>
-                  Account setup and navigation
-                </li>
-                <li className="flex items-center gap-2">
-                  <svg
-                    className="w-4 h-4 text-purple-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
                     <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  Taking assessments and training
-                </li>
-                <li className="flex items-center gap-2">
-                  <svg
-                    className="w-4 h-4 text-purple-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Creating and managing courses
-                </li>
-                <li className="flex items-center gap-2">
-                  <svg
-                    className="w-4 h-4 text-purple-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Student enrollment and tracking
-                </li>
-              </ul>
+                </div>
+                <h3 className="text-xl font-semibold mb-4 text-white">
+                  Teacher Training Meeting
+                </h3>
+                <p className="text-gray-400 mb-6 leading-relaxed">
+                  Review the comprehensive teacher training session.
+                </p>
+              </div>
+              <ExpandableVideo
+                videoId="https://youtu.be/HMcChKCtot0"
+                title="Teacher Training Meeting"
+                description="Complete teacher training session recording"
+              />
             </div>
           </div>
         </div>
 
         {/* Support Contact Section */}
-        <div className="mt-12 bg-gray-800/50 border border-gray-600 rounded-xl p-8">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold mb-3 text-white">
-              Need Additional Help?
-            </h2>
-            <p className="text-gray-400">
-              Send us a message and we'll get back to you as soon as possible
-            </p>
-          </div>
-
-          <div className="max-w-2xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <input
-                type="email"
-                value={supportEmail}
-                onChange={(e) => setSupportEmail(e.target.value)}
-                placeholder="Your email address"
-                className="px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Subject (optional)"
-                className="px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-
-            <textarea
-              value={supportMessage}
-              onChange={(e) => setSupportMessage(e.target.value)}
-              placeholder="Describe your question or issue in detail..."
-              rows={5}
-              className="w-full px-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none resize-none mb-4"
-            />
-
-            <button
-              onClick={handleSendSupport}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-            >
+        <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
-                className="w-5 h-5"
+                className="w-8 h-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -675,16 +584,16 @@ export default function TeacherWalkthroughPage() {
                   d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                 />
               </svg>
-              Send Support Request
-            </button>
-
-            {supportSent && (
-              <div className="mt-4 p-3 bg-green-500/10 border border-green-500/50 rounded-lg">
-                <p className="text-green-400 text-center">
-                  Email sent successfully, please check your inbox for a response.
-                </p>
-              </div>
-            )}
+            </div>
+            <h2 className="text-2xl font-bold mb-4 text-white">
+              Need Additional Help?
+            </h2>
+            <p className="text-gray-300 text-lg">
+              Send an email to <a href="mailto:lynchjohn98@gmail.com" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">lynchjohn98@gmail.com</a>
+            </p>
+            <p className="text-gray-400 mt-2">
+              Please include your username and a detailed description of your issue
+            </p>
           </div>
         </div>
       </div>
