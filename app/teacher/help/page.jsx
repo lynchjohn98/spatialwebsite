@@ -1,210 +1,99 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import ExpandableVideo from "../../../components/module_blocks/ExpandableVideo";
 export default function TeacherHelpPage() {
   const router = useRouter();
-  const [expandedSections, setExpandedSections] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState({});
 
-  const toggleSection = (sectionId) => {
-    setExpandedSections(prev => ({
+  useEffect(() => {
+    if (!sessionStorage.getItem("teacherData")) {
+      router.push("/teacher/login");
+      return;
+    }
+  }, []); // Placeholder for useEffect if needed in future
+
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories((prev) => ({
       ...prev,
-      [sectionId]: !prev[sectionId]
+      [categoryId]: !prev[categoryId],
     }));
   };
 
-  const helpSections = [
+  const helpCategories = [
     {
-      id: 'getting-started',
-      title: 'Getting Started',
-      icon: '🚀',
-      color: 'from-blue-500 to-cyan-500',
-      topics: [
+      id: "account-management",
+      title: "Account Creation and Management",
+      icon: "👤",
+      color: "from-blue-500 to-cyan-500",
+      videos: [
         {
-          question: 'How do I create my teacher account?',
-          answer: 'Navigate to the registration page and enter your details including name, email, and school information. You\'ll receive a confirmation email to verify your account.',
-          videoPlaceholder: 'Account Creation Tutorial'
+          videoId: "https://youtu.be/bleGiJtmxbI",
+          title: "Creating Your Teacher Account",
+          description: "Learn how to register and set up your teacher account",
         },
-        {
-          question: 'How do I create a new course?',
-          answer: 'From your homepage, click the "Create Course" button. Fill in the course details including name, language, county, and demographic information. Select whether this is a research course and configure the appropriate settings.',
-          videoPlaceholder: 'Course Setup Guide'
-        },
-        {
-          question: 'What is a course join code?',
-          answer: 'Each course automatically generates a unique 8-character join code (e.g., "abc123de"). Share this code with your students so they can join your course. You can copy the code from your courses page.',
-          videoPlaceholder: 'Understanding Join Codes'
-        }
-      ]
+      ],
     },
     {
-      id: 'student-management',
-      title: 'Student Management',
-      icon: '👥',
-      color: 'from-purple-500 to-pink-500',
-      topics: [
+      id: "teacher-training",
+      title: "Teacher Training and Progress",
+      icon: "🎓",
+      color: "from-purple-500 to-pink-500",
+      videos: [
         {
-          question: 'How do I add students to my course?',
-          answer: 'Go to Course Settings and use the Student Table. You can add students individually by entering their first name, last name, age, and ESL status. Each student will receive a unique username automatically generated based on their information.',
-          videoPlaceholder: 'Adding Students Tutorial'
+          videoId: "https://youtu.be/ZxYS_oCNqIM",
+          title: "Complete Teacher Training Overview",
+          description:
+            "Step-by-step guide through all training modules and requirements",
         },
-        {
-          question: 'What if two students have the same name?',
-          answer: 'The system automatically generates unique usernames even for students with identical names by adding a random character. You can also manually regenerate usernames using the refresh button next to each username.',
-          videoPlaceholder: 'Managing Duplicate Names'
-        },
-        {
-          question: 'How do I remove a student from my course?',
-          answer: 'In the Student Table within Course Settings, click the red "X" button next to the student you want to remove. Remember to save your changes using the "Submit Changes" button at the bottom.',
-          videoPlaceholder: 'Removing Students'
-        },
-        {
-          question: 'Can I bulk import students?',
-          answer: 'Currently, students are added individually through the Student Table. Make sure to save all changes after adding multiple students.',
-          videoPlaceholder: 'Student Import Process'
-        }
-      ]
+      ],
     },
     {
-      id: 'research-consent',
-      title: 'Research & Consent Management',
-      icon: '📋',
-      color: 'from-green-500 to-teal-500',
-      topics: [
+      id: "course-management",
+      title: "Course Creation and Management",
+      icon: "📚",
+      color: "from-green-500 to-teal-500",
+      videos: [
         {
-          question: 'How do I track student research consent?',
-          answer: 'Navigate to the Research Consent page from your course menu. Use the checkbox system to mark which students have provided consent, including parent consent and student assent. You can add dates and notes for each student.',
-          videoPlaceholder: 'Consent Tracking Overview'
+          videoId: "https://youtu.be/r1GHn7hdQS0",
+          title: "Course Setup and Configuration",
+          description:
+            "Create courses, manage settings, and control visibility",
         },
-        {
-          question: 'How do I upload consent forms?',
-          answer: 'On the Research Consent page, use the drag-and-drop area or click "Select Files" to upload PDF scans, images, or documents of signed consent forms. Files are securely stored and can be viewed or deleted as needed.',
-          videoPlaceholder: 'Uploading Consent Forms'
-        },
-        {
-          question: 'What file types are supported for consent forms?',
-          answer: 'The system supports PDF files, images (JPG, PNG), and document files (DOC, DOCX). Files can be uploaded individually or in bulk by selecting multiple files at once.',
-          videoPlaceholder: 'Supported File Types'
-        },
-        {
-          question: 'How do I update student consent status in bulk?',
-          answer: 'Use the "Select All" checkbox in the consent table header to mark all students at once, or update them individually. Click "Save Consent Data" to save changes, and "Update Student Consent Settings" to sync with the main student database.',
-          videoPlaceholder: 'Bulk Consent Updates'
-        }
-      ]
+      ],
     },
     {
-      id: 'visibility-settings',
-      title: 'Module & Quiz Visibility',
-      icon: '👁️',
-      color: 'from-orange-500 to-red-500',
-      topics: [
+      id: "student-management",
+      title: "Student Management and Progress Tracking",
+      icon: "👥",
+      color: "from-orange-500 to-red-500",
+      videos: [
         {
-          question: 'How do I control what students can see?',
-          answer: 'Go to Course Settings and use the Module Visibility and Quiz Visibility tables. Click the checkmark/X icons to toggle visibility for each module or quiz. Green checkmarks mean visible, red X means hidden.',
-          videoPlaceholder: 'Visibility Controls Tutorial'
+          videoId: "https://youtu.be/lQBxZhuwWiw",
+          title: "Student Enrollment and Progress Monitoring",
+          description: "Add students and track their progress",
         },
-        {
-          question: 'Do I need to complete training before making modules visible?',
-          answer: 'Yes, the system will warn you if you try to make modules visible without completing the required training components (Getting Started, Introduction Video, Mini Lecture, Quiz, Software, and Workbook).',
-          videoPlaceholder: 'Training Requirements'
-        },
-        {
-          question: 'When do visibility changes take effect?',
-          answer: 'Visibility changes take effect immediately after clicking "Submit Changes" at the bottom of the settings page. Students will see updated content on their next page refresh.',
-          videoPlaceholder: 'Understanding Visibility Updates'
-        },
-        {
-          question: 'Can I schedule module visibility?',
-          answer: 'Currently, visibility is controlled manually. You need to log in and update the settings when you want to make modules available to students.',
-          videoPlaceholder: 'Module Scheduling Options'
-        }
-      ]
+      ],
+    },
+  ];
+
+  const fullDemos = [
+    {
+      videoId: "https://youtu.be/tDV6CiMCrXk",
+      title: "Complete Spatial Thinking LMS Walkthrough",
+      description:
+        "Full demonstration of making a teacher account, creating a course, adding students, and tracking progress",
+      icon: "🎬",
+      color: "from-indigo-500 to-purple-500",
     },
     {
-      id: 'quiz-assessment',
-      title: 'Quizzes & Assessments',
-      icon: '📝',
-      color: 'from-indigo-500 to-blue-500',
-      topics: [
-        {
-          question: 'What types of questions are on the quizzes?',
-          answer: 'Quizzes include three types of questions: Multiple Choice (select one answer), Multiple Select (select all that apply), and Text Input (type your answer). Each quiz provides an overview of question types before starting.',
-          videoPlaceholder: 'Quiz Question Types'
-        },
-        {
-          question: 'Can students retake quizzes?',
-          answer: 'Quiz retake policies depend on your course settings. Check the quiz visibility settings to configure whether students can retake quizzes and how many attempts are allowed.',
-          videoPlaceholder: 'Quiz Retake Settings'
-        },
-        {
-          question: 'How do I view student quiz results?',
-          answer: 'Access the Gradebook or Student Progress section from your course dashboard to view detailed quiz results, including individual responses and overall scores.',
-          videoPlaceholder: 'Viewing Quiz Results'
-        },
-        {
-          question: 'Are quiz answers saved automatically?',
-          answer: 'Yes, student answers are saved as they progress through the quiz. If a student loses connection, they can resume from where they left off.',
-          videoPlaceholder: 'Auto-Save Features'
-        }
-      ]
+      videoId: "https://youtu.be/HMcChKCtot0",
+      title: "End-to-End Semester Management",
+      description:
+        "Demonstration from Dr. Gavin Duffy and Dr. Sheryl Sorby from training event",
+      icon: "📹",
+      color: "from-pink-500 to-rose-500",
     },
-    {
-      id: 'course-settings',
-      title: 'Course Configuration',
-      icon: '⚙️',
-      color: 'from-gray-500 to-gray-600',
-      topics: [
-        {
-          question: 'How do I update course details?',
-          answer: 'Navigate to Course Settings to modify course name, language, demographics, and research settings. Remember to save changes using the "Submit Changes" button.',
-          videoPlaceholder: 'Course Settings Overview'
-        },
-        {
-          question: 'What are DEIS schools?',
-          answer: 'DEIS (Delivering Equality of Opportunity in Schools) is an Irish Department of Education program for schools in disadvantaged areas. Select "DEIS" or "Non-DEIS" based on your school\'s designation.',
-          videoPlaceholder: 'Understanding DEIS'
-        },
-        {
-          question: 'Can I change the course join code?',
-          answer: 'Course join codes are automatically generated and cannot be manually changed. If you need a new code, you would need to create a new course.',
-          videoPlaceholder: 'Join Code Management'
-        },
-        {
-          question: 'How do I delete a course?',
-          answer: 'From the "View Your Courses" page, click the delete button (trash icon) next to the course. Confirm the deletion in the popup. Warning: This permanently removes all associated data including students and grades.',
-          videoPlaceholder: 'Course Deletion Process'
-        }
-      ]
-    },
-    {
-      id: 'troubleshooting',
-      title: 'Troubleshooting',
-      icon: '🔧',
-      color: 'from-red-500 to-pink-500',
-      topics: [
-        {
-          question: 'Students can\'t join my course',
-          answer: 'Verify the join code is correct and that students are entering it exactly as shown (case-sensitive). Check that the course is active and hasn\'t been deleted.',
-          videoPlaceholder: 'Troubleshooting Join Issues'
-        },
-        {
-          question: 'Changes aren\'t saving',
-          answer: 'Always click "Submit Changes" or "Save" buttons after making modifications. Check your internet connection and try refreshing the page if issues persist.',
-          videoPlaceholder: 'Fixing Save Issues'
-        },
-        {
-          question: 'File upload fails',
-          answer: 'Ensure files are under the size limit and in supported formats (PDF, JPG, PNG, DOC, DOCX). Check your internet connection and try uploading files one at a time if bulk upload fails.',
-          videoPlaceholder: 'Upload Troubleshooting'
-        },
-        {
-          question: 'Missing student progress data',
-          answer: 'Student progress records are created automatically when students are added. If data is missing, try refreshing the page or re-saving the student information.',
-          videoPlaceholder: 'Data Recovery Tips'
-        }
-      ]
-    }
   ];
 
   return (
@@ -230,10 +119,8 @@ export default function TeacherHelpPage() {
               </svg>
               <span className="font-medium">Back to Homepage</span>
             </button>
-            
-            <div className="text-sm text-gray-400">
-              Help Center
-            </div>
+
+            <div className="text-sm text-gray-400">Video Help Center</div>
           </div>
         </div>
       </div>
@@ -243,36 +130,36 @@ export default function TeacherHelpPage() {
         {/* Page Title */}
         <div className="text-center mb-10">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Teacher Help Center
+            Teacher Video Tutorials
           </h1>
-   
+          <p className="text-gray-400 text-lg">
+            Click on any category to view helpful video tutorials
+          </p>
         </div>
 
-        {/* Help Sections */}
-        <div className="space-y-6">
-          {helpSections.map((section) => (
+        {/* Main Categories */}
+        <div className="space-y-4 mb-8">
+          {helpCategories.map((category) => (
             <div
-              key={section.id}
-              id={section.id}
+              key={category.id}
               className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden"
             >
-              {/* Section Header */}
+              {/* Category Header */}
               <button
-                onClick={() => toggleSection(section.id)}
+                onClick={() => toggleCategory(category.id)}
                 className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-700/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{section.icon}</span>
-                  <h2 className={`text-xl font-semibold bg-gradient-to-r ${section.color} bg-clip-text text-transparent`}>
-                    {section.title}
+                  <span className="text-2xl">{category.icon}</span>
+                  <h2
+                    className={`text-xl font-semibold bg-gradient-to-r ${category.color} bg-clip-text text-transparent`}
+                  >
+                    {category.title}
                   </h2>
-                  <span className="text-sm text-gray-400">
-                    ({section.topics.length} topics)
-                  </span>
                 </div>
                 <svg
                   className={`w-5 h-5 text-gray-400 transition-transform ${
-                    expandedSections[section.id] ? 'rotate-180' : ''
+                    expandedCategories[category.id] ? "rotate-180" : ""
                   }`}
                   fill="none"
                   stroke="currentColor"
@@ -287,76 +174,85 @@ export default function TeacherHelpPage() {
                 </svg>
               </button>
 
-              {/* Section Content */}
-              {expandedSections[section.id] && (
-                <div className="px-6 pb-6 space-y-6 border-t border-gray-700">
-                  {section.topics.map((topic, index) => (
-                    <div
-                      key={index}
-                      className="py-4 border-b border-gray-700/50 last:border-0"
-                    >
-                      {/* Question */}
-                      <h3 className="font-medium text-white mb-3 flex items-start">
-                        <span className="text-blue-400 mr-2">Q:</span>
-                        {topic.question}
-                      </h3>
-                      
-                      {/* Answer */}
-                      <div className="text-gray-300 pl-6 mb-4">
-                        <span className="text-green-400 mr-2">A:</span>
-                        {topic.answer}
-                      </div>
-                      
-                      {/* Video Placeholder */}
-                      <div className="ml-6 mt-3">
-                        <div className="bg-gray-700/50 border border-gray-600 rounded-lg p-4 flex items-center gap-3">
-                          <div className="flex-shrink-0">
-                            <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                              <svg 
-                                className="w-6 h-6 text-gray-400" 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                              >
-                                <path 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  strokeWidth={2} 
-                                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" 
-                                />
-                                <path 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round" 
-                                  strokeWidth={2} 
-                                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-200">
-                              Video Tutorial: {topic.videoPlaceholder}
-                            </p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              Video coming soon
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              {/* Video List using ExpandableVideo component */}
+              {expandedCategories[category.id] && (
+                <div className="px-6 pb-6 border-t border-gray-700">
+                  <div className="pt-4 space-y-3">
+                    {category.videos.map((video, index) => (
+                      <ExpandableVideo
+                        key={index}
+                        videoId={video.videoId}
+                        title={video.title}
+                        description={video.description}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* Contact Support */}
-        <div className="mt-12 bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg border border-blue-700/50 p-6 text-center">
-          <h3 className="text-xl font-semibold mb-2">Still need help?</h3>
-          <p className="text-gray-300 mb-4">
-            If further assistance is needed, please email <b>lynchjohn98@gmail.com</b> with SpatialLMS in the subject line.
-          </p>
+        {/* Full Demo Walkthroughs Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+            Complete Walkthrough Demos
+          </h2>
+          <div className="space-y-4">
+            {fullDemos.map((demo, index) => (
+              <div
+                key={index}
+                className="bg-gray-800/50 rounded-lg border border-gray-700 p-6"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-2xl">{demo.icon}</span>
+                  <div>
+                    <h3
+                      className={`text-lg font-semibold bg-gradient-to-r ${demo.color} bg-clip-text text-transparent`}
+                    >
+                      {demo.title}
+                    </h3>
+                    <span className="text-sm text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full inline-block mt-1">
+                      Full Demo
+                    </span>
+                  </div>
+                </div>
+                <ExpandableVideo
+                  videoId={demo.videoId}
+                  title={demo.title}
+                  description={demo.description}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Links Section */}
+        <div className="mt-12 grid md:grid-cols-1 gap-4">
+          <div className="bg-gradient-to-r from-green-900/30 to-teal-900/30 rounded-lg border border-green-700/50 p-6">
+            <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+              <svg
+                className="w-5 h-5 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              Support Contact
+            </h3>
+            <p className="text-gray-300 text-sm mb-3">
+              Need additional help? Contact support
+            </p>
+            <p className="text-green-400 text-sm font-medium">
+              lynchjohn98@gmail.com
+            </p>
+          </div>
         </div>
       </div>
     </div>
