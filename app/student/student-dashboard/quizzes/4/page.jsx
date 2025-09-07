@@ -77,8 +77,9 @@ export default function CombiningSolidsQuiz() {
         // Check if quiz settings exist and find the "Combining Solids" quiz
         if (courseData?.settings?.quiz_settings) {
           const combiningSolidsQuiz = courseData.settings.quiz_settings.find(
-            quiz => quiz.name === "Combining Solids"
-          );
+          quiz => quiz.name.toLowerCase().includes("combining") || 
+                  quiz.name.toLowerCase().includes("solids")
+        );
           
           if (combiningSolidsQuiz) {
             // Check visibility
