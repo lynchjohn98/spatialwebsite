@@ -62,72 +62,107 @@ const [quizVisible, setQuizVisible] = useState(false);
   };
 
   useEffect(() => {
-    try {
-      // Load student data
-      if (sessionStorage.getItem("studentData") !== null) {
-        setStudentData(JSON.parse(sessionStorage.getItem("studentData")));
-      }
+  try {
+    // Load student data
+    if (sessionStorage.getItem("studentData") !== null) {
+      setStudentData(JSON.parse(sessionStorage.getItem("studentData")));
+    }
+    
+    // Load course data and check quiz visibility
+    if (sessionStorage.getItem("courseData") !== null) {
+      const courseData = JSON.parse(sessionStorage.getItem("courseData"));
       
-      // Load course data and check quiz visibility
-      if (sessionStorage.getItem("courseData") !== null) {
-        const courseData = JSON.parse(sessionStorage.getItem("courseData"));
-        console.log(courseData);
+      // Check if quiz settings exist and properly parse them
+      if (courseData?.settings?.quiz_settings) {
+        let quizSettings = courseData.settings.quiz_settings;
         
-        // Check if quiz settings exist and find the "Rotation Single Axis" quiz
-        if (courseData?.settings?.quiz_settings) {
-          const rotationSingleAxisQuiz = courseData.settings.quiz_settings.find(
-            quiz => quiz.name === "Rotation of Objects About a Single Axis"
+        // Step 1: Parse quiz_settings if it's a string
+        if (typeof quizSettings === "string") {
+          try {
+            quizSettings = JSON.parse(quizSettings);
+          } catch (parseError) {
+            console.error("Failed to parse quiz_settings:", parseError);
+            setAccessMessage("Unable to load quiz settings. Please try again later.");
+            setIsLoading(false);
+            setTimeout(() => {
+              router.push("/student/student-dashboard/");
+            }, 3000);
+            return;
+          }
+        }
+        
+        // Step 2: Convert object to array if needed
+        if (!Array.isArray(quizSettings)) {
+          if (typeof quizSettings === 'object' && quizSettings !== null) {
+            // Convert object to array
+            quizSettings = Object.values(quizSettings);
+          } else {
+            console.error("Quiz settings is not in expected format");
+            setAccessMessage("Quiz configuration error. Please contact your instructor.");
+            setIsLoading(false);
+            setTimeout(() => {
+              router.push("/student/student-dashboard/");
+            }, 3000);
+            return;
+          }
+        }
+        
+        // Step 3: Now we can safely use .find() on the array
+        // CUSTOMIZE THIS SEARCH FOR EACH QUIZ
+        const targetQuiz = quizSettings.find(
+          quiz => quiz.name === "Rotation of Objects About a Single Axis"
           );
 
-          if (rotationSingleAxisQuiz) {
-            // Check visibility
-            if (rotationSingleAxisQuiz.visibility === "Yes") {
-              setQuizVisible(true);
-              setIsLoading(false);
-            } else {
-              // Quiz is not visible, set message and redirect
-              setQuizVisible(false);
-              setAccessMessage("This quiz is not currently available. Please check back later or contact your instructor.");
-              setIsLoading(false);
-              
-              // Redirect after showing message for 3 seconds
-              setTimeout(() => {
-                router.push("/student/student-dashboard/");
-              }, 3000);
-            }
-          } else {
-            // Quiz not found in settings
-            setAccessMessage("Quiz configuration not found. Please contact your instructor.");
+        
+        if (targetQuiz) {
+          // Check visibility
+          if (targetQuiz.visibility === "Yes") {
+            setQuizVisible(true);
             setIsLoading(false);
+          } else {
+            // Quiz is not visible, set message and redirect
+            setQuizVisible(false);
+            setAccessMessage("This quiz is not currently available. Please check back later or contact your instructor.");
+            setIsLoading(false);
+            
+            // Redirect after showing message for 3 seconds
             setTimeout(() => {
               router.push("/student/student-dashboard/");
             }, 3000);
           }
         } else {
-          // No quiz settings found
-          setAccessMessage("Unable to load quiz settings. Please try again later.");
+          // Quiz not found in settings
+          setAccessMessage("Quiz configuration not found. Please contact your instructor.");
           setIsLoading(false);
           setTimeout(() => {
             router.push("/student/student-dashboard/");
           }, 3000);
         }
       } else {
-        // No course data found
-        setAccessMessage("Course data not found. Please log in again.");
+        // No quiz settings found
+        setAccessMessage("Unable to load quiz settings. Please try again later.");
         setIsLoading(false);
         setTimeout(() => {
           router.push("/student/student-dashboard/");
         }, 3000);
       }
-    } catch (error) {
-      console.error("Error parsing data from sessionStorage:", error);
-      setAccessMessage("An error occurred while loading the quiz. Please try again.");
+    } else {
+      // No course data found
+      setAccessMessage("Course data not found. Please log in again.");
       setIsLoading(false);
       setTimeout(() => {
         router.push("/student/student-dashboard/");
       }, 3000);
     }
-  }, [router]);
+  } catch (error) {
+    console.error("Error parsing data from sessionStorage:", error);
+    setAccessMessage("An error occurred while loading the quiz. Please try again.");
+    setIsLoading(false);
+    setTimeout(() => {
+      router.push("/student/student-dashboard/");
+    }, 3000);
+  }
+}, [router]);
 
   const handleQuizComplete = async (results) => {
     try {

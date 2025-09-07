@@ -14,6 +14,8 @@ export default function StudentDashboard() {
   useEffect(() => {
     const storedCourseData = sessionStorage.getItem("courseData");
     const storedStudentData = sessionStorage.getItem("studentData");
+    console.log("Student logged in: ", storedStudentData);
+    console.log("Course data: ", storedCourseData);
     if (storedCourseData && storedStudentData) {
       try {
         setCourseData(JSON.parse(storedCourseData));
