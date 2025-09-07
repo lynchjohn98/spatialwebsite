@@ -17,35 +17,49 @@ import {
   FileText,
   Monitor,
 } from "lucide-react";
+
 // Helper function to parse and organize data
 const parseAndOrganizeData = (responseData) => {
-  // Parse settings data
-  const settings = responseData.course_settings_data[0];
-  const moduleSettings = JSON.parse(settings.module_settings || "[]");
-  const quizSettings = JSON.parse(settings.quiz_settings || "[]");
-  const studentSettings = JSON.parse(settings.student_settings || "[]");
+  if (!responseData) return null;
 
-  // NEW: Create a mapping of quiz names to their total scores from the quizzes table
+  // Extract course settings and parse the JSON strings
+  const courseSettings = responseData.course_settings_data?.[0] || {};
+  
+  // Parse the JSON strings from course_settings_data
+  const studentSettings = courseSettings.student_settings 
+    ? JSON.parse(courseSettings.student_settings) 
+    : [];
+  
+  const moduleSettings = courseSettings.module_settings 
+    ? JSON.parse(courseSettings.module_settings) 
+    : [];
+  
+  const quizSettings = courseSettings.quiz_settings 
+    ? JSON.parse(courseSettings.quiz_settings) 
+    : [];
+
+  // Create quiz score map from quiz_information_data
   const quizScoreMap = {};
-  if (
-    responseData.quiz_information_data &&
-    Array.isArray(responseData.quiz_information_data)
-  ) {
-    responseData.quiz_information_data.forEach((quiz) => {
-      // Map by both name and ID for flexible lookup
-      if (quiz.name) {
-        quizScoreMap[quiz.name] = quiz.total_score;
-      }
-      if (quiz.id) {
-        quizScoreMap[quiz.id] = quiz.total_score;
-      }
+  if (responseData.quiz_information_data) {
+    responseData.quiz_information_data.forEach(quiz => {
+      quizScoreMap[quiz.id] = quiz.total_score;
+      quizScoreMap[quiz.name] = quiz.total_score;
     });
   }
+  
+  const visibleModules = moduleSettings.filter(
+    (m) => m.visibility === "Yes"
+  ).sort((a, b) => a.module_rank - b.module_rank);
 
-  // Create module lookup by name for progress mapping
   const modulesByName = {};
   moduleSettings.forEach((module) => {
-    // Clean module name for matching
+    // Store by full name
+    modulesByName[module.name] = {
+      ...module,
+      number: module.module_rank,
+      visible: module.visibility === "Yes",
+    };
+    // Also store by name without module prefix
     const cleanName = module.name.replace(/^(Pre-)?Module \d+:\s*/, "");
     modulesByName[cleanName] = {
       ...module,
@@ -54,32 +68,23 @@ const parseAndOrganizeData = (responseData) => {
     };
   });
 
-  // Organize quiz settings by type and merge with total_score from quizzes table
-  const organizedQuizzes = {
-    module: [],
-    survey: [],
-    pre_post_test: [],
-  };
+  // Get the list of enrolled students from student_settings
+  const enrolledStudentUsernames = new Set();
+  if (Array.isArray(studentSettings)) {
+    studentSettings.forEach(student => {
+      if (student.student_username) {
+        enrolledStudentUsernames.add(student.student_username);
+      }
+    });
+  }
 
-  quizSettings.forEach((quiz) => {
-    if (quiz.visibility === "Yes") {
-      // UPDATED: Merge the total_score from the quizzes table
-      const enhancedQuiz = {
-        ...quiz,
-        // Priority: quizzes table score > existing total_score > default 0
-        total_score:
-          quizScoreMap[quiz.name] ||
-          quizScoreMap[quiz.id] ||
-          quiz.total_score ||
-          0,
-      };
-      organizedQuizzes[quiz.type]?.push(enhancedQuiz);
-    }
-  });
-
-  // Process student data with their progress
-  const processedStudents = responseData.students_demographic_data.map(
-    (student) => {
+  // Process student data with their progress - FILTER to only enrolled students
+  const processedStudents = responseData.students_demographic_data
+    .filter(student => {
+      // Only include students who are in the student_settings (enrolled)
+      return enrolledStudentUsernames.has(student.student_username);
+    })
+    .map((student) => {
       const progressRecord = responseData.students_progress_data.find(
         (p) => p.student_id === student.id
       );
@@ -150,18 +155,41 @@ const parseAndOrganizeData = (responseData) => {
         progress: transformedProgress,
         quizGrades: gradesByModule,
       };
+    });
+
+  // Organize quiz settings by type and merge with total_score from quizzes table
+  const organizedQuizzes = {
+    module: [],
+    survey: [],
+    pre_post_test: [],
+  };
+
+  quizSettings.forEach((quiz) => {
+    if (quiz.visibility === "Yes") {
+      // Merge the total_score from the quizzes table
+      const enhancedQuiz = {
+        ...quiz,
+        // Priority: quizzes table score > existing total_score > default 0
+        total_score: quizScoreMap[quiz.name] || quizScoreMap[quiz.id] || quiz.total_score || 0,
+      };
+      
+      // Use the type field from quiz settings to categorize
+      const quizCategory = quiz.type || quiz.quiz_type || "module";
+      if (organizedQuizzes[quizCategory]) {
+        organizedQuizzes[quizCategory].push(enhancedQuiz);
+      } else {
+        organizedQuizzes.module.push(enhancedQuiz);
+      }
     }
-  );
+  });
 
   return {
     students: processedStudents,
     modules: moduleSettings.sort((a, b) => a.module_rank - b.module_rank),
     quizzes: organizedQuizzes,
-    visibleModules: moduleSettings
-      .filter((m) => m.visibility === "Yes")
-      .sort((a, b) => a.module_rank - b.module_rank),
+    visibleModules,
     allGrades: responseData.students_grade_data || [],
-    quizScoreMap: quizScoreMap, // NEW: Add this for reference if needed elsewhere
+    quizScoreMap,
   };
 };
 
@@ -724,7 +752,7 @@ export default function StudentProgress() {
                                             className="flex items-center justify-between cursor-pointer hover:bg-gray-700/30 p-1"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              setExpandedQuizzes((v) => ({
+                                              setExpandedQuizzes((prev) => ({
                                                 ...prev,
                                                 [`quiz-${quiz.id}-student-${student.id}`]:
                                                   !prev[

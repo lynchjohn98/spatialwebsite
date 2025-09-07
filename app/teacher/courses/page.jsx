@@ -2,9 +2,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getAllTeacherCourses, updateTeacherCourseSettings
+  getAllTeacherCourses,
+  updateTeacherCourseSettings,
 } from "../../library/services/teacher_actions";
-import { deleteCourse, updateCourse } from "../../library/services/course_actions";
+import {
+  deleteCourse,
+  updateCourse,
+} from "../../library/services/course_actions";
 
 export default function TeacherCoursesPage() {
   const router = useRouter();
@@ -16,21 +20,21 @@ export default function TeacherCoursesPage() {
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showActions, setShowActions] = useState({}); // For mobile menu
-  
+
   // Edit modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [courseToEdit, setCourseToEdit] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [editFormData, setEditFormData] = useState({
-    course_name: '',
+    course_name: "",
 
-    course_county: '',
-    course_urbanicity: '',
-    course_gender: '',
-    course_deis: '',
+    course_county: "",
+    course_urbanicity: "",
+    course_gender: "",
+    course_deis: "",
     course_research: false,
-    course_research_type: '',
-    course_language: ''
+    course_research_type: "",
+    course_language: "",
   });
 
   useEffect(() => {
@@ -56,12 +60,12 @@ export default function TeacherCoursesPage() {
   }, []);
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -69,17 +73,17 @@ export default function TeacherCoursesPage() {
     try {
       await navigator.clipboard.writeText(joinCode);
       setCopiedCode(joinCode);
-      
+
       setTimeout(() => {
         setCopiedCode(null);
       }, 2000);
     } catch (error) {
-      console.error('Failed to copy:', error);
-      const textArea = document.createElement('textarea');
+      console.error("Failed to copy:", error);
+      const textArea = document.createElement("textarea");
       textArea.value = joinCode;
       document.body.appendChild(textArea);
       textArea.select();
-      document.execCommand('copy');
+      document.execCommand("copy");
       document.body.removeChild(textArea);
       setCopiedCode(joinCode);
       setTimeout(() => setCopiedCode(null), 2000);
@@ -93,20 +97,22 @@ export default function TeacherCoursesPage() {
 
   const handleDeleteConfirm = async () => {
     if (!courseToDelete) return;
-    
+
     setIsDeleting(true);
     try {
       const result = await deleteCourse(courseToDelete.id);
       if (result.success) {
         // Remove the course from the list
-        setAllCourses(allCourses.filter(c => c.id !== courseToDelete.id));
+        setAllCourses(allCourses.filter((c) => c.id !== courseToDelete.id));
         setShowDeleteModal(false);
         setCourseToDelete(null);
-        
+
         // Update session storage if needed
         const storedData = JSON.parse(sessionStorage.getItem("teacherData"));
         if (storedData && storedData.courses) {
-          storedData.courses = storedData.courses.filter(c => c.id !== courseToDelete.id);
+          storedData.courses = storedData.courses.filter(
+            (c) => c.id !== courseToDelete.id
+          );
           sessionStorage.setItem("teacherData", JSON.stringify(storedData));
         }
       } else {
@@ -123,22 +129,22 @@ export default function TeacherCoursesPage() {
   const handleEditClick = (course) => {
     setCourseToEdit(course);
     setEditFormData({
-      course_name: course.course_name || '',
-      course_county: course.course_county || '',
-      course_urbanicity: course.course_urbanicity || '',
-      course_gender: course.course_gender || '',
-      course_deis: course.course_deis || '',
+      course_name: course.course_name || "",
+      course_county: course.course_county || "",
+      course_urbanicity: course.course_urbanicity || "",
+      course_gender: course.course_gender || "",
+      course_deis: course.course_deis || "",
       course_research: course.course_research || false,
-      course_research_type: course.course_research_type || '',
-      course_language: course.course_language || ''
+      course_research_type: course.course_research_type || "",
+      course_language: course.course_language || "",
     });
     setShowEditModal(true);
   };
 
   const handleEditFormChange = (field, value) => {
-    setEditFormData(prev => ({
+    setEditFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -147,24 +153,27 @@ export default function TeacherCoursesPage() {
 
     setIsUpdating(true);
     try {
-      const result = await updateTeacherCourseSettings(editFormData, courseToEdit.id);
+      const result = await updateTeacherCourseSettings(
+        editFormData,
+        courseToEdit.id
+      );
       if (result.success) {
         // Update the course in the list
-        setAllCourses(allCourses.map(c => 
-          c.id === courseToEdit.id 
-            ? { ...c, ...editFormData, updated_at: new Date().toISOString() }
-            : c
-        ));
+        setAllCourses(
+          allCourses.map((c) =>
+            c.id === courseToEdit.id
+              ? { ...c, ...editFormData, updated_at: new Date().toISOString() }
+              : c
+          )
+        );
         setShowEditModal(false);
         setCourseToEdit(null);
-        
+
         // Update session storage if needed
         const storedData = JSON.parse(sessionStorage.getItem("teacherData"));
         if (storedData && storedData.courses) {
-          storedData.courses = storedData.courses.map(c => 
-            c.id === courseToEdit.id 
-              ? { ...c, ...editFormData }
-              : c
+          storedData.courses = storedData.courses.map((c) =>
+            c.id === courseToEdit.id ? { ...c, ...editFormData } : c
           );
           sessionStorage.setItem("teacherData", JSON.stringify(storedData));
         }
@@ -180,24 +189,28 @@ export default function TeacherCoursesPage() {
   };
 
   const toggleActions = (courseId) => {
-    setShowActions(prev => ({
+    setShowActions((prev) => ({
       ...prev,
-      [courseId]: !prev[courseId]
+      [courseId]: !prev[courseId],
     }));
   };
 
   const getBadgeColor = (type, value) => {
     switch (type) {
-      case 'research':
-        return value ? 'bg-green-600' : 'bg-gray-600';
-      case 'deis':
-        return value === 'DEIS' ? 'bg-blue-600' : 'bg-purple-600';
-      case 'gender':
-        return value === 'Male' ? 'bg-blue-600' : value === 'Female' ? 'bg-pink-600' : 'bg-cyan-600';
-      case 'urbanicity':
-        return value === 'Urban' ? 'bg-orange-600' : 'bg-green-600';
+      case "research":
+        return value ? "bg-green-600" : "bg-gray-600";
+      case "deis":
+        return value === "DEIS" ? "bg-blue-600" : "bg-purple-600";
+      case "gender":
+        return value === "Male"
+          ? "bg-blue-600"
+          : value === "Female"
+          ? "bg-pink-600"
+          : "bg-cyan-600";
+      case "urbanicity":
+        return value === "Urban" ? "bg-orange-600" : "bg-green-600";
       default:
-        return 'bg-gray-600';
+        return "bg-gray-600";
     }
   };
 
@@ -218,8 +231,10 @@ export default function TeacherCoursesPage() {
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-gray-800 rounded-lg max-w-2xl w-full p-6 border border-gray-700 my-8">
-            <h3 className="text-xl font-semibold mb-6 text-white">Edit Course</h3>
-            
+            <h3 className="text-xl font-semibold mb-6 text-white">
+              Edit Course
+            </h3>
+
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               {/* Course Name */}
               <div>
@@ -229,12 +244,13 @@ export default function TeacherCoursesPage() {
                 <input
                   type="text"
                   value={editFormData.course_name}
-                  onChange={(e) => handleEditFormChange('course_name', e.target.value)}
+                  onChange={(e) =>
+                    handleEditFormChange("course_name", e.target.value)
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                   placeholder="Enter course name"
                 />
               </div>
-
 
               {/* County */}
               <div>
@@ -244,7 +260,9 @@ export default function TeacherCoursesPage() {
                 <input
                   type="text"
                   value={editFormData.course_county}
-                  onChange={(e) => handleEditFormChange('course_county', e.target.value)}
+                  onChange={(e) =>
+                    handleEditFormChange("course_county", e.target.value)
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                   placeholder="Enter county"
                 />
@@ -257,7 +275,9 @@ export default function TeacherCoursesPage() {
                 </label>
                 <select
                   value={editFormData.course_language}
-                  onChange={(e) => handleEditFormChange('course_language', e.target.value)}
+                  onChange={(e) =>
+                    handleEditFormChange("course_language", e.target.value)
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">Select Language</option>
@@ -276,7 +296,9 @@ export default function TeacherCoursesPage() {
                 </label>
                 <select
                   value={editFormData.course_urbanicity}
-                  onChange={(e) => handleEditFormChange('course_urbanicity', e.target.value)}
+                  onChange={(e) =>
+                    handleEditFormChange("course_urbanicity", e.target.value)
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">Select Area Type</option>
@@ -292,7 +314,9 @@ export default function TeacherCoursesPage() {
                 </label>
                 <select
                   value={editFormData.course_gender}
-                  onChange={(e) => handleEditFormChange('course_gender', e.target.value)}
+                  onChange={(e) =>
+                    handleEditFormChange("course_gender", e.target.value)
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">Select Gender Type</option>
@@ -309,7 +333,9 @@ export default function TeacherCoursesPage() {
                 </label>
                 <select
                   value={editFormData.course_deis}
-                  onChange={(e) => handleEditFormChange('course_deis', e.target.value)}
+                  onChange={(e) =>
+                    handleEditFormChange("course_deis", e.target.value)
+                  }
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                 >
                   <option value="">Select School Type</option>
@@ -328,7 +354,9 @@ export default function TeacherCoursesPage() {
                     <input
                       type="radio"
                       checked={editFormData.course_research === true}
-                      onChange={() => handleEditFormChange('course_research', true)}
+                      onChange={() =>
+                        handleEditFormChange("course_research", true)
+                      }
                       className="mr-2 text-blue-600"
                     />
                     <span>Yes</span>
@@ -337,7 +365,9 @@ export default function TeacherCoursesPage() {
                     <input
                       type="radio"
                       checked={editFormData.course_research === false}
-                      onChange={() => handleEditFormChange('course_research', false)}
+                      onChange={() =>
+                        handleEditFormChange("course_research", false)
+                      }
                       className="mr-2"
                     />
                     <span>No</span>
@@ -353,7 +383,12 @@ export default function TeacherCoursesPage() {
                   </label>
                   <select
                     value={editFormData.course_research_type}
-                    onChange={(e) => handleEditFormChange('course_research_type', e.target.value)}
+                    onChange={(e) =>
+                      handleEditFormChange(
+                        "course_research_type",
+                        e.target.value
+                      )
+                    }
                     className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                   >
                     <option value="">Select Research Type</option>
@@ -387,8 +422,18 @@ export default function TeacherCoursesPage() {
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     <span>Save Changes</span>
                   </>
@@ -403,11 +448,16 @@ export default function TeacherCoursesPage() {
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-gray-800 rounded-lg max-w-md w-full p-6 border border-gray-700">
-            <h3 className="text-xl font-semibold mb-4 text-white">Delete Course</h3>
+            <h3 className="text-xl font-semibold mb-4 text-white">
+              Delete Course
+            </h3>
             <p className="text-gray-300 mb-6">
-              Are you sure you want to delete <span className="font-semibold text-white">
-                {courseToDelete?.course_name || 'this course'}
-              </span>? This action cannot be undone and will remove all associated students, grades, and settings.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-white">
+                {courseToDelete?.course_name || "this course"}
+              </span>
+              ? This action cannot be undone and will remove all associated
+              students, grades, and settings.
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -432,8 +482,18 @@ export default function TeacherCoursesPage() {
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
                     </svg>
                     <span>Delete Course</span>
                   </>
@@ -464,9 +524,9 @@ export default function TeacherCoursesPage() {
               </svg>
               <span className="font-medium">Back to Homepage</span>
             </button>
-            
+
             <div className="text-sm text-gray-400">
-              {allCourses.length} Course{allCourses.length !== 1 ? 's' : ''}
+              {allCourses.length} Course{allCourses.length !== 1 ? "s" : ""}
             </div>
           </div>
         </div>
@@ -475,23 +535,173 @@ export default function TeacherCoursesPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">User's {teacherData?.username} Courses</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            User's {teacherData?.username} Courses
+          </h1>
           {teacherData && (
-            <p className="text-gray-400">Welcome to your courses, {teacherData.name}</p>
+            <p className="text-gray-400 mb-4">
+              Welcome to your courses, {teacherData.name}
+            </p>
           )}
+
+          {/* Styled Instructions Card */}
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
+            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+              Quick Guide
+            </h3>
+            <div className="space-y-2">
+              <p className="text-gray-300 text-sm leading-relaxed">
+                Below are all your generated courses. Here's how to manage them:
+              </p>
+
+              <div className="grid gap-3 mt-3">
+                {/* Copy Code Action */}
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="w-8 h-8 bg-gray-700/50 rounded flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm text-gray-300">
+                      Use the{" "}
+                      <span className="text-gray-400 font-medium">
+                        copy button
+                      </span>{" "}
+                      to copy the join code
+                    </span>
+                  </div>
+                </div>
+
+                {/* Join Course Action */}
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="w-8 h-8 bg-blue-600/20 rounded flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm text-gray-300">
+                      Click the{" "}
+                      <span className="text-blue-400 font-medium">Join</span>{" "}
+                      button to enter a course
+                    </span>
+                  </div>
+                </div>
+
+                {/* Edit Course Action */}
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="w-8 h-8 bg-blue-600/20 rounded flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm text-gray-300">
+                      Use the{" "}
+                      <span className="text-blue-400 font-medium">
+                        edit icon
+                      </span>{" "}
+                      to modify course settings (location, gender, etc.)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Delete Course Action */}
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div className="w-8 h-8 bg-red-600/20 rounded flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-red-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm text-gray-300">
+                      Click the{" "}
+                      <span className="text-red-400 font-medium">
+                        trash icon
+                      </span>{" "}
+                      to permanently delete a course
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {allCourses.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
               <button onClick={() => router.push("/teacher/create-course")}>
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                <svg
+                  className="w-8 h-8 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
                 </svg>
               </button>
             </div>
-            <h3 className="text-lg font-medium text-gray-300 mb-2">No courses found</h3>
-            <p className="text-gray-500">You haven't created any courses yet.</p>
+            <h3 className="text-lg font-medium text-gray-300 mb-2">
+              No courses found
+            </h3>
+            <p className="text-gray-500">
+              You haven't created any courses yet.
+            </p>
           </div>
         ) : (
           <>
@@ -502,92 +712,167 @@ export default function TeacherCoursesPage() {
                   <table className="w-full">
                     <thead className="bg-gray-700/50">
                       <tr>
-                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Course Info</th>
-                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Location</th>
-                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Demographics</th>
-                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Research</th>
-                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">Created</th>
-                        <th className="px-8 py-4 text-center text-sm font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                          Course Info
+                        </th>
+                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                          Location
+                        </th>
+                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                          Demographics
+                        </th>
+                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                          Research
+                        </th>
+                        <th className="px-8 py-4 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                          Created
+                        </th>
+                        <th className="px-8 py-4 text-center text-sm font-medium text-gray-400 uppercase tracking-wider">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
                       {allCourses.map((course) => (
-                        <tr key={course.id} className="hover:bg-gray-700/30 transition-colors">
+                        <tr
+                          key={course.id}
+                          className="hover:bg-gray-700/30 transition-colors"
+                        >
                           <td className="px-8 py-6">
                             <div>
                               <div className="font-medium text-white mb-2 text-base">
-                                {course.course_name || 'Unnamed Course'}
+                                {course.course_name || "Unnamed Course"}
                               </div>
-                              
+
                               <div className="flex items-center gap-2 mb-2">
                                 <div className="text-sm text-blue-300 font-mono">
-                                  <span>Join Code: </span>{course.course_join_code}
+                                  <span>Join Code: </span>
+                                  {course.course_join_code}
                                 </div>
-                                
+
                                 <button
-                                  onClick={() => handleCopy(course.course_join_code)}
+                                  onClick={() =>
+                                    handleCopy(course.course_join_code)
+                                  }
                                   className="group relative flex items-center justify-center w-6 h-6 rounded hover:bg-gray-700/50 transition-colors"
-                                  title={copiedCode === course.course_join_code ? "Copied!" : "Copy join code"}
+                                  title={
+                                    copiedCode === course.course_join_code
+                                      ? "Copied!"
+                                      : "Copy join code"
+                                  }
                                 >
                                   {copiedCode === course.course_join_code ? (
-                                    <svg className="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    <svg
+                                      className="w-3 h-3 text-green-400"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
                                     </svg>
                                   ) : (
-                                    <svg className="w-3 h-3 text-gray-400 group-hover:text-blue-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    <svg
+                                      className="w-3 h-3 text-gray-400 group-hover:text-blue-300 transition-colors"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                      />
                                     </svg>
                                   )}
                                 </button>
-                                
+
                                 {/* Join Course button */}
                                 <button
-                                  onClick={() => router.push(`/teacher/join?code=${course.course_join_code}`)}
+                                  onClick={() =>
+                                    router.push(
+                                      `/teacher/join?code=${course.course_join_code}`
+                                    )
+                                  }
                                   className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors flex items-center gap-1"
                                   title="Join this course"
                                 >
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+                                    />
                                   </svg>
                                   Join
                                 </button>
-                                
+
                                 {copiedCode === course.course_join_code && (
                                   <span className="text-xs text-green-400 font-medium animate-fade-in">
                                     Code copied!
                                   </span>
                                 )}
                               </div>
-                              
+
                               <div className="text-sm text-gray-400">
                                 <span>Language: </span>
                                 {course.course_language}
                               </div>
-                             
                             </div>
                           </td>
                           <td className="px-8 py-6">
                             <div className="text-sm">
-                              <div className="text-white text-base mb-2">{course.course_county}</div>
-                              <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white ${getBadgeColor('urbanicity', course.course_urbanicity)}`}>
+                              <div className="text-white text-base mb-2">
+                                {course.course_county}
+                              </div>
+                              <span
+                                className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white ${getBadgeColor(
+                                  "urbanicity",
+                                  course.course_urbanicity
+                                )}`}
+                              >
                                 {course.course_urbanicity}
                               </span>
                             </div>
                           </td>
                           <td className="px-8 py-6">
                             <div className="flex flex-col gap-2">
-                              <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white w-fit ${getBadgeColor('gender', course.course_gender)}`}>
+                              <span
+                                className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white w-fit ${getBadgeColor(
+                                  "gender",
+                                  course.course_gender
+                                )}`}
+                              >
                                 {course.course_gender}
                               </span>
-                              <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white w-fit ${getBadgeColor('deis', course.course_deis)}`}>
+                              <span
+                                className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white w-fit ${getBadgeColor(
+                                  "deis",
+                                  course.course_deis
+                                )}`}
+                              >
                                 {course.course_deis}
                               </span>
                             </div>
                           </td>
                           <td className="px-8 py-6">
                             <div className="flex flex-col gap-2">
-                              <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white w-fit ${getBadgeColor('research', course.course_research)}`}>
-                                {course.course_research ? 'Yes' : 'No'}
+                              <span
+                                className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white w-fit ${getBadgeColor(
+                                  "research",
+                                  course.course_research
+                                )}`}
+                              >
+                                {course.course_research ? "Yes" : "No"}
                               </span>
                               {course.course_research && (
                                 <span className="text-sm text-gray-400">
@@ -606,8 +891,18 @@ export default function TeacherCoursesPage() {
                                 className="p-2 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg transition-colors group"
                                 title="Edit course"
                               >
-                                <svg className="w-5 h-5 text-blue-400 group-hover:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <svg
+                                  className="w-5 h-5 text-blue-400 group-hover:text-blue-300"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
                                 </svg>
                               </button>
                               <button
@@ -615,8 +910,18 @@ export default function TeacherCoursesPage() {
                                 className="p-2 bg-red-600/20 hover:bg-red-600/30 rounded-lg transition-colors group"
                                 title="Delete course"
                               >
-                                <svg className="w-5 h-5 text-red-400 group-hover:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                  className="w-5 h-5 text-red-400 group-hover:text-red-300"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -632,45 +937,74 @@ export default function TeacherCoursesPage() {
             {/* Mobile/Tablet Card View */}
             <div className="lg:hidden space-y-4">
               {allCourses.map((course) => (
-                <div key={course.id} className="bg-gray-800/50 rounded-lg border border-gray-700 p-6">
+                <div
+                  key={course.id}
+                  className="bg-gray-800/50 rounded-lg border border-gray-700 p-6"
+                >
                   {/* Course Header with Actions */}
                   <div className="flex justify-between items-start mb-4">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-medium text-white text-lg mb-2">
-                        {course.course_name || 'Unnamed Course'}
+                        {course.course_name || "Unnamed Course"}
                       </h3>
-                      
+
                       {/* Join Code with Copy and Join Buttons - Mobile */}
                       <div className="flex items-center gap-2">
                         <div className="text-blue-300 font-mono text-sm">
                           {course.course_join_code}
                         </div>
-                        
+
                         <button
                           onClick={() => handleCopy(course.course_join_code)}
                           className="group relative flex items-center justify-center w-6 h-6 rounded hover:bg-gray-700/50 transition-colors"
-                          title={copiedCode === course.course_join_code ? "Copied!" : "Copy join code"}
+                          title={
+                            copiedCode === course.course_join_code
+                              ? "Copied!"
+                              : "Copy join code"
+                          }
                         >
                           {copiedCode === course.course_join_code ? (
-                            <svg className="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="w-3 h-3 text-green-400"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           ) : (
-                            <svg className="w-3 h-3 text-gray-400 group-hover:text-blue-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            <svg
+                              className="w-3 h-3 text-gray-400 group-hover:text-blue-300 transition-colors"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                              />
                             </svg>
                           )}
                         </button>
-                        
+
                         {/* Join Course button for mobile */}
                         <button
-                          onClick={() => router.push(`/teacher/join?code=${course.course_join_code}`)}
+                          onClick={() =>
+                            router.push(
+                              `/teacher/join?code=${course.course_join_code}`
+                            )
+                          }
                           className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
                           title="Join this course"
                         >
                           Join
                         </button>
-                        
+
                         {copiedCode === course.course_join_code && (
                           <span className="text-xs text-green-400 font-medium animate-fade-in">
                             Copied!
@@ -678,18 +1012,28 @@ export default function TeacherCoursesPage() {
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Mobile Actions Menu */}
                     <div className="relative">
                       <button
                         onClick={() => toggleActions(course.id)}
                         className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
                       >
-                        <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                          />
                         </svg>
                       </button>
-                      
+
                       {showActions[course.id] && (
                         <div className="absolute right-0 top-10 z-20 bg-gray-700 rounded-lg shadow-lg border border-gray-600 overflow-hidden">
                           <button
@@ -699,8 +1043,18 @@ export default function TeacherCoursesPage() {
                             }}
                             className="flex items-center gap-2 px-4 py-3 hover:bg-gray-600 transition-colors text-blue-400 w-full text-left"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
                             </svg>
                             <span>Edit Course</span>
                           </button>
@@ -711,8 +1065,18 @@ export default function TeacherCoursesPage() {
                             }}
                             className="flex items-center gap-2 px-4 py-3 hover:bg-gray-600 transition-colors text-red-400 w-full text-left"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
                             </svg>
                             <span>Delete Course</span>
                           </button>
@@ -723,8 +1087,13 @@ export default function TeacherCoursesPage() {
 
                   {/* Research Badge */}
                   <div className="mb-4">
-                    <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white ${getBadgeColor('research', course.course_research)}`}>
-                      Research: {course.course_research ? 'Yes' : 'No'}
+                    <span
+                      className={`inline-flex px-3 py-1 text-sm font-medium rounded-full text-white ${getBadgeColor(
+                        "research",
+                        course.course_research
+                      )}`}
+                    >
+                      Research: {course.course_research ? "Yes" : "No"}
                     </span>
                   </div>
 
@@ -738,29 +1107,46 @@ export default function TeacherCoursesPage() {
                       <span className="text-gray-400">County:</span>
                       <div className="text-white">{course.course_county}</div>
                     </div>
-                    
+
                     <div>
                       <span className="text-gray-400">Area:</span>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-white ml-2 ${getBadgeColor('urbanicity', course.course_urbanicity)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-white ml-2 ${getBadgeColor(
+                          "urbanicity",
+                          course.course_urbanicity
+                        )}`}
+                      >
                         {course.course_urbanicity}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-400">Gender:</span>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-white ml-2 ${getBadgeColor('gender', course.course_gender)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-white ml-2 ${getBadgeColor(
+                          "gender",
+                          course.course_gender
+                        )}`}
+                      >
                         {course.course_gender}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-400">School Type:</span>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-white ml-2 ${getBadgeColor('deis', course.course_deis)}`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full text-white ml-2 ${getBadgeColor(
+                          "deis",
+                          course.course_deis
+                        )}`}
+                      >
                         {course.course_deis}
                       </span>
                     </div>
                     {course.course_research && (
                       <div>
                         <span className="text-gray-400">Research Type:</span>
-                        <div className="text-white">{course.course_research_type}</div>
+                        <div className="text-white">
+                          {course.course_research_type}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -778,8 +1164,14 @@ export default function TeacherCoursesPage() {
 
       <style jsx>{`
         @keyframes fade-in {
-          from { opacity: 0; transform: translateY(-2px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-2px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .animate-fade-in {
           animation: fade-in 0.2s ease-out;
