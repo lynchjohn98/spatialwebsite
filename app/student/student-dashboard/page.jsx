@@ -2,39 +2,39 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import StudentSidebar from "../../../components/student_components/StudentSidebar";
-import { useStudentSidebar } from "../../utils/hooks/useStudentSidebar";
-import { useStudentSession } from "../../utils/hooks/useStudentSession";
+import { useStudentSidebar } from "../../utils/hooks/useStudentSidebar"; // Import the hook
 
 export default function StudentDashboard() {
   const router = useRouter();
-  const { isSidebarOpen, setIsSidebarOpen } = useStudentSidebar();
-  const { 
-    studentData, 
-    courseData, 
-    isLoading, 
-    isValid 
-  } = useStudentSession();
+
+  const {isSidebarOpen, setIsSidebarOpen} = useStudentSidebar();
+  const [courseData, setCourseData] = useState(null);
+  const [studentData, setStudentData] = useState(null);
 
   useEffect(() => {
-    // Only redirect if we're sure the session is invalid and not loading
-    if (!isLoading && !isValid) {
-      router.push("/student/student-join");
+    const storedCourseData = sessionStorage.getItem("courseData");
+    const storedStudentData = sessionStorage.getItem("studentData");
+    if (storedCourseData && storedStudentData) {
+      try {
+        setCourseData(JSON.parse(storedCourseData));
+        setStudentData(JSON.parse(storedStudentData));
+      } catch (error) {
+        console.error("Error parsing session storage data:", error);
+        sessionStorage.removeItem("courseData");
+        sessionStorage.removeItem("studentData");
+        router.push("/student-join");
+      }
+    } else {
+      router.push("/student-join");
     }
-  }, [isLoading, isValid, router]);
-
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mb-4"></div>
-          Loading...
-        </div>
-      </div>
-    );
-  }
+  }, [router]);
 
   if (!courseData || !studentData) {
-    return null; // Will redirect in useEffect
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 text-white text-xl">
+        Loading...
+      </div>
+    );  
   }
 
   return (
@@ -56,7 +56,7 @@ export default function StudentDashboard() {
           <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-8">
             <h1 className="text-2xl md:text-3xl font-bold mb-4">Dashboard</h1>
             <p className="text-xl mb-4 text-blue-300">
-              Welcome back, {studentData.student_first_name}!
+              Welcome to your spatial thinking course.
             </p>
             <p className="mb-6">
               Please use the navigation on the left side to access the course
@@ -89,7 +89,7 @@ export default function StudentDashboard() {
                   </svg>
                 </span>
                 <span>
-                  Please use the sidebar on the left side to access your modules
+                  Please use the sidebar on the leftside to access your modules
                   and quizzes. If none are visible, please inform your
                   instructor.
                 </span>
@@ -115,7 +115,7 @@ export default function StudentDashboard() {
                 </span>
                 <span>
                   You can view your grades on previous quiz attempts in the
-                  Progress section of the sidebar.
+                  Grades section of the sidebar.
                 </span>
               </li>
 
