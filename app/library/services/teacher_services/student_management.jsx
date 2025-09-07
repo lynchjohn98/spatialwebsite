@@ -109,13 +109,28 @@ export async function updateStudentSettings(payload) {
     return { error: "An unexpected error occurred" };
   }
 }
-
 export async function deleteStudent(payload) {
   console.log("Running async with this payload: ", payload);
 
   const supabase = await createClient();
 
   try {
+    // First, get the student ID if we only have username
+    let studentId = payload.studentId;
+    
+    if (!studentId && payload.studentUsername) {
+      const { data: studentRecord, error: fetchStudentError } = await supabase
+        .from("students")
+        .select("id")
+        .eq("student_username", payload.studentUsername)
+        .eq("course_id", payload.courseId)
+        .single();
+      
+      if (studentRecord) {
+        studentId = studentRecord.id;
+      }
+    }
+
     // Start a transaction-like operation
     // First, get the current student_settings from course_settings
     const { data: courseSettings, error: fetchError } = await supabase
@@ -170,6 +185,33 @@ export async function deleteStudent(payload) {
       };
     }
 
+    // Delete all related records if we have a student ID
+    if (studentId) {
+      // Delete from students_progress table
+      const { error: progressDeleteError } = await supabase
+        .from("students_progress")
+        .delete()
+        .eq("student_id", studentId)
+        .eq("course_id", payload.courseId);
+      
+      if (progressDeleteError) {
+        console.error("Error deleting student progress:", progressDeleteError);
+        // Continue with deletion process even if this fails
+      }
+
+      // Delete from students_grades table
+      const { error: gradesDeleteError } = await supabase
+        .from("students_grades")
+        .delete()
+        .eq("student_id", studentId)
+        .eq("course_id", payload.courseId);
+      
+      if (gradesDeleteError) {
+        console.error("Error deleting student grades:", gradesDeleteError);
+        // Continue with deletion process even if this fails
+      }
+    }
+
     // Now delete the student from the students table
     const { data: deletedStudent, error: deleteError } = await supabase
       .from("students")
@@ -196,7 +238,7 @@ export async function deleteStudent(payload) {
       };
     }
 
-    console.log("Successfully deleted student from both tables");
+    console.log("Successfully deleted student and all related records");
     return { 
       success: true, 
       data: {
