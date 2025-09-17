@@ -374,7 +374,7 @@ export default function StudentResponsiveQuiz({ quizData, onQuizComplete }) {
 
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg p-8 max-w-lg w-full">
+        <div className="bg-gray-800 rounded-lg p-8 max-w-lg w-full">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold mb-2">
               {quizData.title} Complete!

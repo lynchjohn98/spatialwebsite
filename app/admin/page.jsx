@@ -1,53 +1,128 @@
+// Main Admin Dashboard Component
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { 
+  ChevronDown, ChevronUp, Search, Filter, Download, LogOut, Users, 
+  BookOpen, TrendingUp, X, RefreshCw, User
+} from 'lucide-react';
+
+// Import sub-components (these would be in separate files)
+import { AdminLogin } from './components/AdminLogin';
+import { AdminHeader } from './components/AdminHeader';
+import { StatsCards } from './components/StatsCards';
+import { FilterBar } from './components/FilterBar';
+import { TeacherOverviewTable } from './components/TeacherOverviewTable';
+import { DetailedProgressView } from './components/DetailedProgressView';
+import { AnalyticsView } from './components/AnalyticsView';
+
+// Constants
+export const MODULE_ORDER = [
+  "Introduction to Spatial Visualization",
+  "Combining Solids",
+  "Surfaces and Solids of Revolution",
+  "Coordinate Systems",
+  "Orthographic Projection",
+  "Inclined and Curved Surfaces",
+  "Flat Patterns",
+  "Rotation of Objects About a Single Axis",
+  "Rotation of Objects About Two or More Axes",
+  "Reflection and Symmetry",
+  "Cross-Sections of Solids"
+];
+
+export const QUIZ_MODULE_MAPPING = {
+  1: "PSVT:R Pre-Test",
+  2: "DAT:SR Pre-Test",
+  3: "Math Instrument Pre-Test",
+  4: "Combining Solids",
+  5: "Surfaces and Solids of Revolution",
+  6: "Isometric Drawings and Coded Plans",
+  7: "Flat Patterns",
+  8: "Rotation of Objects About a Single Axis",
+  9: "Reflections and Symmetry",
+  10: "Cutting Planes and Cross-Sections",
+  11: "Rotation of Objects About Two or More Axes",
+  12: "Orthographic Projection",
+  13: "Inclined and Curved Surfaces",
+  14: "PSVT:R Post-Test",
+  15: "DAT:SR Post-Test",
+  16: "Math Instrument Post-Test"
+};
 
 export default function AdminPage() {
-  const [passcode, setPasscode] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [dataError, setDataError] = useState("");
   const router = useRouter();
   
   // Dashboard states
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
+  const [teacherProgress, setTeacherProgress] = useState([]);
+  const [quizAttempts, setQuizAttempts] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // View modes
+  const [viewMode, setViewMode] = useState('overview');
+  
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({
+    county: "",
+    researchConsent: "",
+    trainingComplete: "",
+    pretestComplete: "",
+    posttestComplete: "",
+    progressRange: "",
+    moduleCompletion: "",
+    researchType: "",
+    language: "",
+    hasStudents: "",
+    hasCourses: ""
+  });
+  
+  const [filterOptions, setFilterOptions] = useState({
+    counties: [],
+    researchTypes: [],
+    languages: [],
+    progressRanges: [
+      { value: "0-25", label: "0-25%" },
+      { value: "26-50", label: "26-50%" },
+      { value: "51-75", label: "51-75%" },
+      { value: "76-99", label: "76-99%" },
+      { value: "100", label: "100%" }
+    ]
+  });
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   
-  // Filter states
-  const [filters, setFilters] = useState({
-    county: "",
-    gender: "",
-    urbanicity: "",
-    deis: "",
-    language: "",
-    researchType: "",
-    researchConsent: "",
-    trainingComplete: "",
-    pretestComplete: "",
-    posttestComplete: ""
-  });
-  
-  // Available filter options
-  const [filterOptions, setFilterOptions] = useState({
-    counties: [],
-    genders: [],
-    urbanicities: [],
-    deisOptions: [],
-    languages: [],
-    researchTypes: []
-  });
-  
   const supabase = createClientComponentClient();
 
-  // Check for existing admin authorization
+  // Auto-refresh functionality - disabled by default to prevent unwanted refreshes
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState(60000); // 60 seconds default
+  
+  useEffect(() => {
+    let intervalId;
+    
+    if (isAuthorized && autoRefreshEnabled) {
+      intervalId = setInterval(() => {
+        handleRefresh();
+      }, refreshInterval);
+    }
+    
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isAuthorized, autoRefreshEnabled, refreshInterval]);
+
   useEffect(() => {
     const adminAuth = sessionStorage.getItem("adminAuthorized");
     if (adminAuth === "true") {
@@ -55,38 +130,17 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Fetch data when authorized
   useEffect(() => {
     if (isAuthorized) {
       fetchAllData();
     }
   }, [isAuthorized]);
 
-  const handlePasscodeChange = (e) => {
-    setPasscode(e.target.value);
-    if (error) setError("");
-  };
-
-  const handleSubmit = () => {
-    setIsLoading(true);
-    setError("");
-    
-    const adminPasscode = "1234"; 
-    
-    if (passcode === adminPasscode) {
-      sessionStorage.setItem("adminAuthorized", "true");
-      setIsAuthorized(true);
-    } else {
-      setError("Invalid admin passcode. Please try again.");
-    }
-    
-    setIsLoading(false);
-  };
-
-  const handleLogout = () => {
-    sessionStorage.removeItem("adminAuthorized");
-    setIsAuthorized(false);
-    setPasscode("");
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchAllData();
+    setLastRefresh(new Date());
+    setIsRefreshing(false);
   };
 
   const fetchAllData = async () => {
@@ -94,51 +148,84 @@ export default function AdminPage() {
     setDataError("");
     
     try {
-      // Fetch teachers data
-      const { data: teachersData, error: teachersError } = await supabase
-        .from('teachers')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch all data from database
+      const [teachersResult, progressResult, quizResult, coursesResult, settingsResult, studentsResult, studentProgressResult] = await Promise.all([
+        supabase.from('teachers').select('*').order('created_at', { ascending: false }),
+        supabase.from('teachers_progress').select('*'),
+        supabase.from('teachers_grades').select('*').order('time_submitted', { ascending: false }),
+        supabase.from('courses').select('*').order('created_at', { ascending: false }),
+        supabase.from('courses_settings').select('*'),
+        supabase.from('students').select('*'),
+        supabase.from('students_progress').select('*')
+      ]);
+
+      if (teachersResult.error) throw teachersResult.error;
+      if (progressResult.error) throw progressResult.error;
+      if (coursesResult.error) throw coursesResult.error;
       
-      if (teachersError) throw teachersError;
+      const teachersData = teachersResult.data || [];
+      const progressData = progressResult.data || [];
+      const quizData = quizResult.data || [];
+      const coursesData = coursesResult.data || [];
+      const studentsData = studentsResult.data || [];
+      const studentProgressData = studentProgressResult.data || [];
       
-      // Fetch courses data with teacher information
-      const { data: coursesData, error: coursesError } = await supabase
-        .from('courses')
-        .select(`
-          *,
-          teachers (
-            id,
-            username,
-            name,
-            research_consent,
-            training_complete,
-            pretest_complete,
-            posttest_complete
-          )
-        `)
-        .order('created_at', { ascending: false });
+      // Process teacher data
+      const processedTeachers = teachersData.map(teacher => {
+        const progress = progressData?.find(p => p.teacher_id === teacher.id);
+        const teacherCourses = coursesData?.filter(c => c.course_teacher_id === teacher.id) || [];
+        const teacherQuizAttempts = quizData?.filter(q => q.teacher_id === teacher.id) || [];
+        
+        // Get students in teacher's courses
+        const teacherStudents = studentsData?.filter(student => 
+          teacherCourses.some(course => course.id === student.course_id)
+        ) || [];
+        
+        const activeStudents = teacherStudents.filter(student => {
+          const studentProgress = studentProgressData?.find(sp => sp.student_id === student.id);
+          return studentProgress && studentProgress.module_progress;
+        }).length;
+        
+        // Calculate module progress
+        const moduleData = processModuleProgress(progress?.module_progress);
+        
+        // Calculate quiz metrics
+        const quizMetrics = calculateQuizMetrics(teacherQuizAttempts);
+        
+        // Calculate overall progress
+        const overallTrainingProgress = calculateOverallProgress(teacher);
+        
+        return {
+          ...teacher,
+          progress: progress || {},
+          ...moduleData,
+          courses: teacherCourses,
+          coursesCount: teacherCourses.length,
+          totalStudents: teacherStudents.length,
+          activeStudents,
+          quizAttempts: teacherQuizAttempts,
+          quizMetrics,
+          overallTrainingProgress,
+          lastActivity: calculateLastActivity(progress, teacherQuizAttempts)
+        };
+      });
       
-      if (coursesError) throw coursesError;
+      setTeachers(processedTeachers);
+      setTeacherProgress(progressData);
+      setCourses(coursesData);
+      setQuizAttempts(quizData);
       
-      setTeachers(teachersData || []);
-      setCourses(coursesData || []);
+      // Extract filter options
+      const counties = [...new Set(coursesData?.map(c => c.course_county).filter(Boolean))].sort();
+      const researchTypes = [...new Set(coursesData?.map(c => c.course_research_type).filter(Boolean))].sort();
+      const languages = [...new Set(coursesData?.map(c => c.course_language).filter(Boolean))].sort();
       
-      // Combine data for filtering
-      const combinedData = (coursesData || []).map(course => ({
-        ...course,
-        teacher_name: course.teachers?.name || course.course_teacher_name,
-        teacher_username: course.teachers?.username,
-        teacher_research_consent: course.teachers?.research_consent,
-        teacher_training_complete: course.teachers?.training_complete,
-        teacher_pretest_complete: course.teachers?.pretest_complete,
-        teacher_posttest_complete: course.teachers?.posttest_complete
+      setFilterOptions(prev => ({ 
+        ...prev, 
+        counties,
+        researchTypes,
+        languages
       }));
-      
-      setFilteredData(combinedData);
-      
-      // Extract unique filter options
-      extractFilterOptions(coursesData || [], teachersData || []);
       
     } catch (err) {
       console.error('Error fetching data:', err);
@@ -148,729 +235,398 @@ export default function AdminPage() {
     }
   };
 
-  const extractFilterOptions = (coursesData, teachersData) => {
-    const options = {
-      counties: [...new Set(coursesData.map(c => c.course_county).filter(Boolean))].sort(),
-      genders: [...new Set(coursesData.map(c => c.course_gender).filter(Boolean))].sort(),
-      urbanicities: [...new Set(coursesData.map(c => c.course_urbanicity).filter(Boolean))].sort(),
-      deisOptions: [...new Set(coursesData.map(c => c.course_deis).filter(Boolean))].sort(),
-      languages: [...new Set(coursesData.map(c => c.course_language).filter(Boolean))].sort(),
-      researchTypes: [...new Set(coursesData.map(c => c.course_research_type).filter(Boolean))].sort()
+  // Helper functions
+  const processModuleProgress = (moduleProgress) => {
+    let moduleProgressDetails = {};
+    let completedModules = 0;
+    let totalModules = 0;
+    let moduleProgressPercentage = 0;
+    
+    if (moduleProgress) {
+      const moduleData = typeof moduleProgress === 'string' 
+        ? JSON.parse(moduleProgress) 
+        : moduleProgress;
+      
+      Object.entries(moduleData).forEach(([moduleName, moduleInfo]) => {
+        const components = ['quiz', 'software', 'workbook', 'mini_lecture', 'getting_started', 'introduction_video'];
+        const completedComponents = components.filter(comp => moduleInfo[comp] === true).length;
+        const modulePercentage = Math.round((completedComponents / components.length) * 100);
+        
+        moduleProgressDetails[moduleName] = {
+          ...moduleInfo,
+          percentage: modulePercentage,
+          componentsComplete: completedComponents,
+          totalComponents: components.length,
+          isComplete: modulePercentage === 100 || moduleInfo.completed_at !== null
+        };
+        
+        totalModules++;
+        if (moduleProgressDetails[moduleName].isComplete) {
+          completedModules++;
+        }
+        moduleProgressPercentage += modulePercentage;
+      });
+      
+      if (totalModules > 0) {
+        moduleProgressPercentage = Math.round(moduleProgressPercentage / totalModules);
+      }
+    }
+    
+    return {
+      moduleProgressDetails,
+      completedModules,
+      totalModules,
+      moduleProgressPercentage
     };
-    
-    setFilterOptions(options);
   };
 
-  const handleFilterChange = (filterName, value) => {
-    const newFilters = { ...filters, [filterName]: value };
-    setFilters(newFilters);
-    applyFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
-
-  const applyFilters = (currentFilters) => {
-    let filtered = courses.map(course => ({
-      ...course,
-      teacher_name: course.teachers?.name || course.course_teacher_name,
-      teacher_username: course.teachers?.username,
-      teacher_research_consent: course.teachers?.research_consent,
-      teacher_training_complete: course.teachers?.training_complete,
-      teacher_pretest_complete: course.teachers?.pretest_complete,
-      teacher_posttest_complete: course.teachers?.posttest_complete
-    }));
-    
-    // Apply filters
-    if (currentFilters.county) {
-      filtered = filtered.filter(item => item.course_county === currentFilters.county);
-    }
-    if (currentFilters.gender) {
-      filtered = filtered.filter(item => item.course_gender === currentFilters.gender);
-    }
-    if (currentFilters.urbanicity) {
-      filtered = filtered.filter(item => item.course_urbanicity === currentFilters.urbanicity);
-    }
-    if (currentFilters.deis) {
-      filtered = filtered.filter(item => item.course_deis === currentFilters.deis);
-    }
-    if (currentFilters.language) {
-      filtered = filtered.filter(item => item.course_language === currentFilters.language);
-    }
-    if (currentFilters.researchType) {
-      filtered = filtered.filter(item => item.course_research_type === currentFilters.researchType);
-    }
-    if (currentFilters.researchConsent !== "") {
-      filtered = filtered.filter(item => 
-        item.teacher_research_consent === (currentFilters.researchConsent === "true")
-      );
-    }
-    if (currentFilters.trainingComplete !== "") {
-      filtered = filtered.filter(item => 
-        item.teacher_training_complete === (currentFilters.trainingComplete === "true")
-      );
-    }
-    if (currentFilters.pretestComplete !== "") {
-      filtered = filtered.filter(item => 
-        item.teacher_pretest_complete === (currentFilters.pretestComplete === "true")
-      );
-    }
-    if (currentFilters.posttestComplete !== "") {
-      filtered = filtered.filter(item => 
-        item.teacher_posttest_complete === (currentFilters.posttestComplete === "true")
-      );
+  const calculateQuizMetrics = (attempts) => {
+    if (!attempts || attempts.length === 0) {
+      return {
+        totalAttempts: 0,
+        averageScore: 0,
+        bestScore: 0,
+        completedQuizzes: 0,
+        uniqueQuizzes: 0
+      };
     }
     
-    setFilteredData(filtered);
-  };
-
-  const resetFilters = () => {
-    const emptyFilters = {
-      county: "",
-      gender: "",
-      urbanicity: "",
-      deis: "",
-      language: "",
-      researchType: "",
-      researchConsent: "",
-      trainingComplete: "",
-      pretestComplete: "",
-      posttestComplete: ""
+    const uniqueQuizzes = [...new Set(attempts.map(a => a.quiz_id))];
+    const scores = attempts.map(a => a.score || 0);
+    
+    return {
+      totalAttempts: attempts.length,
+      averageScore: Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length),
+      bestScore: Math.max(...scores),
+      completedQuizzes: uniqueQuizzes.length,
+      uniqueQuizzes: uniqueQuizzes
     };
-    setFilters(emptyFilters);
-    setFilteredData(courses.map(course => ({
-      ...course,
-      teacher_name: course.teachers?.name || course.course_teacher_name,
-      teacher_username: course.teachers?.username,
-      teacher_research_consent: course.teachers?.research_consent,
-      teacher_training_complete: course.teachers?.training_complete,
-      teacher_pretest_complete: course.teachers?.pretest_complete,
-      teacher_posttest_complete: course.teachers?.posttest_complete
-    })));
-    setCurrentPage(1);
   };
 
-  // Pagination calculations
+  const calculateOverallProgress = (teacher) => {
+    const trainingComponents = [
+      teacher.pretest_complete,
+      teacher.training_complete,
+      teacher.posttest_complete,
+      teacher.research_consent
+    ];
+    const completedComponents = trainingComponents.filter(Boolean).length;
+    return Math.round((completedComponents / trainingComponents.length) * 100);
+  };
+
+  const calculateLastActivity = (progress, quizAttempts) => {
+    const dates = [];
+    
+    if (progress?.updated_at) {
+      dates.push(new Date(progress.updated_at));
+    }
+    
+    if (quizAttempts && quizAttempts.length > 0) {
+      const lastQuiz = quizAttempts[0];
+      if (lastQuiz.time_submitted) {
+        dates.push(new Date(lastQuiz.time_submitted));
+      }
+    }
+    
+    return dates.length === 0 ? null : new Date(Math.max(...dates));
+  };
+
+  // Filter logic
+  const filteredTeachers = useMemo(() => {
+    let filtered = [...teachers];
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(teacher => 
+        teacher.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        teacher.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        teacher.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Apply all filters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== "") {
+        switch(key) {
+          case 'county':
+            filtered = filtered.filter(t => t.courses.some(c => c.course_county === value));
+            break;
+          case 'researchType':
+            filtered = filtered.filter(t => t.courses.some(c => c.course_research_type === value));
+            break;
+          case 'language':
+            filtered = filtered.filter(t => t.courses.some(c => c.course_language === value));
+            break;
+          case 'researchConsent':
+            filtered = filtered.filter(t => t.research_consent === (value === "true"));
+            break;
+          case 'trainingComplete':
+            filtered = filtered.filter(t => t.training_complete === (value === "true"));
+            break;
+          case 'pretestComplete':
+            filtered = filtered.filter(t => t.pretest_complete === (value === "true"));
+            break;
+          case 'posttestComplete':
+            filtered = filtered.filter(t => t.posttest_complete === (value === "true"));
+            break;
+          case 'progressRange':
+            const [min, max] = value.split('-').map(Number);
+            filtered = filtered.filter(t => {
+              const progress = t.moduleProgressPercentage;
+              return max ? (progress >= min && progress <= max) : (progress === min);
+            });
+            break;
+          case 'moduleCompletion':
+            const targetModules = parseInt(value);
+            filtered = filtered.filter(t => t.completedModules >= targetModules);
+            break;
+          case 'hasStudents':
+            filtered = filtered.filter(t => value === "true" ? t.totalStudents > 0 : t.totalStudents === 0);
+            break;
+          case 'hasCourses':
+            filtered = filtered.filter(t => value === "true" ? t.coursesCount > 0 : t.coursesCount === 0);
+            break;
+        }
+      }
+    });
+    
+    return filtered;
+  }, [teachers, searchTerm, filters]);
+
+  // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const currentItems = filteredTeachers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredTeachers.length / itemsPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const downloadCSV = (dataType = 'filtered') => {
-    let dataToDownload = [];
-    let filename = '';
+  const downloadCSV = () => {
+    const headers = [
+      'Teacher Name', 'Username', 'Email', 'Overall Progress %', 
+      'Module Progress %', 'Modules Completed', 'Total Modules',
+      'Courses Count', 'Total Students', 'Active Students',
+      'Research Consent', 'Pretest Complete', 'Training Complete',
+      'Posttest Complete', 'Quiz Attempts', 'Average Quiz Score',
+      'Best Quiz Score', 'Last Activity'
+    ];
     
-    if (dataType === 'filtered') {
-      dataToDownload = filteredData;
-      filename = 'filtered_course_data.csv';
-    } else if (dataType === 'teachers') {
-      dataToDownload = teachers;
-      filename = 'teachers_data.csv';
-    } else if (dataType === 'courses') {
-      dataToDownload = courses;
-      filename = 'all_courses_data.csv';
-    }
+    const rows = filteredTeachers.map(teacher => [
+      teacher.name || '',
+      teacher.username || '',
+      teacher.email || '',
+      teacher.overallTrainingProgress || 0,
+      teacher.moduleProgressPercentage || 0,
+      teacher.completedModules || 0,
+      teacher.totalModules || 0,
+      teacher.coursesCount || 0,
+      teacher.totalStudents || 0,
+      teacher.activeStudents || 0,
+      teacher.research_consent ? 'Yes' : 'No',
+      teacher.pretest_complete ? 'Yes' : 'No',
+      teacher.training_complete ? 'Yes' : 'No',
+      teacher.posttest_complete ? 'Yes' : 'No',
+      teacher.quizMetrics?.totalAttempts || 0,
+      teacher.quizMetrics?.averageScore || 0,
+      teacher.quizMetrics?.bestScore || 0,
+      teacher.lastActivity ? new Date(teacher.lastActivity).toLocaleDateString() : 'N/A'
+    ]);
     
-    if (dataToDownload.length === 0) {
-      alert('No data to download');
-      return;
-    }
-    
-    // Prepare CSV content
-    const headers = Object.keys(dataToDownload[0]).filter(key => key !== 'teachers');
     const csvContent = [
       headers.join(','),
-      ...dataToDownload.map(row => 
-        headers.map(header => {
-          const value = row[header];
-          // Handle null, undefined, and special characters
-          if (value === null || value === undefined) return '';
-          const stringValue = String(value);
-          // Escape quotes and wrap in quotes if contains comma or quotes
-          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-            return `"${stringValue.replace(/"/g, '""')}"`;
-          }
-          return stringValue;
-        }).join(',')
-      )
+      ...rows.map(row => row.map(cell => {
+        const value = String(cell);
+        return value.includes(',') || value.includes('"') 
+          ? `"${value.replace(/"/g, '""')}"` 
+          : value;
+      }).join(','))
     ].join('\n');
     
-    // Create and download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = filename;
+    link.download = `teacher_progress_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
   };
 
-  const downloadJSON = (dataType = 'filtered') => {
-    let dataToDownload = [];
-    let filename = '';
-    
-    if (dataType === 'filtered') {
-      dataToDownload = filteredData;
-      filename = 'filtered_course_data.json';
-    } else if (dataType === 'teachers') {
-      dataToDownload = teachers;
-      filename = 'teachers_data.json';
-    } else if (dataType === 'courses') {
-      dataToDownload = courses;
-      filename = 'all_courses_data.json';
-    } else if (dataType === 'all') {
-      dataToDownload = {
-        teachers: teachers,
-        courses: courses,
-        combined: filteredData
-      };
-      filename = 'all_data_combined.json';
-    }
-    
-    const jsonString = JSON.stringify(dataToDownload, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(link.href);
+  // Calculate aggregate statistics
+  const aggregateStats = {
+    totalTeachers: teachers.length,
+    totalCourses: courses.length,
+    averageProgress: teachers.length > 0 
+      ? Math.round(teachers.reduce((acc, t) => acc + t.moduleProgressPercentage, 0) / teachers.length)
+      : 0,
+    completedTraining: teachers.filter(t => t.training_complete).length,
+    activeTeachers: teachers.filter(t => t.lastActivity && 
+      (new Date() - new Date(t.lastActivity)) / (1000 * 60 * 60 * 24) < 7
+    ).length,
+    totalQuizAttempts: quizAttempts.length,
+    teachersWithCourses: teachers.filter(t => t.coursesCount > 0).length,
+    teachersWithoutCourses: teachers.filter(t => t.coursesCount === 0).length
   };
 
-  // Login screen
+  // If not authorized, show login
   if (!isAuthorized) {
-    return (
-      <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-        <div className="flex flex-col items-center justify-center flex-1 w-full px-4 py-8">
-          <div className="w-full max-w-md">
-            <div className="p-6 rounded-lg shadow-lg mb-8">
-              <h1 className="text-2xl font-bold mb-1 text-center">Admin Access</h1>
-              <p className="text-center">
-                Enter the admin passcode to access the administrative dashboard.
-              </p>
-            </div>
-            
-            <div className="space-y-6">
-              {error && (
-                <div className="bg-red-800 text-white p-3 rounded-md">
-                  {error}
-                </div>
-              )}
-              
-              <div>
-                <label className="block text-lg font-medium mb-2">
-                  Admin Passcode
-                </label>
-                <input
-                  type="password"
-                  value={passcode}
-                  onChange={handlePasscodeChange}
-                  className="w-full px-4 py-3 rounded bg-blue-200 text-black"
-                  placeholder="Enter admin passcode"
-                />
-              </div>
-              
-              <div className="pt-4">
-                <button
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                  className={`w-full py-3 rounded-md font-medium transition-colors
-                    ${isLoading 
-                      ? 'bg-gray-500 cursor-not-allowed' 
-                      : 'bg-green-600 hover:bg-green-700 text-white'}`}
-                >
-                  {isLoading ? 'Verifying...' : 'Access Admin Panel'}
-                </button>
-              </div>
-              
-              <div className="text-center">
-                <button
-                  onClick={() => router.push("/")}
-                  className="text-blue-300 hover:text-blue-200 transition-colors text-sm"
-                >
-                  Return to Home
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <AdminLogin onAuthorized={() => setIsAuthorized(true)} />;
   }
 
-  // Loading state for data
+  // Loading state
   if (isLoadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-        <div className="text-xl">Loading data...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p>Loading comprehensive data...</p>
+        </div>
       </div>
     );
   }
 
-  // Dashboard view
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-        
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">Total Teachers</h3>
-            <p className="text-2xl font-bold">{teachers.length}</p>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">Total Courses</h3>
-            <p className="text-2xl font-bold">{courses.length}</p>
-          </div>
-          <div className="bg-gray-800 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">Filtered Results</h3>
-            <p className="text-2xl font-bold">{filteredData.length}</p>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <AdminHeader 
+        lastRefresh={lastRefresh}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        autoRefreshEnabled={autoRefreshEnabled}
+        onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
+        refreshInterval={refreshInterval}
+        onChangeRefreshInterval={setRefreshInterval}
+        onLogout={() => {
+          sessionStorage.removeItem("adminAuthorized");
+          setIsAuthorized(false);
+        }}
+      />
 
-      {/* Filters Section */}
-      <div className="bg-gray-800 p-6 rounded-lg mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Data Filters</h2>
-          <button
-            onClick={resetFilters}
-            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-md transition-colors text-sm"
-          >
-            Reset Filters
-          </button>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {/* County Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">County</label>
-            <select
-              value={filters.county}
-              onChange={(e) => handleFilterChange('county', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All Counties</option>
-              {filterOptions.counties.map(county => (
-                <option key={county} value={county}>{county}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Gender Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Gender</label>
-            <select
-              value={filters.gender}
-              onChange={(e) => handleFilterChange('gender', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All Genders</option>
-              {filterOptions.genders.map(gender => (
-                <option key={gender} value={gender}>{gender}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Urbanicity Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Urbanicity</label>
-            <select
-              value={filters.urbanicity}
-              onChange={(e) => handleFilterChange('urbanicity', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All Types</option>
-              {filterOptions.urbanicities.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* DEIS Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">DEIS</label>
-            <select
-              value={filters.deis}
-              onChange={(e) => handleFilterChange('deis', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All DEIS</option>
-              {filterOptions.deisOptions.map(deis => (
-                <option key={deis} value={deis}>{deis}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Language Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Language</label>
-            <select
-              value={filters.language}
-              onChange={(e) => handleFilterChange('language', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All Languages</option>
-              {filterOptions.languages.map(lang => (
-                <option key={lang} value={lang}>{lang}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Research Type Filter */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Research Type</label>
-            <select
-              value={filters.researchType}
-              onChange={(e) => handleFilterChange('researchType', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All Types</option>
-              {filterOptions.researchTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Teacher Filters */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Research Consent</label>
-            <select
-              value={filters.researchConsent}
-              onChange={(e) => handleFilterChange('researchConsent', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Training Complete</label>
-            <select
-              value={filters.trainingComplete}
-              onChange={(e) => handleFilterChange('trainingComplete', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Pretest Complete</label>
-            <select
-              value={filters.pretestComplete}
-              onChange={(e) => handleFilterChange('pretestComplete', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Posttest Complete</label>
-            <select
-              value={filters.posttestComplete}
-              onChange={(e) => handleFilterChange('posttestComplete', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 rounded-md text-white"
-            >
-              <option value="">All</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <div className="max-w-full px-6 py-6">
+        <StatsCards stats={aggregateStats} />
 
-      {/* Full Data Table */}
-      <div className="bg-gray-800 p-6 rounded-lg mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Data Table (Filtered)</h2>
-          <div className="text-sm text-gray-400">
-            Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredData.length)} of {filteredData.length} records
-          </div>
+        {/* View Mode Tabs */}
+        <div className="bg-gray-800 p-1 rounded-lg inline-flex mb-6">
+          {['overview', 'detailed', 'analytics'].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === mode 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ))}
         </div>
-        
-        {filteredData.length > 0 ? (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Course/School Name
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Teacher
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      County
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Join Code
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Research Type
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Gender
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Urbanicity
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Language
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Research Consent
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Training
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Pretest
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sticky top-0 bg-gray-800">
-                      Posttest
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {currentItems.map((course) => (
-                    <tr key={course.id} className="hover:bg-gray-700 transition-colors">
-                      <td className="px-4 py-3 text-sm">
-                        {course.course_name || course.course_school_name || 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {course.teacher_name || course.course_teacher_name}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {course.course_county || 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-mono">
-                        {course.course_join_code}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {course.course_research_type}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {course.course_gender || 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {course.course_urbanicity || 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {course.course_language || 'N/A'}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          course.teacher_research_consent 
-                            ? 'bg-green-600 text-white' 
-                            : 'bg-gray-600 text-gray-300'
-                        }`}>
-                          {course.teacher_research_consent ? 'Yes' : 'No'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          course.teacher_training_complete 
-                            ? 'bg-green-600 text-white' 
-                            : 'bg-gray-600 text-gray-300'
-                        }`}>
-                          {course.teacher_training_complete ? '✓' : '✗'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          course.teacher_pretest_complete 
-                            ? 'bg-green-600 text-white' 
-                            : 'bg-gray-600 text-gray-300'
-                        }`}>
-                          {course.teacher_pretest_complete ? '✓' : '✗'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          course.teacher_posttest_complete 
-                            ? 'bg-green-600 text-white' 
-                            : 'bg-gray-600 text-gray-300'
-                        }`}>
-                          {course.teacher_posttest_complete ? '✓' : '✗'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => paginate(1)}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === 1 
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                        : 'bg-gray-600 hover:bg-gray-500 text-white'
-                    }`}
-                  >
-                    First
-                  </button>
-                  <button
-                    onClick={() => paginate(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === 1 
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                        : 'bg-gray-600 hover:bg-gray-500 text-white'
-                    }`}
-                  >
-                    Previous
-                  </button>
-                </div>
-                
-                <div className="flex gap-2">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNumber;
-                    if (totalPages <= 5) {
-                      pageNumber = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNumber = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNumber = totalPages - 4 + i;
-                    } else {
-                      pageNumber = currentPage - 2 + i;
-                    }
-                    
-                    return (
-                      <button
-                        key={pageNumber}
-                        onClick={() => paginate(pageNumber)}
-                        className={`px-3 py-1 rounded ${
-                          currentPage === pageNumber 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-600 hover:bg-gray-500 text-white'
-                        }`}
-                      >
-                        {pageNumber}
-                      </button>
-                    );
-                  })}
-                </div>
-                
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === totalPages 
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                        : 'bg-gray-600 hover:bg-gray-500 text-white'
-                    }`}
-                  >
-                    Next
-                  </button>
-                  <button
-                    onClick={() => paginate(totalPages)}
-                    disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === totalPages 
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
-                        : 'bg-gray-600 hover:bg-gray-500 text-white'
-                    }`}
-                  >
-                    Last
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        ) : (
-          <p className="text-gray-400">No data matches the current filters.</p>
+
+        <FilterBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          filters={filters}
+          onFilterChange={(name, value) => {
+            setFilters(prev => ({ ...prev, [name]: value }));
+            setCurrentPage(1);
+          }}
+          filterOptions={filterOptions}
+          onDownload={downloadCSV}
+          onReset={() => {
+            setFilters({
+              county: "",
+              researchConsent: "",
+              trainingComplete: "",
+              pretestComplete: "",
+              posttestComplete: "",
+              progressRange: "",
+              moduleCompletion: "",
+              researchType: "",
+              language: "",
+              hasStudents: ""
+            });
+            setSearchTerm("");
+            setCurrentPage(1);
+          }}
+        />
+
+        {/* Main Content Area */}
+        {viewMode === 'overview' && (
+          <TeacherOverviewTable 
+            teachers={currentItems}
+            router={router}
+          />
         )}
-      </div>
-
-      {/* Download Section - At the Bottom */}
-      <div className="bg-gray-800 p-6 rounded-lg">
-        <h2 className="text-xl font-bold mb-4">Export Data</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* CSV Downloads */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">CSV Format</h3>
-            <div className="space-y-2">
+        {viewMode === 'detailed' && (
+          <DetailedProgressView 
+            teachers={currentItems}
+          />
+        )}
+        
+        {viewMode === 'analytics' && (
+          <AnalyticsView 
+            teachers={filteredTeachers}
+            courses={courses}
+            quizAttempts={quizAttempts}
+          />
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between bg-gray-800 p-4 rounded-lg">
+            <div className="text-sm text-gray-400">
+              Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredTeachers.length)} of {filteredTeachers.length} teachers
+            </div>
+            <div className="flex gap-2">
               <button
-                onClick={() => downloadCSV('filtered')}
-                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-colors text-left"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
               >
-                📊 Download Filtered Data ({filteredData.length} records)
+                First
               </button>
               <button
-                onClick={() => downloadCSV('courses')}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors text-left"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
               >
-                📚 Download All Courses ({courses.length} records)
+                Previous
+              </button>
+              
+              {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                const pageNumber = i + 1;
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => setCurrentPage(pageNumber)}
+                    className={`px-3 py-1 rounded ${
+                      currentPage === pageNumber 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-600 hover:bg-gray-500 text-white'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
+              >
+                Next
               </button>
               <button
-                onClick={() => downloadCSV('teachers')}
-                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md transition-colors text-left"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
               >
-                👥 Download All Teachers ({teachers.length} records)
+                Last
               </button>
             </div>
           </div>
-          
-          {/* JSON Downloads */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">JSON Format</h3>
-            <div className="space-y-2">
-              <button
-                onClick={() => downloadJSON('filtered')}
-                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-colors text-left"
-              >
-                📊 Download Filtered Data (JSON)
-              </button>
-              <button
-                onClick={() => downloadJSON('courses')}
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors text-left"
-              >
-                📚 Download All Courses (JSON)
-              </button>
-              <button
-                onClick={() => downloadJSON('teachers')}
-                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md transition-colors text-left"
-              >
-                👥 Download All Teachers (JSON)
-              </button>
-              <button
-                onClick={() => downloadJSON('all')}
-                className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-md transition-colors text-left"
-              >
-                💾 Download Complete Dataset (JSON)
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
       
       {dataError && (
-        <div className="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg">
+        <div className="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg">
           {dataError}
         </div>
       )}
