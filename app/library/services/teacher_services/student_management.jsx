@@ -11,6 +11,8 @@ export async function updateStudentSettings(payload) {
     const students = typeof payload.studentSettings === 'string' 
       ? JSON.parse(payload.studentSettings) 
       : payload.studentSettings;
+
+    console.log("ALL Students in the backend:", students);
     
     // Process each student
     for (const student of students) {
@@ -28,7 +30,7 @@ export async function updateStudentSettings(payload) {
         student_username: student.student_username,
         student_first_name: student.first_name,
         student_last_name: student.last_name,
-        student_gender: student.gender || 'Not Disclosed',
+        student_gender: student.gender,
         student_age: student.age ? parseInt(student.age) : null,
         student_esl: student.esl_status === 'Yes',
         course_id: payload.courseId,

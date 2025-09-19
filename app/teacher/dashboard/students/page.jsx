@@ -69,6 +69,8 @@ export default function Settings() {
       setIsSaving(true);
       setSaveMessage({ type: '', text: 'Saving students to your course...' });
       const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
+
+
       
       // Ensure we're saving an array
       const dataToSave = Array.isArray(updatedStudentData) ? updatedStudentData : [];
@@ -78,6 +80,7 @@ export default function Settings() {
         studentSettings: JSON.stringify(dataToSave)
       };
       
+      console.log("FULL PAYLOAD:", payload);
       const result = await updateStudentSettings(payload);
       if (result.success) {
         setSaveMessage({

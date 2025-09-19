@@ -22,7 +22,7 @@ const StudentTable = forwardRef(
     const getDefaultGender = () => {
       if (courseData?.course_gender === "Male") return "Male";
       if (courseData?.course_gender === "Female") return "Female";
-      return "Not Disclosed";
+      return "Other";
     };
 
     useEffect(() => {
@@ -35,7 +35,6 @@ const StudentTable = forwardRef(
           const updatedData = cleanedData.map((student) => ({
             ...student,
             gender: student.gender || getDefaultGender(),
-            genderOther: student.genderOther || "",
             age: student.age || "",
             esl_status: student.esl_status || "No",
             // Map student_join_code to student_username for backward compatibility
@@ -57,7 +56,6 @@ const StudentTable = forwardRef(
         const updatedData = cleanedData.map((student) => ({
           ...student,
           gender: student.gender || getDefaultGender(),
-          genderOther: student.genderOther || "",
           age: student.age || "",
           esl_status: student.esl_status || "No",
           student_username:
@@ -73,7 +71,6 @@ const StudentTable = forwardRef(
         first_name: "",
         last_name: "",
         gender: getDefaultGender(), // Use course default gender
-        genderOther: "",
         age: "",
         esl_status: "No",
         other: "",
@@ -145,10 +142,7 @@ const StudentTable = forwardRef(
           if (i === index) {
             const updatedStudent = { ...student, [field]: value };
 
-            // Clear genderOther if gender is not "Other"
-            if (field === "gender" && value !== "Other") {
-              updatedStudent.genderOther = "";
-            }
+
 
             // Auto-generate username when first name OR last name is entered/changed
             if (
