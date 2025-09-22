@@ -18,7 +18,7 @@ import { DetailedProgressView } from './components/DetailedProgressView';
 import { AnalyticsView } from './components/AnalyticsView';
 
 // Constants
-export const MODULE_ORDER = [
+ const MODULE_ORDER = [
   "Introduction to Spatial Visualization",
   "Combining Solids",
   "Surfaces and Solids of Revolution",
@@ -32,7 +32,7 @@ export const MODULE_ORDER = [
   "Cross-Sections of Solids"
 ];
 
-export const QUIZ_MODULE_MAPPING = {
+ const QUIZ_MODULE_MAPPING = {
   1: "PSVT:R Pre-Test",
   2: "DAT:SR Pre-Test",
   3: "Math Instrument Pre-Test",

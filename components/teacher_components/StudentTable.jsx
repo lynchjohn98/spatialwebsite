@@ -196,8 +196,6 @@ const StudentTable = forwardRef(
       try {
         // If we have a backend handler function passed as prop
         if (onRemoveStudent) {
-          // Call the backend function with student data
-          // This should be your purge function from student_management.jsx
           const result = await onRemoveStudent({
             studentId: student.id || student.student_id, // Adjust based on your data structure
             studentUsername: student.student_username,
