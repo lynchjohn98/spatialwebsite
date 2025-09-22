@@ -6,8 +6,41 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { 
   ArrowLeft, Download, Search, Filter, RefreshCw, 
   Award, Clock, Target, TrendingUp, Calendar, 
-  CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronUp
+  CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronUp,
+  FileText, BookOpen
 } from 'lucide-react';
+
+// Quiz name mapping
+const QUIZ_NAMES = {
+  1: "PSVT:R Pre-Test",
+  2: "DAT:SR Pre-Test",
+  3: "Math Instrument Pre-Test",
+  4: "Combining Solids",
+  5: "Surfaces and Solids of Revolution",
+  6: "Isometric Drawings and Coded Plans",
+  7: "Flat Patterns",
+  8: "Rotation of Objects About a Single Axis",
+  9: "Reflections and Symmetry",
+  10: "Cutting Planes and Cross-Sections",
+  11: "Rotation of Objects About Two or More Axes",
+  12: "Orthographic Projection",
+  13: "Inclined and Curved Surfaces",
+  14: "PSVT:R Post-Test",
+  15: "DAT:SR Post-Test",
+  16: "Math Instrument Post-Test",
+  17: "Practice Quiz",
+  18: "Mathematics Motivation Survey",
+  19: "STEM Attitudes Survey",
+  20: "STEM Career Survey"
+};
+
+// Quiz categories
+const QUIZ_CATEGORIES = {
+  'pre-tests': [1, 2, 3],
+  'module-quizzes': [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 17],
+  'post-tests': [14, 15, 16],
+  'surveys': [18, 19, 20]
+};
 
 export default function TeacherQuizDetailsPage() {
   const router = useRouter();
@@ -19,9 +52,10 @@ export default function TeacherQuizDetailsPage() {
   const [teacher, setTeacher] = useState(null);
   const [quizAttempts, setQuizAttempts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedQuiz, setSelectedQuiz] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("date_desc");
-  const [expandedAttempts, setExpandedAttempts] = useState({});
+  const [expandedQuizzes, setExpandedQuizzes] = useState({});
+  const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'timeline'
   
   const supabase = createClientComponentClient();
 
@@ -57,9 +91,10 @@ export default function TeacherQuizDetailsPage() {
 
       if (attemptsError) throw attemptsError;
       
-      // Process quiz attempts to add additional computed fields
+      // Process quiz attempts with proper quiz names
       const processedAttempts = attemptsData.map(attempt => ({
         ...attempt,
+        quiz_name: QUIZ_NAMES[attempt.quiz_id] || `Quiz ${attempt.quiz_id}`,
         passed: attempt.score >= 80,
         duration: calculateDuration(attempt.time_started, attempt.time_submitted),
         formattedDate: formatDate(attempt.time_submitted),
@@ -76,19 +111,24 @@ export default function TeacherQuizDetailsPage() {
 
   // Helper functions
   const calculateDuration = (start, end) => {
-    if (!start || !end) return 'N/A';
-    const startTime = new Date(start);
-    const endTime = new Date(end);
-    const diffMs = endTime - startTime;
-    const diffMins = Math.round(diffMs / 60000);
+    if (!start && !end) return 'N/A';
+    // If we only have end time, try to use time_taken field
+    const startTime = start ? new Date(start) : null;
+    const endTime = end ? new Date(end) : null;
     
-    if (diffMins < 60) {
-      return `${diffMins} min`;
-    } else {
-      const hours = Math.floor(diffMins / 60);
-      const mins = diffMins % 60;
-      return `${hours}h ${mins}m`;
+    if (startTime && endTime) {
+      const diffMs = endTime - startTime;
+      const diffMins = Math.round(diffMs / 60000);
+      
+      if (diffMins < 60) {
+        return `${diffMins} min`;
+      } else {
+        const hours = Math.floor(diffMins / 60);
+        const mins = diffMins % 60;
+        return `${hours}h ${mins}m`;
+      }
     }
+    return 'N/A';
   };
 
   const formatDate = (dateString) => {
@@ -108,13 +148,52 @@ export default function TeacherQuizDetailsPage() {
     });
   };
 
-  // Group attempts by quiz name
+  const formatTimeTaken = (seconds) => {
+    if (!seconds) return 'N/A';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  };
+
+  const getQuizCategory = (quizId) => {
+    const id = parseInt(quizId);
+    if (QUIZ_CATEGORIES['pre-tests'].includes(id)) return 'pre-tests';
+    if (QUIZ_CATEGORIES['module-quizzes'].includes(id)) return 'module-quizzes';
+    if (QUIZ_CATEGORIES['post-tests'].includes(id)) return 'post-tests';
+    if (QUIZ_CATEGORIES['surveys'].includes(id)) return 'surveys';
+    return 'other';
+  };
+
+  const getCategoryColor = (category) => {
+    switch(category) {
+      case 'pre-tests': return 'text-yellow-400 bg-yellow-400/10 border-yellow-400/30';
+      case 'module-quizzes': return 'text-blue-400 bg-blue-400/10 border-blue-400/30';
+      case 'post-tests': return 'text-green-400 bg-green-400/10 border-green-400/30';
+      case 'surveys': return 'text-purple-400 bg-purple-400/10 border-purple-400/30';
+      default: return 'text-gray-400 bg-gray-400/10 border-gray-400/30';
+    }
+  };
+
+  // Group attempts by quiz
   const groupedAttempts = useMemo(() => {
     const groups = {};
     quizAttempts.forEach(attempt => {
-      const quizName = attempt.name || 'Unknown Quiz';
-      if (!groups[quizName]) {
-        groups[quizName] = {
+      const quizName = attempt.quiz_name;
+      const quizId = attempt.quiz_id;
+      
+      if (!groups[quizId]) {
+        groups[quizId] = {
+          quizName: quizName,
+          quizId: quizId,
+          category: getQuizCategory(quizId),
           attempts: [],
           bestScore: 0,
           averageScore: 0,
@@ -123,12 +202,12 @@ export default function TeacherQuizDetailsPage() {
           lastAttempt: null
         };
       }
-      groups[quizName].attempts.push(attempt);
+      groups[quizId].attempts.push(attempt);
     });
 
     // Calculate statistics for each quiz
-    Object.keys(groups).forEach(quizName => {
-      const quizData = groups[quizName];
+    Object.keys(groups).forEach(quizId => {
+      const quizData = groups[quizId];
       const scores = quizData.attempts.map(a => a.score || 0);
       
       quizData.totalAttempts = quizData.attempts.length;
@@ -141,43 +220,20 @@ export default function TeacherQuizDetailsPage() {
     return groups;
   }, [quizAttempts]);
 
-  // Filter and sort attempts
-  const filteredAttempts = useMemo(() => {
-    let filtered = [...quizAttempts];
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(attempt =>
-        attempt.quiz_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        attempt.quiz_id?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  // Filter attempts by category
+  const filteredQuizzes = useMemo(() => {
+    if (selectedCategory === 'all') {
+      return groupedAttempts;
     }
-
-    // Filter by selected quiz
-    if (selectedQuiz !== "all") {
-      filtered = filtered.filter(attempt => attempt.quiz_name === selectedQuiz);
-    }
-
-    // Sort attempts
-    switch (sortBy) {
-      case 'date_desc':
-        filtered.sort((a, b) => new Date(b.time_submitted) - new Date(a.time_submitted));
-        break;
-      case 'date_asc':
-        filtered.sort((a, b) => new Date(a.time_submitted) - new Date(b.time_submitted));
-        break;
-      case 'score_desc':
-        filtered.sort((a, b) => (b.score || 0) - (a.score || 0));
-        break;
-      case 'score_asc':
-        filtered.sort((a, b) => (a.score || 0) - (b.score || 0));
-        break;
-      default:
-        break;
-    }
-
+    
+    const filtered = {};
+    Object.entries(groupedAttempts).forEach(([quizId, data]) => {
+      if (data.category === selectedCategory) {
+        filtered[quizId] = data;
+      }
+    });
     return filtered;
-  }, [quizAttempts, searchTerm, selectedQuiz, sortBy]);
+  }, [groupedAttempts, selectedCategory]);
 
   // Calculate overall statistics
   const overallStats = useMemo(() => {
@@ -188,13 +244,32 @@ export default function TeacherQuizDetailsPage() {
         averageScore: 0,
         bestScore: 0,
         passRate: 0,
-        totalTimeSpent: 0
+        categoryCounts: {
+          'pre-tests': 0,
+          'module-quizzes': 0,
+          'post-tests': 0,
+          'surveys': 0
+        }
       };
     }
 
-    const uniqueQuizzes = new Set(quizAttempts.map(a => a.quiz_name)).size;
+    const uniqueQuizzes = new Set(quizAttempts.map(a => a.quiz_id)).size;
     const scores = quizAttempts.map(a => a.score || 0);
     const passedAttempts = quizAttempts.filter(a => a.passed).length;
+
+    // Count attempts by category
+    const categoryCounts = {
+      'pre-tests': 0,
+      'module-quizzes': 0,
+      'post-tests': 0,
+      'surveys': 0
+    };
+
+    Object.values(groupedAttempts).forEach(quiz => {
+      if (categoryCounts[quiz.category] !== undefined) {
+        categoryCounts[quiz.category]++;
+      }
+    });
 
     return {
       totalAttempts: quizAttempts.length,
@@ -202,26 +277,27 @@ export default function TeacherQuizDetailsPage() {
       averageScore: Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length),
       bestScore: Math.max(...scores),
       passRate: Math.round((passedAttempts / quizAttempts.length) * 100),
-      totalTimeSpent: 'N/A' // Could calculate if needed
+      categoryCounts
     };
-  }, [quizAttempts]);
+  }, [quizAttempts, groupedAttempts]);
 
-  const toggleAttemptExpansion = (attemptId) => {
-    setExpandedAttempts(prev => ({
+  const toggleQuizExpansion = (quizId) => {
+    setExpandedQuizzes(prev => ({
       ...prev,
-      [attemptId]: !prev[attemptId]
+      [quizId]: !prev[quizId]
     }));
   };
 
   const downloadCSV = () => {
     const headers = [
-      'Quiz Name', 'Quiz ID', 'Score', 'Passed', 'Date', 'Time',
+      'Quiz Name', 'Quiz ID', 'Category', 'Score', 'Passed', 'Date', 'Time',
       'Duration', 'Time Started', 'Time Submitted', 'Attempt Number'
     ];
     
-    const rows = filteredAttempts.map(attempt => [
+    const rows = quizAttempts.map(attempt => [
       attempt.quiz_name || '',
       attempt.quiz_id || '',
+      getQuizCategory(attempt.quiz_id),
       attempt.score || 0,
       attempt.passed ? 'Yes' : 'No',
       attempt.formattedDate,
@@ -275,19 +351,28 @@ export default function TeacherQuizDetailsPage() {
               Back to Dashboard
             </button>
             <div>
-              <h1 className="text-2xl font-bold">Quiz Attempts Detail</h1>
+              <h1 className="text-2xl font-bold">Teacher Quiz Performance</h1>
               <p className="text-gray-400">
                 {teacher?.name || 'Unknown Teacher'} ({teacher?.email})
               </p>
             </div>
           </div>
-          <button
-            onClick={fetchTeacherData}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-          >
-            <RefreshCw size={18} />
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={downloadCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+            >
+              <Download size={18} />
+              Export CSV
+            </button>
+            <button
+              onClick={fetchTeacherData}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+            >
+              <RefreshCw size={18} />
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
@@ -304,7 +389,7 @@ export default function TeacherQuizDetailsPage() {
           
           <div className="bg-gray-800 p-4 rounded-lg">
             <div className="flex items-center gap-2 text-gray-400 mb-2">
-              <Award size={18} />
+              <BookOpen size={18} />
               <span className="text-sm">Unique Quizzes</span>
             </div>
             <div className="text-2xl font-bold">{overallStats.uniqueQuizzes}</div>
@@ -345,192 +430,268 @@ export default function TeacherQuizDetailsPage() {
           </div>
         </div>
 
-        {/* Filters and Controls */}
-        <div className="bg-gray-800 p-4 rounded-lg mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search quiz names..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        {/* Category Progress Overview */}
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 mb-6">
+          <h3 className="text-lg font-semibold mb-4">Progress by Category</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-yellow-400 font-medium">Pre-Tests</span>
+                <span className="text-2xl font-bold text-yellow-400">
+                  {overallStats.categoryCounts['pre-tests']}/3
+                </span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-yellow-400 h-2 rounded-full"
+                  style={{ width: `${(overallStats.categoryCounts['pre-tests'] / 3) * 100}%` }}
                 />
               </div>
             </div>
-            
-            <select
-              value={selectedQuiz}
-              onChange={(e) => setSelectedQuiz(e.target.value)}
-              className="px-4 py-2 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Quizzes</option>
-              {Object.keys(groupedAttempts).map(quizName => (
-                <option key={quizName} value={quizName}>{quizName}</option>
-              ))}
-            </select>
-            
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 bg-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="date_desc">Latest First</option>
-              <option value="date_asc">Oldest First</option>
-              <option value="score_desc">Highest Score</option>
-              <option value="score_asc">Lowest Score</option>
-            </select>
-            
+
+            <div className="bg-blue-400/10 border border-blue-400/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-blue-400 font-medium">Module Quizzes</span>
+                <span className="text-2xl font-bold text-blue-400">
+                  {overallStats.categoryCounts['module-quizzes']}/11
+                </span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-blue-400 h-2 rounded-full"
+                  style={{ width: `${(overallStats.categoryCounts['module-quizzes'] / 11) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="bg-green-400/10 border border-green-400/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-green-400 font-medium">Post-Tests</span>
+                <span className="text-2xl font-bold text-green-400">
+                  {overallStats.categoryCounts['post-tests']}/3
+                </span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-green-400 h-2 rounded-full"
+                  style={{ width: `${(overallStats.categoryCounts['post-tests'] / 3) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="bg-purple-400/10 border border-purple-400/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-purple-400 font-medium">Surveys</span>
+                <span className="text-2xl font-bold text-purple-400">
+                  {overallStats.categoryCounts['surveys']}/3
+                </span>
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div 
+                  className="bg-purple-400 h-2 rounded-full"
+                  style={{ width: `${(overallStats.categoryCounts['surveys'] / 3) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Filter Tabs */}
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 mb-6">
+          <div className="flex flex-wrap gap-2">
             <button
-              onClick={downloadCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+              onClick={() => setSelectedCategory('all')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedCategory === 'all'
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-gray-700 text-gray-400 hover:text-white'
+              }`}
             >
-              <Download size={18} />
-              Export CSV
+              All Quizzes ({Object.keys(groupedAttempts).length})
+            </button>
+            <button
+              onClick={() => setSelectedCategory('pre-tests')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedCategory === 'pre-tests'
+                  ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-400/30'
+                  : 'bg-gray-700 text-gray-400 hover:text-white'
+              }`}
+            >
+              Pre-Tests ({overallStats.categoryCounts['pre-tests']})
+            </button>
+            <button
+              onClick={() => setSelectedCategory('module-quizzes')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedCategory === 'module-quizzes'
+                  ? 'bg-blue-600/20 text-blue-400 border border-blue-400/30'
+                  : 'bg-gray-700 text-gray-400 hover:text-white'
+              }`}
+            >
+              Module Quizzes ({overallStats.categoryCounts['module-quizzes']})
+            </button>
+            <button
+              onClick={() => setSelectedCategory('post-tests')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedCategory === 'post-tests'
+                  ? 'bg-green-600/20 text-green-400 border border-green-400/30'
+                  : 'bg-gray-700 text-gray-400 hover:text-white'
+              }`}
+            >
+              Post-Tests ({overallStats.categoryCounts['post-tests']})
+            </button>
+            <button
+              onClick={() => setSelectedCategory('surveys')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedCategory === 'surveys'
+                  ? 'bg-purple-600/20 text-purple-400 border border-purple-400/30'
+                  : 'bg-gray-700 text-gray-400 hover:text-white'
+              }`}
+            >
+              Surveys ({overallStats.categoryCounts['surveys']})
             </button>
           </div>
         </div>
 
-        {/* Quiz Summary by Type */}
-        {selectedQuiz === "all" && (
-          <div className="mb-6">
-            <h2 className="text-xl font-bold mb-4">Quiz Performance Summary</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {Object.entries(groupedAttempts).map(([quizName, quizData]) => (
-                <div key={quizName} className="bg-gray-800 p-4 rounded-lg">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-semibold text-lg">{quizName}</h3>
-                    <span className="text-sm text-gray-400">
-                      {quizData.totalAttempts} attempt{quizData.totalAttempts !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-400">Best Score</p>
-                      <p className="font-bold text-green-400">{quizData.bestScore}%</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400">Average</p>
-                      <p className="font-bold">{quizData.averageScore}%</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400">Pass Rate</p>
-                      <p className="font-bold text-blue-400">{quizData.passRate}%</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400">Last Attempt</p>
-                      <p className="font-bold text-xs">{quizData.lastAttempt?.formattedDate}</p>
-                    </div>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="mt-3">
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all"
-                        style={{ width: `${quizData.averageScore}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Detailed Attempts List */}
-        <div>
-          <h2 className="text-xl font-bold mb-4">
-            Individual Attempts ({filteredAttempts.length})
-          </h2>
-          
-          {filteredAttempts.length === 0 ? (
+        {/* Quiz Attempts by Category */}
+        <div className="space-y-4">
+          {Object.keys(filteredQuizzes).length === 0 ? (
             <div className="bg-gray-800 p-8 rounded-lg text-center">
               <AlertCircle size={48} className="mx-auto mb-4 text-gray-600" />
-              <p className="text-gray-400">No quiz attempts found matching your filters.</p>
+              <p className="text-gray-400">No quiz attempts found for this category.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filteredAttempts.map((attempt) => (
-                <div key={attempt.id} className="bg-gray-800 rounded-lg overflow-hidden">
+            Object.entries(filteredQuizzes).map(([quizId, quizData]) => {
+              const isExpanded = expandedQuizzes[quizId];
+              const categoryColor = getCategoryColor(quizData.category);
+              
+              return (
+                <div 
+                  key={quizId} 
+                  className={`bg-gray-800 rounded-lg border ${
+                    quizData.category === 'pre-tests' ? 'border-yellow-400/30' :
+                    quizData.category === 'module-quizzes' ? 'border-blue-400/30' :
+                    quizData.category === 'post-tests' ? 'border-green-400/30' :
+                    quizData.category === 'surveys' ? 'border-purple-400/30' :
+                    'border-gray-700'
+                  } overflow-hidden`}
+                >
                   <div 
                     className="p-4 cursor-pointer hover:bg-gray-750 transition-colors"
-                    onClick={() => toggleAttemptExpansion(attempt.id)}
+                    onClick={() => toggleQuizExpansion(quizId)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg ${attempt.passed ? 'bg-green-900' : 'bg-red-900'}`}>
-                          {attempt.passed ? <CheckCircle size={20} className="text-green-400" /> : <XCircle size={20} className="text-red-400" />}
+                        <div className={`p-2 rounded-lg ${categoryColor}`}>
+                          <FileText size={20} />
                         </div>
                         
                         <div>
-                          <h3 className="font-semibold">{attempt.quiz_name || 'Unknown Quiz'}</h3>
+                          <h3 className="font-semibold text-lg">{quizData.quizName}</h3>
                           <div className="flex items-center gap-4 text-sm text-gray-400">
-                            <span>{attempt.formattedDate}</span>
-                            <span>{attempt.formattedTime}</span>
-                            <span className="flex items-center gap-1">
-                              <Clock size={14} />
-                              {attempt.duration}
+                            <span className={`px-2 py-1 rounded text-xs ${categoryColor}`}>
+                              {quizData.category.replace('-', ' ').toUpperCase()}
                             </span>
+                            <span>{quizData.totalAttempts} attempt{quizData.totalAttempts !== 1 ? 's' : ''}</span>
+                            <span>Last: {quizData.lastAttempt?.formattedDate}</span>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <div className={`text-2xl font-bold ${
-                            attempt.score >= 90 ? 'text-green-400' :
-                            attempt.score >= 80 ? 'text-blue-400' :
-                            attempt.score >= 70 ? 'text-yellow-400' :
-                            'text-red-400'
-                          }`}>
-                            {attempt.score || 0}%
+                      <div className="flex items-center gap-6">
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div>
+                            <p className="text-xs text-gray-400">Best</p>
+                            <p className="text-xl font-bold text-green-400">{quizData.bestScore}%</p>
                           </div>
-                          <div className="text-sm text-gray-400">
-                            {attempt.passed ? 'Passed' : 'Failed'}
+                          <div>
+                            <p className="text-xs text-gray-400">Average</p>
+                            <p className="text-xl font-bold">{quizData.averageScore}%</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400">Pass Rate</p>
+                            <p className="text-xl font-bold text-blue-400">{quizData.passRate}%</p>
                           </div>
                         </div>
                         
-                        {expandedAttempts[attempt.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </div>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mt-3">
+                      <div className="w-full bg-gray-700 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all ${
+                            quizData.averageScore >= 80 ? 'bg-green-500' :
+                            quizData.averageScore >= 60 ? 'bg-blue-500' :
+                            quizData.averageScore >= 40 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}
+                          style={{ width: `${quizData.averageScore}%` }}
+                        />
                       </div>
                     </div>
                   </div>
                   
-                  {expandedAttempts[attempt.id] && (
+                  {isExpanded && (
                     <div className="border-t border-gray-700 p-4 bg-gray-850">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-400">Quiz ID</p>
-                          <p className="font-mono">{attempt.quiz_id}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400">Started</p>
-                          <p>{attempt.time_started ? new Date(attempt.time_started).toLocaleString() : 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400">Submitted</p>
-                          <p>{attempt.time_submitted ? new Date(attempt.time_submitted).toLocaleString() : 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400">Attempt #</p>
-                          <p>{attempt.attempt_number || 1}</p>
-                        </div>
+                      <h4 className="text-sm font-semibold mb-3 text-gray-300">Individual Attempts</h4>
+                      <div className="space-y-2">
+                        {quizData.attempts.map((attempt, idx) => (
+                          <div key={attempt.id} className="bg-gray-700/50 rounded p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className={`p-1 rounded ${attempt.passed ? 'bg-green-900' : 'bg-red-900'}`}>
+                                  {attempt.passed ? 
+                                    <CheckCircle size={16} className="text-green-400" /> : 
+                                    <XCircle size={16} className="text-red-400" />
+                                  }
+                                </div>
+                                <div>
+                                  <span className="text-sm font-medium">Attempt {quizData.attempts.length - idx}</span>
+                                  <div className="flex items-center gap-4 text-xs text-gray-400">
+                                    <span>{attempt.formattedDate}</span>
+                                    <span>{attempt.formattedTime}</span>
+                                    <span className="flex items-center gap-1">
+                                      <Clock size={12} />
+                                      {attempt.time_taken ? formatTimeTaken(attempt.time_taken) : attempt.duration}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="text-right">
+                                <div className={`text-xl font-bold ${
+                                  attempt.score >= 90 ? 'text-green-400' :
+                                  attempt.score >= 80 ? 'text-blue-400' :
+                                  attempt.score >= 70 ? 'text-yellow-400' :
+                                  'text-red-400'
+                                }`}>
+                                  {attempt.score || 0}%
+                                </div>
+                                <div className="text-xs text-gray-400">
+                                  {attempt.passed ? 'Passed' : 'Failed'}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {attempt.submitted_answers && (
+                              <div className="mt-2 text-xs text-gray-500">
+                                {typeof attempt.submitted_answers === 'object' && 
+                                 Array.isArray(attempt.submitted_answers) ? 
+                                  `${attempt.submitted_answers.length} questions answered` :
+                                  'Answers submitted'
+                                }
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                      
-                      {attempt.feedback && (
-                        <div className="mt-4">
-                          <p className="text-gray-400 text-sm mb-1">Feedback</p>
-                          <p className="text-sm bg-gray-700 p-3 rounded">{attempt.feedback}</p>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
+              );
+            })
           )}
         </div>
       </div>
