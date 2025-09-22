@@ -256,8 +256,7 @@ const StudentTable = forwardRef(
     // Show gender column only if course is Mixed or not specified
     const shouldShowGenderColumn =
       !courseData?.course_gender ||
-      courseData.course_gender === "Mixed" ||
-      courseData.course_gender === "Other";
+      courseData.course_gender === "Mixed";
 
     return (
       <div className="w-full bg-gray-800 p-4 rounded-lg shadow-md m-4">

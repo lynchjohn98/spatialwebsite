@@ -17,39 +17,6 @@ import { TeacherOverviewTable } from './components/TeacherOverviewTable';
 import { DetailedProgressView } from './components/DetailedProgressView';
 import { AnalyticsView } from './components/AnalyticsView';
 
-// Constants
- const MODULE_ORDER = [
-  "Introduction to Spatial Visualization",
-  "Combining Solids",
-  "Surfaces and Solids of Revolution",
-  "Coordinate Systems",
-  "Orthographic Projection",
-  "Inclined and Curved Surfaces",
-  "Flat Patterns",
-  "Rotation of Objects About a Single Axis",
-  "Rotation of Objects About Two or More Axes",
-  "Reflection and Symmetry",
-  "Cross-Sections of Solids"
-];
-
- const QUIZ_MODULE_MAPPING = {
-  1: "PSVT:R Pre-Test",
-  2: "DAT:SR Pre-Test",
-  3: "Math Instrument Pre-Test",
-  4: "Combining Solids",
-  5: "Surfaces and Solids of Revolution",
-  6: "Isometric Drawings and Coded Plans",
-  7: "Flat Patterns",
-  8: "Rotation of Objects About a Single Axis",
-  9: "Reflections and Symmetry",
-  10: "Cutting Planes and Cross-Sections",
-  11: "Rotation of Objects About Two or More Axes",
-  12: "Orthographic Projection",
-  13: "Inclined and Curved Surfaces",
-  14: "PSVT:R Post-Test",
-  15: "DAT:SR Post-Test",
-  16: "Math Instrument Post-Test"
-};
 
 export default function AdminPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -498,6 +465,7 @@ export default function AdminPage() {
       />
 
       <div className="max-w-full px-6 py-6">
+        <h1 className={`px-4 py-2 rounded-md text-sm font-xl transition-colors`}>Total Statistics</h1>
         <StatsCards stats={aggregateStats} />
 
         {/* View Mode Tabs */}

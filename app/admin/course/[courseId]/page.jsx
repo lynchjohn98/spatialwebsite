@@ -117,6 +117,7 @@ export default function CourseDetailsPage() {
       
       setStudentGrades(gradesData || []);
       setLastRefresh(new Date());
+      console.log("INSIDE THIS MAIN PAGE:", studentsData)
 
     } catch (error) {
       console.error('Error fetching course data:', error);

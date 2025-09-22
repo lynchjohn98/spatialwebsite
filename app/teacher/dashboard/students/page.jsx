@@ -2,75 +2,83 @@
 import { useState, useEffect, useRef } from "react";
 import Sidebar from "../../../../components/teacher_components/TeacherSidebar";
 import StudentTable from "../../../../components/teacher_components/StudentTable";
-import { retrieveCourseSettings } from "../../../library/services/course_actions";
-import { updateStudentSettings, deleteStudent } from "../../../library/services/teacher_services/student_management"
+import { fetchStudentsFromTable, updateStudentSettings, deleteStudent, syncStudentSettingsFromStudentsTable } from "../../../library/services/teacher_services/student_management"
 
 export default function Settings() {
   const [studentSettingsOpen, setStudentSettingsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
   const [courseData, setCourseData] = useState(null);
-  const [courseSettings, setCourseSettings] = useState(null);
   const [studentData, setStudentData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const studentTableRef = useRef();
 
-  const fetchCourseSettings = async () => {
+  const fetchStudents = async () => {
     setIsLoading(true);
     const storedData = sessionStorage.getItem("courseData");
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       setCourseData(parsedData);
-      const response = await retrieveCourseSettings({ id: parsedData.id });
+      
+      // Fetch students directly from students table
+      const response = await fetchStudentsFromTable(parsedData.id);
+      
       if (response.success) {
-        const settings = response.data;
-        
-        // Properly handle student settings parsing
-        let parsedStudentSettings = [];
-        try {
-          if (typeof settings.student_settings === 'string') {
-            parsedStudentSettings = JSON.parse(settings.student_settings);
-          } else if (settings.student_settings) {
-            parsedStudentSettings = settings.student_settings;
-          }
-          
-          // Ensure it's an array
-          if (!Array.isArray(parsedStudentSettings)) {
-            if (typeof parsedStudentSettings === 'object' && parsedStudentSettings !== null) {
-              parsedStudentSettings = Object.values(parsedStudentSettings);
-            } else {
-              parsedStudentSettings = [];
-            }
-          }
-        } catch (error) {
-          console.error("Error parsing student settings:", error);
-          parsedStudentSettings = [];
-        }
-        
-        setCourseSettings(settings);
-        setStudentData(parsedStudentSettings);
+        setStudentData(response.data || []);
       } else {
-        console.error("Error retrieving course settings:", response.error);
+        console.error("Error fetching students:", response.error);
         setSaveMessage({
           type: 'error',
-          text: 'Failed to load course settings. Please try refreshing the page.'
+          text: 'Failed to load students. Please try refreshing the page.'
         });
+        setStudentData([]);
       }
     }
     setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchCourseSettings();
+    fetchStudents();
   }, []);
+
+  // Sync button to rebuild courses_settings from students table
+  const handleSyncStudents = async () => {
+    setIsSyncing(true);
+    setSaveMessage({ type: '', text: 'Syncing student data...' });
+    
+    try {
+      const result = await syncStudentSettingsFromStudentsTable(courseData.id);
+      
+      if (result.success) {
+        setSaveMessage({
+          type: 'success',
+          text: 'Successfully synced student data from database.'
+        });
+        // Refresh the student list
+        await fetchStudents();
+      } else {
+        throw new Error(result.error || 'Sync failed');
+      }
+    } catch (error) {
+      console.error("Error syncing:", error);
+      setSaveMessage({
+        type: 'error',
+        text: `Failed to sync: ${error.message}`
+      });
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => {
+        setSaveMessage({ type: '', text: '' });
+      }, 5000);
+    }
+  };
 
   const handleSubmitStudents = async () => {
     try {
       setIsSaving(true);
       setSaveMessage({ type: '', text: 'Saving students to your course...' });
       const updatedStudentData = studentTableRef.current?.getUpdatedData() || studentData;
-
-
       
       // Ensure we're saving an array
       const dataToSave = Array.isArray(updatedStudentData) ? updatedStudentData : [];
@@ -80,15 +88,16 @@ export default function Settings() {
         studentSettings: JSON.stringify(dataToSave)
       };
       
-      console.log("FULL PAYLOAD:", payload);
+      console.log("Submitting students:", payload);
       const result = await updateStudentSettings(payload);
+      
       if (result.success) {
         setSaveMessage({
           type: 'success',
           text: 'Student Data Updated Successfully.'
         });
-        // Update local state with the saved data
-        setStudentData(dataToSave);
+        // Refresh from database to ensure consistency
+        await fetchStudents();
       } else {
         throw new Error(result.error || 'Failed to update student data');
       }
@@ -106,82 +115,32 @@ export default function Settings() {
     }
   }
 
-  // Fixed handleRemoveStudent with proper data handling
   const handleRemoveStudent = async ({ studentId, studentUsername, courseId, index, studentData: student }) => {
     try {
-      // First, update the course settings to remove the student
-      const currentSettings = await retrieveCourseSettings({ id: courseData.id });
+      const deletePayload = {
+        studentId: student.student_id || student.id,
+        studentUsername: student.student_username,
+        courseId: courseData.id
+      };
       
-      if (currentSettings.success && currentSettings.data) {
-        let studentSettings = currentSettings.data.student_settings;
+      const result = await deleteStudent(deletePayload);
+      
+      if (result.success) {
+        setSaveMessage({
+          type: 'success',
+          text: `Successfully removed ${student.first_name || ''} ${student.last_name || ''} from the course.`
+        });
         
-        // Parse if string
-        if (typeof studentSettings === 'string') {
-          try {
-            studentSettings = JSON.parse(studentSettings);
-          } catch (e) {
-            console.error("Failed to parse student settings:", e);
-            studentSettings = [];
-          }
-        }
+        // Refresh the student list
+        await fetchStudents();
         
-        // Ensure array
-        if (!Array.isArray(studentSettings)) {
-          if (typeof studentSettings === 'object' && studentSettings !== null) {
-            studentSettings = Object.values(studentSettings);
-          } else {
-            studentSettings = [];
-          }
-        }
+        setTimeout(() => {
+          setSaveMessage({ type: '', text: '' });
+        }, 5000);
         
-        // Filter out the student
-        const updatedStudents = studentSettings.filter(
-          s => s.student_username !== student.student_username
-        );
-        
-        // Update course settings
-        const updatePayload = {
-          courseId: courseData.id,
-          studentSettings: JSON.stringify(updatedStudents)
-        };
-        
-        const updateResult = await updateStudentSettings(updatePayload);
-        
-        if (updateResult.success) {
-          // If student has an ID in the students table, delete that record too
-          if (student.id || student.student_id) {
-            try {
-              const deletePayload = {
-                studentId: student.id || student.student_id,
-                courseId: courseData.id,
-                studentUsername: student.student_username
-              };
-              
-              await deleteStudent(deletePayload);
-            } catch (deleteError) {
-              console.warn("Could not delete student record:", deleteError);
-              // Continue anyway - the important part is removing from course settings
-            }
-          }
-          
-          // Update local state
-          setStudentData(updatedStudents);
-          
-          setSaveMessage({
-            type: 'success',
-            text: `Successfully removed ${student.first_name || ''} ${student.last_name || ''} from the course.`
-          });
-          
-          setTimeout(() => {
-            setSaveMessage({ type: '', text: '' });
-          }, 5000);
-          
-          return { success: true };
-        } else {
-          throw new Error(updateResult.error || 'Failed to update course settings');
-        }
+        return { success: true };
       } else {
-        throw new Error('Failed to retrieve current course settings');
+        throw new Error(result.error || 'Failed to remove student');
       }
     } catch (error) {
       console.error("Error removing student:", error);
@@ -238,11 +197,35 @@ export default function Settings() {
                 </svg>
               </button>
             </h1>
-            {courseData && (
+            <div className="flex gap-2 items-center">
               <div className="text-sm bg-gray-700 px-3 py-1 rounded">
                 Course Type: <span className="font-semibold">{getCourseTypeInfo()}</span>
               </div>
-            )}
+              <button
+                onClick={handleSyncStudents}
+                disabled={isSyncing}
+                className={`${
+                  isSyncing 
+                    ? 'bg-gray-500 cursor-not-allowed' 
+                    : 'bg-purple-600 hover:bg-purple-700'
+                } text-white px-4 py-1 rounded text-sm transition-colors flex items-center gap-2`}
+                title="Sync student data from database"
+              >
+                {isSyncing ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Syncing...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Sync Data</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-lg mb-2 text-blue-300">
             Use this page to add, remove, and edit your students' information.
