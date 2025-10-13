@@ -276,6 +276,12 @@ export const supplementalMaterialInformation = [
     downloadUrl:
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//teacher_guide_ireland_final.pdf",
   },
+  { 
+    title: "Flat Patterns Resource Guide",
+    description: "Resource guide for the Flat Patterns module",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/platonic_solids.pdf"
+
+  },
   {
     title: "Pre-Module - The Importance of Spatial Skills",
     description: "Powerpoint presentation for the pre-module",
