@@ -312,6 +312,31 @@ export const supplementalMaterialInformation = [
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_flatpatterns.pptx",
   },
   {
+    title: "Module 4 - Flat Patterns In-Class Activity Instructions",
+    description: "In-Class activity instructions for Module 4 Flat Patterns for teachers",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_activity_instructions.pptx",
+  },
+   {
+    title: "Module 4 - Flat Patterns In-Class Activity Handout",
+    description: "In-Class activity for Module 4 Flat Patterns for students",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_flat_patterns_handouts.pdf",
+  },
+  {
+    title: "Module 4 - Flat Patterns In-Class Activity Answers",
+    description: "Answers to in-Class activity instructions for Module 4 Flat Patterns for teachers",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_flat_pattern.pdf",
+  },
+  {
+    title: "Module 4 - Flat Patterns Alternative In-Class Activity with Answers",
+    description: "Alternative Flat Patterns Activity, this includes both the questions and answers for teachers to use",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/easier_flat_pattern2.pdf",
+  },
+ 
+  {
     title: "Module 5 - Rotation of Objects About a Single Axis",
     description: "Powerpoint presentation for Module 5",
     downloadUrl:

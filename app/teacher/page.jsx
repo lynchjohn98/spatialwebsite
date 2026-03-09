@@ -141,6 +141,7 @@ export default function TeacherMainPage() {
               </div>
             )}
 
+            
             <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-6 space-y-6">
               <div>
                 <label className="block text-lg font-medium mb-3 text-gray-200">
@@ -205,6 +206,8 @@ export default function TeacherMainPage() {
                 className="w-full py-3 rounded-lg font-medium transition-colors bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white"
               />
             </div>
+
+          
           </div>
         </div>
       </div>

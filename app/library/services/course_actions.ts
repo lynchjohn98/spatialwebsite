@@ -175,31 +175,65 @@ export async function retrieveQuizzes(payload: { id: any; }) {
   }
 }
 
-// Fix for retrieving course settings
-export async function retrieveCourseSettings(payload: { id: any; }) {
+// Helper to safely parse — handles both already-parsed objects and JSON strings
+function safeParse(value: any, fallback: any = []) {
+  if (!value) return fallback;
+  if (typeof value === "object") return value; // Already parsed by Supabase
+  try {
+    const once = JSON.parse(value);
+    // Handle double-encoded strings
+    if (typeof once === "string") return JSON.parse(once);
+    return once;
+  } catch {
+    return fallback;
+  }
+}
+
+export async function retrieveCourseSettings(payload: { id: any }) {
   console.log("Retrieving course settings", payload);
   const supabase = await createClient();
   try {
-    const { data, error } = await supabase
-      .from("courses_settings")
-      .select("*")
-      .eq("course_id", payload.id)
-      .maybeSingle(); // Use maybeSingle instead of single
-    if (error) {
-      console.error("❌ Supabase Query Error:", error.message);
-      return { error: error.message };
+    const [settingsResult, quizzesResult] = await Promise.all([
+      supabase.from("courses_settings").select("*").eq("course_id", payload.id).maybeSingle(),
+      supabase.from("quizzes").select("*").order("id", { ascending: true }),
+    ]);
+
+    if (settingsResult.error) return { error: settingsResult.error.message };
+    if (quizzesResult.error) return { error: quizzesResult.error.message };
+    if (!settingsResult.data) return { success: true, data: null };
+
+    const settings = settingsResult.data;
+    const allQuizzes = quizzesResult.data ?? [];
+
+    // Safely parse regardless of encoding
+    let parsedQuizSettings: any[] = safeParse(settings.quiz_settings, []);
+
+    const existingIds = new Set(parsedQuizSettings.map((q) => q.id));
+    const missingQuizzes = allQuizzes.filter((q) => !existingIds.has(q.id));
+
+    if (missingQuizzes.length > 0) {
+      console.log(`🔄 Syncing ${missingQuizzes.length} missing quiz(zes):`, missingQuizzes.map((q) => q.name));
+      parsedQuizSettings = [...parsedQuizSettings, ...missingQuizzes];
+
+      const { error: updateError } = await supabase
+        .from("courses_settings")
+        .update({ quiz_settings: JSON.stringify(parsedQuizSettings) })
+        .eq("course_id", payload.id);
+
+      if (updateError) {
+        console.error("❌ Failed to sync quiz settings:", updateError.message);
+      } else {
+        console.log("✅ Quiz settings synced successfully");
+        settings.quiz_settings = JSON.stringify(parsedQuizSettings);
+      }
     }
-    if (!data) {
-      console.log("No settings found for course ID:", payload.id);
-      return { success: true, data: null };
-    }
-    return { success: true, data };
+
+    return { success: true, data: settings };
   } catch (err) {
     console.error("❌ Error retrieving course settings:", err);
     return { error: "Failed to retrieve course settings" };
   }
 }
-
 
 export async function deleteCourse(payload) {
   const supabase = await createClient();

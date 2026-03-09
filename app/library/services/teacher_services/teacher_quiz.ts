@@ -34,6 +34,35 @@ try {
 
 }
 
+/*
+export async function submitTeacherSurvey(payload) {
+    const surveyResults = payload.survey_results;
+    const teacherData = payload.teacher_data;
+    const supabase = await createClient();
+    const { data, error } = await supabase
+    .from("teachers_grades")
+    .insert([
+        {
+            created_at: new Date().toISOString(),
+            quiz_id: surveyResults.surveyId,
+            score: 0,
+            submitted_answers: surveyResults.answers,
+            time_submitted: new Date().toISOString(),
+            time_taken: surveyResults.timeSpent,
+            student_id: studentData.id,
+            course_id: studentData.courses.id
+        }
+    ]);
+    if (error) {
+        console.error("Error submitting survey:", error);
+        return { success: false, error };
+    }
+
+    return { success: true, data };
+}
+    */
+
+
 export async function submitTeacherPrePostQuiz(payload) {
     try {
         console.log("FULL PAYLOAD", payload);

@@ -514,6 +514,26 @@ export default function TeacherModulePage() {
             </section>
 
             <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
+  <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
+    Review Extra Resources
+  </h2>
+
+  <div className="bg-gray-700/30 p-6 rounded-lg">
+    <p className="mb-4 text-gray-200 font-medium">
+     
+      There are multiple Flat Pattern Exercises inside the "Extra Resources" section in the main menu of your teacher page.
+      You can navigate to extra resources here:{" "}
+      <a
+        href="/teacher/resources/"
+        className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors"
+      >
+        Extra Resources
+      </a>
+    </p>
+  </div>
+</section>
+
+            <section className="bg-gray-800/70 rounded-xl p-6 sm:p-8 shadow-lg border border-gray-700/50">
               <h2 className="text-xl sm:text-2xl font-bold mb-6 text-blue-300 border-b border-gray-600 pb-3">
                 Success Criteria
               </h2>
@@ -686,6 +706,7 @@ export default function TeacherModulePage() {
                   </ul>
                 </div>
 
+              
                 <div className="bg-gray-700/30 p-6 rounded-lg">
                   <p className="font-semibold mb-4 text-lg text-blue-200 flex items-center">
                     <svg

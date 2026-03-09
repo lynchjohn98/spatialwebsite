@@ -68,6 +68,7 @@ const fetchCourseSettings = async () => {
       const moduleQuizzes = parsedQuizSettings.filter(
         (q) => !q.type || q.type === "module"
       );
+      console.log(parsedQuizSettings.filter((q) => q.type === "survey"));
       const surveys = parsedQuizSettings.filter((q) => q.type === "survey");
       const prePostTests = parsedQuizSettings.filter(
         (q) => q.type === "pre_post_test"
