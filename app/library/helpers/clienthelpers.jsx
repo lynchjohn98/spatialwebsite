@@ -330,8 +330,8 @@ export const supplementalMaterialInformation = [
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_flat_pattern.pdf",
   },
   {
-    title: "Module 4 - Flat Patterns Alternative In-Class Activity with Answers",
-    description: "Alternative Flat Patterns Activity, this includes both the questions and answers for teachers to use",
+    title: "Module 4 - Flat Patterns Additional Worksheets",
+    description: "Alternative Flat Patterns questions for teachers to use",
     downloadUrl:
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/easier_flat_pattern2.pdf",
   },
