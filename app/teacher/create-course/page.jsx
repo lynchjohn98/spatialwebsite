@@ -11,7 +11,6 @@ export default function CreateCourse() {
   const [schoolGender, setSchoolGender] = useState("");
   const [deis, setDeis] = useState("");
   const [schoolLanguage, setSchoolLanguage] = useState("");
-  const [courseResearch, setCourseResearch] = useState("");
   const [courseResearchType, setCourseResearchType] = useState("");
   const [teacherData, setTeacherData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,20 +39,16 @@ export default function CreateCourse() {
       }
     };
     loadTeacherData();
-    
   }, []);
 
   const handleNext = () => {
-    const isResearchTypeRequired =
-      courseResearch === "true" && !courseResearchType;
     if (
       !county ||
       !urbanicity ||
       !schoolGender ||
       !deis ||
       !schoolLanguage ||
-      !courseResearch ||
-      isResearchTypeRequired
+      !courseResearchType
     ) {
       alert("Please fill in all fields before proceeding.");
       return;
@@ -67,8 +62,8 @@ export default function CreateCourse() {
         schoolGender,
         deis,
         schoolLanguage,
-        courseResearch,
-        courseResearchType,
+        courseResearch: true,       // always true
+        courseResearchType,         // "Control" | "Experimental" | "Unknown"
       })
     );
     router.push("/teacher/finalize-course");
@@ -88,12 +83,12 @@ export default function CreateCourse() {
         <h1 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
           Create Your New Course
         </h1>
-
         <p className="text-lg mb-4 text-center">
           In the following form, please enter your school's details.
         </p>
 
         <div className="space-y-6">
+
           <div className="space-y-2">
             <label htmlFor="teacherName" className="block text-lg font-medium">
               Teacher Name:
@@ -101,14 +96,14 @@ export default function CreateCourse() {
             <input
               id="teacherName"
               className="w-full px-4 py-2 rounded bg-gray-100 text-gray-700 border border-gray-300 cursor-not-allowed"
-              value={teacherData?.name || name}
+              value={teacherData?.name || ""}
               readOnly
               type="text"
               tabIndex={-1}
             />
           </div>
 
-          <div className="space-y-x">
+          <div className="space-y-2">
             <label htmlFor="county" className="block text-lg font-medium">
               Select County:
             </label>
@@ -127,6 +122,7 @@ export default function CreateCourse() {
               ))}
             </select>
           </div>
+
           <div className="space-y-2">
             <label htmlFor="urbanicity" className="block text-lg font-medium">
               Select Urbanicity:
@@ -181,10 +177,7 @@ export default function CreateCourse() {
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="schoolLanguage"
-              className="block text-lg font-medium"
-            >
+            <label htmlFor="schoolLanguage" className="block text-lg font-medium">
               Select School Language:
             </label>
             <select
@@ -201,69 +194,34 @@ export default function CreateCourse() {
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="courseResearch"
-              className="block text-lg font-medium"
-            >
-              Is this course part of the research project?
+            <label htmlFor="courseResearchType" className="block text-lg font-medium">
+              What type of course is this?
             </label>
             <select
-              id="courseResearch"
-              value={courseResearch}
-              onChange={(e) => setCourseResearch(e.target.value)}
+              id="courseResearchType"
+              value={courseResearchType}
+              onChange={(e) => setCourseResearchType(e.target.value)}
               className="w-full px-4 py-2 rounded bg-blue-200 text-black focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              tabIndex={6}
+              tabIndex={7}
             >
-              <option value="">-- Choose Research Status --</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
+              <option value="">-- Pick course type --</option>
+              <option value="Control">Control</option>
+              <option value="Experimental">Experimental</option>
+              <option value="Unknown">I don't know</option>
             </select>
           </div>
-          {courseResearch === "true" && (
-            <div className="space-y-2">
-              <label className="block text-lg font-medium">
-                Select Your Research Group:
-              </label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  className={`flex-1 px-4 py-3 rounded font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    courseResearchType === "Experimental"
-                      ? "bg-blue-500 text-white shadow-lg"
-                      : "bg-gray-300 text-black hover:bg-gray-400"
-                  }`}
-                  onClick={() => setCourseResearchType("Experimental")}
-                  tabIndex={7}
-                >
-                  Experimental
-                </button>
-
-                <button
-                  type="button"
-                  className={`flex-1 px-4 py-3 rounded font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    courseResearchType === "Control"
-                      ? "bg-blue-500 text-white shadow-lg"
-                      : "bg-gray-300 text-black hover:bg-gray-400"
-                  }`}
-                  onClick={() => setCourseResearchType("Control")}
-                  tabIndex={8}
-                >
-                  Control
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Next Button */}
           <div className="pt-4">
             <button
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-700 focus:ring-offset-2 focus:ring-offset-gray-900"
               onClick={handleNext}
-              tabIndex={7}
+              tabIndex={8}
             >
               Next
             </button>
           </div>
+
         </div>
       </div>
     </div>

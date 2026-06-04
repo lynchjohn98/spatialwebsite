@@ -30,6 +30,10 @@ export async function updateStudentModuleProgress(student_id: any, module_title:
     
     try {
         // First, get the current progress
+        // const { data, error } = await pgAdmin.query(
+        //     "SELECT module_progress FROM students_progress WHERE student_id = $1",
+        //     [student_id]
+        // );
         const { data, error } = await supabase
             .from("students_progress")
             .select("module_progress")
