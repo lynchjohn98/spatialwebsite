@@ -6,6 +6,8 @@ import ResponsiveButton from "../../components/page_blocks/ResponsiveButton";
 
 export default function TeacherMainPage() {
   const router = useRouter();
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check authentication on component mount
