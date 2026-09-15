@@ -206,8 +206,9 @@ export default function Module1Quiz() {
                 <div className="space-y-3">
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("../../../../../public/quiz_images/combining_solids/combineSolids_q1.png", "Combining Solids Example 1")}
-                  >
+                 onClick={() => handleImageClick("/public/quiz_images/combining_solids/question1.png", "Combining Solids Example 1")}
+                 >
+
                     <img
                       src="/quiz_images/combining_solids/combineSolids_q1.png"
                       alt="Combining Solids Example 1"
@@ -262,7 +263,7 @@ export default function Module1Quiz() {
 
                   <div 
                     className="relative group cursor-pointer"
-                    onClick={() => handleImageClick("../../../../../public/quiz_images/combining_solids/combineSolids_q10.png", "Combining Solids Example 2")}
+                    onClick={() => handleImageClick("/public/quiz_images/combining_solids/question10.png", "Combining Solids Example 2")}
                   >
                     <img
                       src="/quiz_images/combining_solids/combineSolids_q10.png"

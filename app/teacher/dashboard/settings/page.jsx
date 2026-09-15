@@ -65,9 +65,17 @@ const fetchCourseSettings = async () => {
       });
 
       // Filter quiz settings by type
-      const moduleQuizzes = parsedQuizSettings.filter(
-        (q) => !q.type || q.type === "module"
-      );
+const moduleQuizzes = parsedQuizSettings.filter(
+  (q) => !q.type || q.type === "module"
+);
+
+// Sort module quizzes by the module number in their description
+const sortedModuleQuizzes = moduleQuizzes.sort((a, b) => {
+  const aNum = parseInt(a.description?.match(/Module\s*(\d+)/i)?.[1]) || 999;
+  const bNum = parseInt(b.description?.match(/Module\s*(\d+)/i)?.[1]) || 999;
+  return aNum - bNum;
+});
+
       console.log(parsedQuizSettings.filter((q) => q.type === "survey"));
       const surveys = parsedQuizSettings.filter((q) => q.type === "survey");
       const prePostTests = parsedQuizSettings.filter(

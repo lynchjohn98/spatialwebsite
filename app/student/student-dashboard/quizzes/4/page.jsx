@@ -112,12 +112,12 @@ export default function CombiningSolidsQuiz() {
         // CUSTOMIZE THIS SEARCH FOR EACH QUIZ
         const targetQuiz = quizSettings.find(
           quiz => quiz && quiz.name && (
-            quiz.name.toLowerCase().includes("combining") || 
-            quiz.name.toLowerCase().includes("solids")
+            quiz.name.toLowerCase().includes("combining solids")
           )
         );
         
         if (targetQuiz) {
+     
           // Check visibility
           if (targetQuiz.visibility === "Yes") {
             setQuizVisible(true);
