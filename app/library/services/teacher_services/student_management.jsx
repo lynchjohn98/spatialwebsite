@@ -3,6 +3,7 @@ import { createClient } from "../../../utils/supabase/server";
 
 // Update Student Settings - Students table is source of truth
 export async function updateStudentSettings(payload) {
+  
   const supabase = await createClient();
   try {
     // First, get the course data to check the gender setting

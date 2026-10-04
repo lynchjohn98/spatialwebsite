@@ -1,447 +1,182 @@
-// Main Admin Dashboard Component
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { 
-  ChevronDown, ChevronUp, Search, Filter, Download, LogOut, Users, 
-  BookOpen, TrendingUp, X, RefreshCw, User
-} from 'lucide-react';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Search, Download, ChevronRight, ChevronLeft, X, FileText } from "lucide-react";
 
-// Import sub-components (these would be in separate files)
-import { AdminLogin } from './components/AdminLogin';
-import { AdminHeader } from './components/AdminHeader';
-import { StatsCards } from './components/StatsCards';
-import { FilterBar } from './components/FilterBar';
-import { TeacherOverviewTable } from './components/TeacherOverviewTable';
-import { DetailedProgressView } from './components/DetailedProgressView';
-import { AnalyticsView } from './components/AnalyticsView';
+import { AdminLogin } from "./components/AdminLogin";
+import { AdminHeader } from "./components/AdminHeader";
+import { StatsCards } from "./components/StatsCards";
+import {
+  fetchAdminData,
+  buildTeacherExport,
+  buildQuizAttemptExport,
+  downloadCSV,
+  STAGE_META,
+  progressBarColor,
+  formatDate,
+  daysSince,
+} from "./lib/adminData";
 
+const PAGE_SIZE = 25;
+
+const EMPTY_FILTERS = {
+  stage: "all",
+  county: "",
+  researchType: "",
+  language: "",
+  courses: "",
+  consent: "",
+  activity: "",
+};
+
+const STAGE_CHIPS = [
+  { key: "all", label: "All teachers" },
+  { key: "not-started", label: "Not started" },
+  { key: "in-progress", label: "In progress" },
+  { key: "complete", label: "Training complete" },
+];
+
+const SORTS = {
+  activity: { label: "Most recently active", fn: (a, b) => new Date(b.lastActivity || 0) - new Date(a.lastActivity || 0) },
+  name: { label: "Name (A–Z)", fn: (a, b) => (a.name || "").localeCompare(b.name || "") },
+  progressDesc: { label: "Progress (high → low)", fn: (a, b) => b.moduleProgressPercentage - a.moduleProgressPercentage },
+  progressAsc: { label: "Progress (low → high)", fn: (a, b) => a.moduleProgressPercentage - b.moduleProgressPercentage },
+  newest: { label: "Newest registered", fn: (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0) },
+};
+
+const toOptions = (allLabel, values) => [{ value: "", label: allLabel }, ...values.map((v) => ({ value: v, label: v }))];
+const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
 
 export default function AdminPage() {
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [dataError, setDataError] = useState("");
   const router = useRouter();
-  
-  // Dashboard states
-  const [teachers, setTeachers] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [teacherProgress, setTeacherProgress] = useState([]);
-  const [quizAttempts, setQuizAttempts] = useState([]);
-  const [isLoadingData, setIsLoadingData] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const supabase = useMemo(() => createClientComponentClient(), []);
+
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [data, setData] = useState({ teachers: [], courses: [], quizAttempts: [] });
+  const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  // View modes
-  const [viewMode, setViewMode] = useState('overview');
-  
-  // Search and filter states
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({
-    county: "",
-    researchConsent: "",
-    trainingComplete: "",
-    pretestComplete: "",
-    posttestComplete: "",
-    progressRange: "",
-    moduleCompletion: "",
-    researchType: "",
-    language: "",
-    hasStudents: "",
-    hasCourses: ""
-  });
-  
-  const [filterOptions, setFilterOptions] = useState({
-    counties: [],
-    researchTypes: [],
-    languages: [],
-    progressRanges: [
-      { value: "0-25", label: "0-25%" },
-      { value: "26-50", label: "26-50%" },
-      { value: "51-75", label: "51-75%" },
-      { value: "76-99", label: "76-99%" },
-      { value: "100", label: "100%" }
-    ]
-  });
-  
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(20);
-  
-  const supabase = createClientComponentClient();
+  const [error, setError] = useState("");
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  // Auto-refresh functionality - disabled by default to prevent unwanted refreshes
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(false);
-  const [refreshInterval, setRefreshInterval] = useState(60000); // 60 seconds default
-  
-  useEffect(() => {
-    let intervalId;
-    
-    if (isAuthorized && autoRefreshEnabled) {
-      intervalId = setInterval(() => {
-        handleRefresh();
-      }, refreshInterval);
-    }
-    
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isAuthorized, autoRefreshEnabled, refreshInterval]);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [sortBy, setSortBy] = useState("activity");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    const adminAuth = sessionStorage.getItem("adminAuthorized");
-    if (adminAuth === "true") {
-      setIsAuthorized(true);
-    }
+    if (sessionStorage.getItem("adminAuthorized") === "true") setIsAuthorized(true);
   }, []);
 
+  const load = useCallback(
+    async (initial = false) => {
+      initial ? setIsLoading(true) : setIsRefreshing(true);
+      setError("");
+      try {
+        console.log("Fetching admin data...");
+        setData(await fetchAdminData(supabase));
+        setLastRefresh(new Date());
+      } catch (e) {
+        console.error("Error fetching data:", e);
+        setError("Failed to load data. Please try again.");
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [supabase]
+  );
+
   useEffect(() => {
-    if (isAuthorized) {
-      fetchAllData();
-    }
-  }, [isAuthorized]);
+    if (isAuthorized) load(true);
+  }, [isAuthorized, load]);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchAllData();
-    setLastRefresh(new Date());
-    setIsRefreshing(false);
-  };
+  const { teachers, courses, quizAttempts } = data;
 
-  const fetchAllData = async () => {
-    setIsLoadingData(true);
-    setDataError("");
-    
-    try {
-      // Fetch all data from database
-      const [teachersResult, progressResult, quizResult, coursesResult, settingsResult, studentsResult, studentProgressResult] = await Promise.all([
-        supabase.from('teachers').select('*').order('created_at', { ascending: false }),
-        supabase.from('teachers_progress').select('*'),
-        supabase.from('teachers_grades').select('*').order('time_submitted', { ascending: false }),
-        supabase.from('courses').select('*').order('created_at', { ascending: false }),
-        supabase.from('courses_settings').select('*'),
-        supabase.from('students').select('*'),
-        supabase.from('students_progress').select('*')
-      ]);
+  // ----- Filter options -----
+  const options = useMemo(
+    () => ({
+      counties: uniq(courses.map((c) => c.course_county)),
+      researchTypes: uniq(courses.map((c) => c.course_research_type)),
+      languages: uniq(courses.map((c) => c.course_language)),
+    }),
+    [courses]
+  );
 
-      if (teachersResult.error) throw teachersResult.error;
-      if (progressResult.error) throw progressResult.error;
-      if (coursesResult.error) throw coursesResult.error;
-      
-      const teachersData = teachersResult.data || [];
-      const progressData = progressResult.data || [];
-      const quizData = quizResult.data || [];
-      const coursesData = coursesResult.data || [];
-      const studentsData = studentsResult.data || [];
-      const studentProgressData = studentProgressResult.data || [];
-      
-      // Process teacher data
-      const processedTeachers = teachersData.map(teacher => {
-        const progress = progressData?.find(p => p.teacher_id === teacher.id);
-        const teacherCourses = coursesData?.filter(c => c.course_teacher_id === teacher.id) || [];
-        const teacherQuizAttempts = quizData?.filter(q => q.teacher_id === teacher.id) || [];
-        
-        // Get students in teacher's courses
-        const teacherStudents = studentsData?.filter(student => 
-          teacherCourses.some(course => course.id === student.course_id)
-        ) || [];
-        
-        const activeStudents = teacherStudents.filter(student => {
-          const studentProgress = studentProgressData?.find(sp => sp.student_id === student.id);
-          return studentProgress && studentProgress.module_progress;
-        }).length;
-        
-        // Calculate module progress
-        const moduleData = processModuleProgress(progress?.module_progress);
-        
-        // Calculate quiz metrics
-        const quizMetrics = calculateQuizMetrics(teacherQuizAttempts);
-        
-        // Calculate overall progress
-        const overallTrainingProgress = calculateOverallProgress(teacher);
-        
-        return {
-          ...teacher,
-          progress: progress || {},
-          ...moduleData,
-          courses: teacherCourses,
-          coursesCount: teacherCourses.length,
-          totalStudents: teacherStudents.length,
-          activeStudents,
-          quizAttempts: teacherQuizAttempts,
-          quizMetrics,
-          overallTrainingProgress,
-          lastActivity: calculateLastActivity(progress, teacherQuizAttempts)
-        };
-      });
-      
-      setTeachers(processedTeachers);
-      setTeacherProgress(progressData);
-      setCourses(coursesData);
-      setQuizAttempts(quizData);
-      
-      // Extract filter options
-      const counties = [...new Set(coursesData?.map(c => c.course_county).filter(Boolean))].sort();
-      const researchTypes = [...new Set(coursesData?.map(c => c.course_research_type).filter(Boolean))].sort();
-      const languages = [...new Set(coursesData?.map(c => c.course_language).filter(Boolean))].sort();
-      
-      setFilterOptions(prev => ({ 
-        ...prev, 
-        counties,
-        researchTypes,
-        languages
-      }));
-      
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      setDataError("Failed to load data. Please try again.");
-    } finally {
-      setIsLoadingData(false);
-    }
-  };
+  const stageCounts = useMemo(() => {
+    const counts = { all: teachers.length };
+    teachers.forEach((t) => (counts[t.stage] = (counts[t.stage] || 0) + 1));
+    return counts;
+  }, [teachers]);
 
-  // Helper functions
-  const processModuleProgress = (moduleProgress) => {
-    let moduleProgressDetails = {};
-    let completedModules = 0;
-    let totalModules = 0;
-    let moduleProgressPercentage = 0;
-    
-    if (moduleProgress) {
-      const moduleData = typeof moduleProgress === 'string' 
-        ? JSON.parse(moduleProgress) 
-        : moduleProgress;
-      
-      Object.entries(moduleData).forEach(([moduleName, moduleInfo]) => {
-        const components = ['quiz', 'software', 'workbook', 'mini_lecture', 'getting_started', 'introduction_video'];
-        const completedComponents = components.filter(comp => moduleInfo[comp] === true).length;
-        const modulePercentage = Math.round((completedComponents / components.length) * 100);
-        
-        moduleProgressDetails[moduleName] = {
-          ...moduleInfo,
-          percentage: modulePercentage,
-          componentsComplete: completedComponents,
-          totalComponents: components.length,
-          isComplete: modulePercentage === 100 || moduleInfo.completed_at !== null
-        };
-        
-        totalModules++;
-        if (moduleProgressDetails[moduleName].isComplete) {
-          completedModules++;
+  // ----- Filtering + sorting -----
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return teachers
+      .filter((t) => {
+        if (q) {
+          const haystack = [
+            t.name, t.username, t.email,
+            ...t.courses.flatMap((c) => [c.course_name, c.course_school_name, c.course_join_code]),
+          ];
+          if (!haystack.some((v) => v?.toLowerCase().includes(q))) return false;
         }
-        moduleProgressPercentage += modulePercentage;
-      });
-      
-      if (totalModules > 0) {
-        moduleProgressPercentage = Math.round(moduleProgressPercentage / totalModules);
-      }
-    }
-    
-    return {
-      moduleProgressDetails,
-      completedModules,
-      totalModules,
-      moduleProgressPercentage
-    };
+        if (filters.stage !== "all" && t.stage !== filters.stage) return false;
+        if (filters.county && !t.counties.includes(filters.county)) return false;
+        if (filters.researchType && !t.researchTypes.includes(filters.researchType)) return false;
+        if (filters.language && !t.languages.includes(filters.language)) return false;
+        if (filters.courses === "with" && t.coursesCount === 0) return false;
+        if (filters.courses === "without" && t.coursesCount > 0) return false;
+        if (filters.consent && String(!!t.research_consent) !== filters.consent) return false;
+        if (filters.activity === "week" && daysSince(t.lastActivity) > 7) return false;
+        if (filters.activity === "month" && daysSince(t.lastActivity) > 30) return false;
+        if (filters.activity === "stale" && daysSince(t.lastActivity) <= 30) return false;
+        return true;
+      })
+      .sort(SORTS[sortBy].fn);
+  }, [teachers, search, filters, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const updateFilter = (key, value) => {
+    setFilters((f) => ({ ...f, [key]: value }));
+    setPage(1);
   };
 
-  const calculateQuizMetrics = (attempts) => {
-    if (!attempts || attempts.length === 0) {
-      return {
-        totalAttempts: 0,
-        averageScore: 0,
-        bestScore: 0,
-        completedQuizzes: 0,
-        uniqueQuizzes: 0
-      };
-    }
-    
-    const uniqueQuizzes = [...new Set(attempts.map(a => a.quiz_id))];
-    const scores = attempts.map(a => a.score || 0);
-    
-    return {
-      totalAttempts: attempts.length,
-      averageScore: Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length),
-      bestScore: Math.max(...scores),
-      completedQuizzes: uniqueQuizzes.length,
-      uniqueQuizzes: uniqueQuizzes
-    };
+  const activeFilterCount =
+    Object.entries(filters).filter(([k, v]) => v !== EMPTY_FILTERS[k]).length + (search ? 1 : 0);
+
+  const clearAll = () => {
+    setFilters(EMPTY_FILTERS);
+    setSearch("");
+    setPage(1);
   };
 
-  const calculateOverallProgress = (teacher) => {
-    const trainingComponents = [
-      teacher.pretest_complete,
-      teacher.training_complete,
-      teacher.posttest_complete,
-      teacher.research_consent
-    ];
-    const completedComponents = trainingComponents.filter(Boolean).length;
-    return Math.round((completedComponents / trainingComponents.length) * 100);
-  };
+  const today = new Date().toISOString().split("T")[0];
 
-  const calculateLastActivity = (progress, quizAttempts) => {
-    const dates = [];
-    
-    if (progress?.updated_at) {
-      dates.push(new Date(progress.updated_at));
-    }
-    
-    if (quizAttempts && quizAttempts.length > 0) {
-      const lastQuiz = quizAttempts[0];
-      if (lastQuiz.time_submitted) {
-        dates.push(new Date(lastQuiz.time_submitted));
-      }
-    }
-    
-    return dates.length === 0 ? null : new Date(Math.max(...dates));
-  };
-
-  // Filter logic
-  const filteredTeachers = useMemo(() => {
-    let filtered = [...teachers];
-    
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(teacher => 
-        teacher.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        teacher.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Apply all filters
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== "") {
-        switch(key) {
-          case 'county':
-            filtered = filtered.filter(t => t.courses.some(c => c.course_county === value));
-            break;
-          case 'researchType':
-            filtered = filtered.filter(t => t.courses.some(c => c.course_research_type === value));
-            break;
-          case 'language':
-            filtered = filtered.filter(t => t.courses.some(c => c.course_language === value));
-            break;
-          case 'researchConsent':
-            filtered = filtered.filter(t => t.research_consent === (value === "true"));
-            break;
-          case 'trainingComplete':
-            filtered = filtered.filter(t => t.training_complete === (value === "true"));
-            break;
-          case 'pretestComplete':
-            filtered = filtered.filter(t => t.pretest_complete === (value === "true"));
-            break;
-          case 'posttestComplete':
-            filtered = filtered.filter(t => t.posttest_complete === (value === "true"));
-            break;
-          case 'progressRange':
-            const [min, max] = value.split('-').map(Number);
-            filtered = filtered.filter(t => {
-              const progress = t.moduleProgressPercentage;
-              return max ? (progress >= min && progress <= max) : (progress === min);
-            });
-            break;
-          case 'moduleCompletion':
-            const targetModules = parseInt(value);
-            filtered = filtered.filter(t => t.completedModules >= targetModules);
-            break;
-          case 'hasStudents':
-            filtered = filtered.filter(t => value === "true" ? t.totalStudents > 0 : t.totalStudents === 0);
-            break;
-          case 'hasCourses':
-            filtered = filtered.filter(t => value === "true" ? t.coursesCount > 0 : t.coursesCount === 0);
-            break;
-        }
-      }
-    });
-    
-    return filtered;
-  }, [teachers, searchTerm, filters]);
-
-  // Pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredTeachers.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredTeachers.length / itemsPerPage);
-
-  const downloadCSV = () => {
-    const headers = [
-      'Teacher Name', 'Username', 'Email', 'Overall Progress %', 
-      'Module Progress %', 'Modules Completed', 'Total Modules',
-      'Courses Count', 'Total Students', 'Active Students',
-      'Research Consent', 'Pretest Complete', 'Training Complete',
-      'Posttest Complete', 'Quiz Attempts', 'Average Quiz Score',
-      'Best Quiz Score', 'Last Activity'
-    ];
-    
-    const rows = filteredTeachers.map(teacher => [
-      teacher.name || '',
-      teacher.username || '',
-      teacher.email || '',
-      teacher.overallTrainingProgress || 0,
-      teacher.moduleProgressPercentage || 0,
-      teacher.completedModules || 0,
-      teacher.totalModules || 0,
-      teacher.coursesCount || 0,
-      teacher.totalStudents || 0,
-      teacher.activeStudents || 0,
-      teacher.research_consent ? 'Yes' : 'No',
-      teacher.pretest_complete ? 'Yes' : 'No',
-      teacher.training_complete ? 'Yes' : 'No',
-      teacher.posttest_complete ? 'Yes' : 'No',
-      teacher.quizMetrics?.totalAttempts || 0,
-      teacher.quizMetrics?.averageScore || 0,
-      teacher.quizMetrics?.bestScore || 0,
-      teacher.lastActivity ? new Date(teacher.lastActivity).toLocaleDateString() : 'N/A'
-    ]);
-    
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => {
-        const value = String(cell);
-        return value.includes(',') || value.includes('"') 
-          ? `"${value.replace(/"/g, '""')}"` 
-          : value;
-      }).join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `teacher_progress_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(link.href);
-  };
-
-  // Calculate aggregate statistics
+  // ----- Aggregate stats (unchanged) -----
   const aggregateStats = {
     totalTeachers: teachers.length,
     totalCourses: courses.length,
-    averageProgress: teachers.length > 0 
+    averageProgress: teachers.length
       ? Math.round(teachers.reduce((acc, t) => acc + t.moduleProgressPercentage, 0) / teachers.length)
       : 0,
-    completedTraining: teachers.filter(t => t.training_complete).length,
-    activeTeachers: teachers.filter(t => t.lastActivity && 
-      (new Date() - new Date(t.lastActivity)) / (1000 * 60 * 60 * 24) < 7
-    ).length,
+    completedTraining: teachers.filter((t) => t.training_complete).length,
+    activeTeachers: teachers.filter((t) => daysSince(t.lastActivity) < 7).length,
     totalQuizAttempts: quizAttempts.length,
-    teachersWithCourses: teachers.filter(t => t.coursesCount > 0).length,
-    teachersWithoutCourses: teachers.filter(t => t.coursesCount === 0).length
+    teachersWithCourses: teachers.filter((t) => t.coursesCount > 0).length,
+    teachersWithoutCourses: teachers.filter((t) => t.coursesCount === 0).length,
   };
 
-  // If not authorized, show login
-  if (!isAuthorized) {
-    return <AdminLogin onAuthorized={() => setIsAuthorized(true)} />;
-  }
+  if (!isAuthorized) return <AdminLogin onAuthorized={() => setIsAuthorized(true)} />;
 
-  // Loading state
-  if (isLoadingData) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4" />
           <p>Loading comprehensive data...</p>
         </div>
       </div>
@@ -450,14 +185,10 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <AdminHeader 
+      <AdminHeader
         lastRefresh={lastRefresh}
-        onRefresh={handleRefresh}
+        onRefresh={() => load()}
         isRefreshing={isRefreshing}
-        autoRefreshEnabled={autoRefreshEnabled}
-        onToggleAutoRefresh={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
-        refreshInterval={refreshInterval}
-        onChangeRefreshInterval={setRefreshInterval}
         onLogout={() => {
           sessionStorage.removeItem("adminAuthorized");
           setIsAuthorized(false);
@@ -465,139 +196,274 @@ export default function AdminPage() {
       />
 
       <div className="max-w-full px-6 py-6">
-        <h1 className={`px-4 py-2 rounded-md text-sm font-xl transition-colors`}>Total Statistics</h1>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-400 mb-3">Total Statistics</h2>
         <StatsCards stats={aggregateStats} />
 
-        {/* View Mode Tabs */}
-        <div className="bg-gray-800 p-1 rounded-lg inline-flex mb-6">
-          {['overview', 'detailed', 'analytics'].map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === mode 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </button>
-          ))}
-        </div>
+        <div className="bg-gray-800 rounded-lg border border-gray-700">
+          {/* ---------- Controls ---------- */}
+          <div className="p-4 border-b border-gray-700 space-y-4">
+            <div className="flex flex-col lg:flex-row gap-3 lg:items-center">
+              <h2 className="text-xl font-bold lg:mr-4">Teachers</h2>
 
-        <FilterBar
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          filters={filters}
-          onFilterChange={(name, value) => {
-            setFilters(prev => ({ ...prev, [name]: value }));
-            setCurrentPage(1);
-          }}
-          filterOptions={filterOptions}
-          onDownload={downloadCSV}
-          onReset={() => {
-            setFilters({
-              county: "",
-              researchConsent: "",
-              trainingComplete: "",
-              pretestComplete: "",
-              posttestComplete: "",
-              progressRange: "",
-              moduleCompletion: "",
-              researchType: "",
-              language: "",
-              hasStudents: ""
-            });
-            setSearchTerm("");
-            setCurrentPage(1);
-          }}
-        />
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search name, username, email, course name, school or join code..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-700 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-        {/* Main Content Area */}
-        {viewMode === 'overview' && (
-          <TeacherOverviewTable 
-            teachers={currentItems}
-            router={router}
-          />
-        )}
-        
-        {viewMode === 'detailed' && (
-          <DetailedProgressView 
-            teachers={currentItems}
-          />
-        )}
-        
-        {viewMode === 'analytics' && (
-          <AnalyticsView 
-            teachers={filteredTeachers}
-            courses={courses}
-            quizAttempts={quizAttempts}
-          />
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-between bg-gray-800 p-4 rounded-lg">
-            <div className="text-sm text-gray-400">
-              Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredTeachers.length)} of {filteredTeachers.length} teachers
+              <div className="flex gap-2">
+                <button
+                  onClick={() => downloadCSV(`teachers_full_${today}.csv`, buildTeacherExport(filtered))}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-md transition-colors whitespace-nowrap"
+                  title="One row per teacher with every column, module and quiz"
+                >
+                  <Download size={18} />
+                  Export CSV ({filtered.length})
+                </button>
+                <button
+                  onClick={() => downloadCSV(`quiz_attempts_${today}.csv`, buildQuizAttemptExport(filtered))}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors whitespace-nowrap text-sm"
+                  title="One row per quiz attempt"
+                >
+                  <FileText size={16} />
+                  Quiz attempts
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
-              >
-                First
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
-              >
-                Previous
-              </button>
-              
-              {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                const pageNumber = i + 1;
-                return (
-                  <button
-                    key={pageNumber}
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className={`px-3 py-1 rounded ${
-                      currentPage === pageNumber 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-600 hover:bg-gray-500 text-white'
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                );
-              })}
-              
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
-              >
-                Next
-              </button>
-              <button
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 rounded bg-gray-600 hover:bg-gray-500 text-white disabled:bg-gray-700 disabled:text-gray-500"
-              >
-                Last
-              </button>
+
+            {/* Stage chips */}
+            <div className="flex flex-wrap gap-2">
+              {STAGE_CHIPS.map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => updateFilter("stage", s.key)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    filters.stage === s.key ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                  }`}
+                >
+                  {s.label}
+                  <span className={`text-xs px-1.5 rounded ${filters.stage === s.key ? "bg-blue-500" : "bg-gray-600"}`}>
+                    {stageCounts[s.key] || 0}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Dropdown filters */}
+            <div className="flex flex-wrap items-end gap-3">
+              <FilterSelect label="County" value={filters.county} onChange={(v) => updateFilter("county", v)} options={toOptions("All counties", options.counties)} />
+              <FilterSelect label="Research type" value={filters.researchType} onChange={(v) => updateFilter("researchType", v)} options={toOptions("All types", options.researchTypes)} />
+              <FilterSelect label="Language" value={filters.language} onChange={(v) => updateFilter("language", v)} options={toOptions("All languages", options.languages)} />
+              <FilterSelect
+                label="Courses"
+                value={filters.courses}
+                onChange={(v) => updateFilter("courses", v)}
+                options={[
+                  { value: "", label: "Any" },
+                  { value: "with", label: "Has created courses" },
+                  { value: "without", label: "No courses yet" },
+                ]}
+              />
+              <FilterSelect
+                label="Research consent"
+                value={filters.consent}
+                onChange={(v) => updateFilter("consent", v)}
+                options={[
+                  { value: "", label: "Any" },
+                  { value: "true", label: "Consented" },
+                  { value: "false", label: "Not consented" },
+                ]}
+              />
+              <FilterSelect
+                label="Activity"
+                value={filters.activity}
+                onChange={(v) => updateFilter("activity", v)}
+                options={[
+                  { value: "", label: "Any time" },
+                  { value: "week", label: "Active in last 7 days" },
+                  { value: "month", label: "Active in last 30 days" },
+                  { value: "stale", label: "Inactive 30+ days" },
+                ]}
+              />
+
+              <div className="flex-1" />
+
+              <FilterSelect
+                label="Sort by"
+                value={sortBy}
+                onChange={setSortBy}
+                highlight={false}
+                options={Object.entries(SORTS).map(([value, s]) => ({ value, label: s.label }))}
+              />
+
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearAll}
+                  className="flex items-center gap-1 px-3 py-2 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+                >
+                  <X size={14} />
+                  Clear ({activeFilterCount})
+                </button>
+              )}
             </div>
           </div>
-        )}
-      </div>
-      
-      {dataError && (
-        <div className="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg">
-          {dataError}
+
+          {/* ---------- Table ---------- */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead>
+                <tr className="bg-gray-800/50">
+                  {["Teacher", "Stage", "Module progress", "Quizzes", "Courses & students", "Last active", ""].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {pageItems.map((t) => {
+                  const open = () => router.push(`/admin/teacher/${t.id}`);
+                  const stage = STAGE_META[t.stage];
+                  return (
+                    <tr
+                      key={t.id}
+                      onClick={open}
+                      onKeyDown={(e) => e.key === "Enter" && open()}
+                      tabIndex={0}
+                      className="cursor-pointer hover:bg-gray-700/40 focus:bg-gray-700/40 focus:outline-none transition-colors group"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium group-hover:text-blue-400 transition-colors">{t.name || "N/A"}</div>
+                        <div className="text-sm text-gray-400">{t.username}</div>
+                        <div className="text-xs text-gray-500">{t.email}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-block px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${stage.badge}`}>
+                          {stage.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-28 bg-gray-700 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${progressBarColor(t.moduleProgressPercentage)}`}
+                              style={{ width: `${t.moduleProgressPercentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium">{t.moduleProgressPercentage}%</span>
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {t.completedModules}/{t.totalModules} modules complete
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        {t.quizSummary.totalAttempts > 0 ? (
+                          <>
+                            <div>{t.quizSummary.uniqueQuizzes} quizzes taken</div>
+                            <div className="text-xs text-gray-400">
+                              Avg {t.quizSummary.averageScore}% · Best {t.quizSummary.bestScore}%
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-gray-500">None yet</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <div>
+                          {t.coursesCount} course{t.coursesCount !== 1 && "s"} · {t.totalStudents} student{t.totalStudents !== 1 && "s"}
+                        </div>
+                        {t.counties.length > 0 && <div className="text-xs text-gray-400">{t.counties.join(", ")}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">{formatDate(t.lastActivity)}</td>
+                      <td className="px-4 py-3 text-gray-500 group-hover:text-blue-400">
+                        <ChevronRight size={18} />
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {pageItems.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
+                      No teachers match the current filters.
+                      {activeFilterCount > 0 && (
+                        <button onClick={clearAll} className="ml-2 text-blue-400 hover:text-blue-300 underline">
+                          Clear filters
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ---------- Footer / pagination ---------- */}
+          <div className="flex items-center justify-between p-4 border-t border-gray-700 text-sm">
+            <span className="text-gray-400">
+              {filtered.length === 0
+                ? "0 teachers"
+                : `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length} teachers`}
+              {filtered.length !== teachers.length && ` (filtered from ${teachers.length})`}
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-1.5 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:hover:bg-gray-700"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-gray-300">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 rounded bg-gray-700 hover:bg-gray-600 disabled:opacity-40 disabled:hover:bg-gray-700"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
+      </div>
+
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-lg">{error}</div>
       )}
     </div>
+  );
+}
+
+function FilterSelect({ label, value, onChange, options, highlight = true }) {
+  const active = highlight && value !== "";
+  return (
+    <label className="flex flex-col gap-1 text-xs text-gray-400">
+      {label}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`px-3 py-2 rounded-md text-sm bg-gray-700 text-white border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+          active ? "border-blue-500" : "border-transparent"
+        }`}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

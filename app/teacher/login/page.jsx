@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { loginTeacherAccount } from "../../library/services/teacher_actions";
 import {
   validateTeacherCredentials,
@@ -29,7 +29,13 @@ export default function TeacherMainPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Prefetch the homepage so navigation after login is near-instant
+  useEffect(() => {
+    router.prefetch("/teacher/homepage");
+  }, [router]);
+
   const handleLogin = async () => {
+    if (isLoading) return; // guard against double submits
     setError("");
     if (!username.trim() || !password.trim()) {
       setError("Please enter both username and password.");
@@ -44,14 +50,16 @@ export default function TeacherMainPage() {
       if (result.error) {
         console.error("Login error:", result.error);
         setError("Incorrect password. Please try again.");
+        setIsLoading(false); // only reset on failure
       } else {
         sessionStorage.setItem("teacherData", JSON.stringify(result.data));
+        // Leave isLoading true: we're navigating away, so the form
+        // shouldn't re-render before the homepage takes over.
         router.push("/teacher/homepage");
       }
     } catch (error) {
       console.error("Unexpected error:", error);
       setError("An error occurred. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -159,17 +167,6 @@ export default function TeacherMainPage() {
     setShowConfirmPassword(false);
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-lg">Logging in...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen w-full bg-gray-900 text-white">
       <div className="bg-gray-800/50 border-b border-gray-700 sticky top-0 z-10 backdrop-blur-sm">
@@ -239,8 +236,9 @@ export default function TeacherMainPage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors disabled:opacity-60"
                   placeholder="Enter your username"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -269,9 +267,12 @@ export default function TeacherMainPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors"
+                  className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-colors disabled:opacity-60"
                   placeholder="Enter your password"
-                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                  disabled={isLoading}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isLoading) handleLogin();
+                  }}
                 />
               </div>
             </div>
@@ -280,8 +281,8 @@ export default function TeacherMainPage() {
             <div>
               <ResponsiveButton
                 className="w-full py-3 rounded-lg font-medium transition-colors bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white"
-                label="Log into account"
-                onClick={() => handleLogin()}
+                label={isLoading ? "Logging in..." : "Log into account"}
+                onClick={handleLogin}
                 disabled={isLoading}
               />
             </div>

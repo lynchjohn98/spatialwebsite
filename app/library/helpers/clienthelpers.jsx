@@ -268,120 +268,203 @@ export const researchMaterial = [
   }
 ];
 
-export const supplementalMaterialInformation = [
+export const supplementalMaterial = [
   {
     title: "Teacher's Resource Guide to accompany Developing Spatial Thinking",
     description:
-      "Large guide (~126 pg. pdf) that can be used to supplemental and provide walkthroughs of each module and questions associated with the modules",
+      "Large guide (126 pages) that can be used to supplemental and provide walkthroughs of each module and questions associated with the modules",
     downloadUrl:
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//teacher_guide_ireland_final.pdf",
-  },
-  { 
-    title: "Flat Patterns Resource Guide",
-    description: "Resource guide for the Flat Patterns module",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/platonic_solids.pdf"
-
+      type :"Supplemental Material",
   },
   {
-    title: "Pre-Module - The Importance of Spatial Skills",
-    description: "Powerpoint presentation for the pre-module",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_premodule.pptx",
-  },
-  {
-    title: "Module 1 - Combining Solids Powerpoint",
-    description: "Powerpoint presentation for Module 1",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_combiningsolids.pptx",
-  },
-  {
-    title: "Module 2 - Surfaces and Solids of Revolution",
-    description: "Powerpoint presentation for Module 2",
-    downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/workbook_surfaces_solids.pptx",
-  },
-  {
-    title: "Module 3 - Isometric Sketching and Coded Plans",
-    description: "Powerpoint presentation for Module 3",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_isometric.pptx",
-  },
-  {
-    title: "Module 4 - Flat Patterns",
-    description: "Powerpoint presentation for Module 4",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_flatpatterns.pptx",
-  },
-  {
-    title: "Module 4 - Flat Patterns In-Class Activity Instructions",
-    description: "In-Class activity instructions for Module 4 Flat Patterns for teachers",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_activity_instructions.pptx",
-  },
-   {
-    title: "Module 4 - Flat Patterns In-Class Activity Handout",
-    description: "In-Class activity for Module 4 Flat Patterns for students",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_flat_patterns_handouts.pdf",
-  },
-  {
-    title: "Module 4 - Flat Patterns In-Class Activity Answers",
-    description: "Answers to in-Class activity instructions for Module 4 Flat Patterns for teachers",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_flat_pattern.pdf",
-  },
-  {
-    title: "Module 4 - Flat Patterns Additional Worksheets",
-    description: "Alternative Flat Patterns questions for teachers to use",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/easier_flat_pattern2.pdf",
-  },
- 
-  {
-    title: "Module 5 - Rotation of Objects About a Single Axis",
-    description: "Powerpoint presentation for Module 5",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__rotation1.pptx",
-  },
-  {
-    title: "Module 6 - Reflections and Symmetry",
-    description: "Powerpoint presentation for Module 6",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_reflection.pptx",
-  },
-  {
-    title: "Module 7 - Cutting Planes and Cross-Sections",
-    description: "Powerpoint presentation for Module 7",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_cuttingplanes.pptx",
-  },
-  {
-    title: "Module 8 - Rotation of Objects About Two or More Axes",
-    description: "Powerpoint presentation for Module 8",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_rotation2.pptx",
-  },
-  {
-    title: "Module 9 - Orthographic Projection",
-    description: "Powerpoint presentation for Module 9",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__orthographic.pptx",
-  },
-  {
-    title: "Module 10 - Inclined and Curved Surfaces",
-    description: "Powerpoint presentation for Module 10",
-    downloadUrl:
-      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_inclinedcurved.pptx",
-  },
-    
-  {
-    title: "Extension Excercises",
+    title: "Additional Module Extension Excercises",
     description:
       "Word document with extra material and information usable with each module",
     downloadUrl:
       "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//ExtensionExcercises.docx",
+      type :"Supplemental Material",
+  },
+  {
+    title: "Module 4 - Extra Flat Patterns In-Class Activity Instructions",
+    description: "In-Class activity instructions for Module 4 Flat Patterns for teachers",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_activity_instructions.pptx",
+      type :"Supplemental Material",
+  },
+   {
+    title: "Module 4 - Extra Flat Patterns In-Class Activity Handout",
+    description: "In-Class activity for Module 4 Flat Patterns for students",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_flat_patterns_handouts.pdf",
+      type :"Supplemental Material",
+  },
+  {
+    title: "Module 4 - Extra Flat Patterns In-Class Activity Answers",
+    description: "Answers to in-Class activity instructions for Module 4 Flat Patterns for teachers",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/inclass_flat_pattern.pdf",
+      type :"Supplemental Material",
+  },
+  {
+    title: "Module 4 - Extra Flat Patterns Additional Worksheets",
+    description: "Alternative Flat Patterns questions for teachers to use",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/easier_flat_pattern2.pdf",
+      type :"Supplemental Material",
+  },
+
+  { 
+    title: "Module 4 - Extra Flat Patterns Resource Guide",
+    description: "Resource guide for the Flat Patterns module",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/platonic_solids.pdf",
+    type :"Supplemental Material",
+  },
+]
+
+export const workbookPowerpoints = [
+  
+  {
+    title: "Pre-Module Workbook - The Importance of Spatial Skills",
+    description: "Workbook questions for Pre-Module",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_premodule.pptx",
+      type: "Workbook",
+  },
+  {
+    title: "Module 1 Workbook- Combining Solids",
+    description: "Workbook questions for Module 1",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_combiningsolids.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 2 Workbook- Surfaces and Solids of Revolution",
+    description: "Workbook questions for Module 2",
+    downloadUrl: "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/workbook_surfaces_solids.pptx",
+     type: "Workbook",
+  },
+  {
+    title: "Module 3 Workbook - Isometric Sketching and Coded Plans",
+    description: "Workbook questions for Module 3",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_isometric.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 4 Workbook - Flat Patterns",
+    description: "Workbook questions for Module 4",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_flatpatterns.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 5 Workbook - Rotation of Objects About a Single Axis",
+    description: "Workbook questions for Module 5",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__rotation1.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 6 Workbook - Reflections and Symmetry",
+    description: "Workbook questions for Module 6",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_reflection.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 7 Workbook - Cutting Planes and Cross-Sections",
+    description: "Workbook questions for Module 7",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_cuttingplanes.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 8 Workbook - Rotation of Objects About Two or More Axes",
+    description: "Workbook questions for Module 8",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_rotation2.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 9 Workbook - Orthographic Projection",
+    description: "Workbook questions for Module 9",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook__orthographic.pptx",
+       type: "Workbook",
+  },
+  {
+    title: "Module 10 Workbook - Inclined and Curved Surfaces",
+    description: "Workbook questions for Module 10",
+    downloadUrl:
+      "https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial//workbook_inclinedcurved.pptx",
+       type: "Workbook",
+  },
+]
+
+export const lecturePowerpoints = [
+
+  { 
+    title: "Module 1 Lecture - Combining Solids",
+    description: "Lecture for Module 1",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module1.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 2 Lecture - Surfaces and Solids of Revolution",
+    description: "Lecture for Module 2",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module2.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 3 Lecture - Isometric Sketching and Coded Plans",
+    description: "Lecture for Module 3",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module3.pptx",
+    type: "Lecture",
+  },  
+   {
+    title: "Module 4 Lecture - Flat Patterns",
+    description: "Lecture for Module 4",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module4.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 5 Lecture - Rotation of Objects About a Single Axis",
+    description: "Lecture for Module 5",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module5.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 6 Lecture - Reflections and Symmetry",
+    description: "Lecture for Module 6",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module6.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 7 Lecture - Cutting Planes and Cross-Sections",
+    description: "Lecture for Module 7",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module7.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 8 Lecture - Rotation of Objects About Two or More Axes",
+    description: "Lecture for Module 8",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module8.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 9 Lecture - Orthographic Projection",
+    description: "Lecture for Module 9",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module9.pptx",
+    type: "Lecture",
+  },
+  {
+    title: "Module 10 Lecture - Inclined and Curved Surfaces",
+    description: "Lecture for Module 10",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module10.pptx",
+    type: "Lecture",  
   }
- 
-];
+]
 
 const defaultModuleProgress = 
 {
