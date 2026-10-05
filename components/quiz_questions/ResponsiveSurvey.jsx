@@ -1,48 +1,249 @@
 "use client";
-import { useState } from "react";
-import { CheckCircle, AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  CheckCircle,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Info,
+} from "lucide-react";
 
-export default function SimpleSurvey({ data, onSurveyComplete }) {
+const DEFAULT_PER_PAGE = 5;
+
+// Question column takes all remaining space; answer columns stay compact.
+const gridCols = (n) => `minmax(0,1fr) repeat(${n}, minmax(4.5rem, 7rem))`;
+
+const isChoice = (q) => q.type === "single-choice";
+
+// Splits "Physics: description ... (job list)" into a bold label, the
+// description, and a muted detail line. Plain questions render unchanged.
+function QuestionText({ text }) {
+  const labelMatch = text.match(/^([^:]{2,60}):\s*([\s\S]*)$/);
+  const label = labelMatch ? labelMatch[1] : null;
+  const body = labelMatch ? labelMatch[2] : text;
+
+  const extraMatch = body.match(/^([\s\S]*?)\s*\(([^()]*)\)\s*\.?$/);
+  const main = extraMatch ? extraMatch[1] : body;
+  const extra = extraMatch ? extraMatch[2] : null;
+
+  return (
+    <>
+      {label && <span className="font-semibold text-white">{label}: </span>}
+      {main}
+      {extra && (
+        <span className="mt-1 block text-xs leading-snug text-gray-400 lg:text-sm">{extra}</span>
+      )}
+    </>
+  );
+}
+
+// Radio circle used by both question types
+function RadioDot({ checked, size = "md:h-7 md:w-7" }) {
+  return (
+    <span
+      className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-blue-400 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-gray-800 ${size} ${
+        checked ? "border-blue-400 bg-blue-500" : "border-gray-500"
+      }`}
+    >
+      {checked && <span className="h-2 w-2 rounded-full bg-white" />}
+    </span>
+  );
+}
+
+// A single-choice question shown as a card, with an optional "please specify" box
+function ChoiceQuestion({ question, number, options, value, other, missing, onSelect, onOtherChange }) {
+  const selected = options.find((o) => o.id === value);
+  const textMissing = missing && selected?.allowText && !(other || "").trim();
+
+  return (
+    <div
+      role="radiogroup"
+      aria-labelledby={`${question.id}-text`}
+      className={`rounded-xl border p-4 lg:p-6 ${
+        missing ? "border-orange-500 bg-orange-900/10" : "border-gray-700/50 bg-gray-800/70"
+      }`}
+    >
+      <p id={`${question.id}-text`} className="mb-4 flex gap-2 text-sm font-medium text-gray-100 lg:text-base">
+        <span className="tabular-nums text-gray-500">{number}.</span>
+        {question.text}
+      </p>
+
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+        {options.map((o) => {
+          const checked = value === o.id;
+          return (
+            <label
+              key={o.id}
+              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition-colors lg:text-base ${
+                checked
+                  ? "border-blue-500 bg-blue-900/30 text-white"
+                  : "border-gray-600 bg-gray-700/30 text-gray-200 hover:border-gray-500"
+              }`}
+            >
+              <input
+                type="radio"
+                name={question.id}
+                value={o.id}
+                checked={checked}
+                onChange={() => onSelect(o.id)}
+                className="peer sr-only"
+              />
+              <RadioDot checked={checked} size="" />
+              {o.text}
+            </label>
+          );
+        })}
+      </div>
+
+      {selected?.allowText && (
+        <div className="mt-3">
+          <label htmlFor={`${question.id}-other`} className="mb-1 block text-sm text-gray-300">
+            Please specify
+          </label>
+          <input
+            id={`${question.id}-other`}
+            type="text"
+            autoFocus
+            maxLength={200}
+            value={other || ""}
+            onChange={(e) => onOtherChange(e.target.value)}
+            placeholder="Type your answer"
+            aria-invalid={textMissing || undefined}
+            className={`w-full rounded-lg border bg-gray-900 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 lg:text-base ${
+              textMissing ? "border-orange-500" : "border-gray-600"
+            }`}
+          />
+          {textMissing && <p className="mt-1 text-xs text-orange-300">Please type your answer.</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SimpleSurvey({
+  data,
+  onSurveyComplete,
+  exitHref = "/student/student-dashboard/quizzes",
+  questionsPerPage,
+}) {
+  const [mounted, setMounted] = useState(false);
   const [answers, setAnswers] = useState({});
-  const [showIncompleteWarning, setShowIncompleteWarning] = useState(false);
+  const [otherText, setOtherText] = useState({});
+  const [page, setPage] = useState(0);
+  const [showMissing, setShowMissing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [startTime] = useState(new Date());
+  const [startTime] = useState(() => new Date());
+  const bodyRef = useRef(null);
 
-  // ✅ Resolve whichever likert options exist on the data object
-  const getOptionsForQuestion = (question) => {
-    // If question itself specifies an optionsGroup, use that
-    if (question.optionsGroup === 2 && data.likertOptions2) return data.likertOptions2;
-    if (question.optionsGroup === 1 && data.likertOptions1) return data.likertOptions1;
-    // Fall back through all possible field names
+  const perPage = questionsPerPage || data.questionsPerPage || DEFAULT_PER_PAGE;
+  const total = data.questions.length;
+
+  // Render into <body> so no parent layout can clip or offset the view.
+  useEffect(() => {
+    setMounted(true);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  const getOptions = (q) => {
+    if (q.options) return q.options;
+    if (q.optionsGroup === 2 && data.likertOptions2) return data.likertOptions2;
+    if (q.optionsGroup === 1 && data.likertOptions1) return data.likertOptions1;
     return data.likertOptions || data.likertOptions1 || data.likertOptions2 || [];
   };
 
-  // For the sticky header, use the primary/first available options
-  const primaryOptions = data.likertOptions || data.likertOptions1 || data.likertOptions2 || [];
+  const selectedOption = (q) => getOptions(q).find((o) => o.id === answers[q.id]);
 
-  // Dynamically set grid columns based on number of options
-  const getGridCols = (optionCount) => {
-    const map = { 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8 };
-    return map[optionCount] || 6;
+  // Answered = an option is chosen, and if it's an "Other" option, text is filled in
+  const isAnswered = (q) => {
+    if (!answers[q.id]) return false;
+    if (selectedOption(q)?.allowText) return (otherText[q.id] || "").trim().length > 0;
+    return true;
   };
 
-  const handleAnswerSelect = (questionId, optionId) => {
-    setAnswers(prev => ({ ...prev, [questionId]: optionId }));
-    setShowIncompleteWarning(false);
-  };
-
-  const isComplete = () => data.questions.every(q => answers[q.id]);
-
-  const getCompletionPercentage = () =>
-    Math.round((Object.keys(answers).length / data.questions.length) * 100);
-
-  const handleSubmit = () => {
-    if (!isComplete()) {
-      setShowIncompleteWarning(true);
-      const firstUnanswered = data.questions.find(q => !answers[q.id]);
-      if (firstUnanswered) {
-        document.getElementById(firstUnanswered.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  // Split questions into pages. A new page starts when the page is full, the
+  // section changes, the question type changes, or the likert scale changes.
+  const pages = useMemo(() => {
+    const result = [];
+    let current = [];
+    data.questions.forEach((q, i) => {
+      const first = current[0]?.question;
+      const breakHere =
+        current.length === perPage ||
+        (first &&
+          ((first.section || "") !== (q.section || "") ||
+            isChoice(first) !== isChoice(q) ||
+            (!isChoice(q) && getOptions(first) !== getOptions(q))));
+      if (breakHere) {
+        result.push(current);
+        current = [];
       }
+      current.push({ question: q, number: i + 1 });
+    });
+    if (current.length) result.push(current);
+    return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, perPage]);
+
+  const pageItems = pages[page] || [];
+  const firstQuestion = pageItems[0]?.question;
+  const pageIsChoice = firstQuestion ? isChoice(firstQuestion) : false;
+  const section = firstQuestion?.section;
+  const options = firstQuestion ? getOptions(firstQuestion) : [];
+  const cols = gridCols(options.length);
+  const isLastPage = page === pages.length - 1;
+  const answeredCount = data.questions.filter(isAnswered).length;
+  const percent = Math.round((answeredCount / total) * 100);
+  const isPageComplete = (i) => pages[i].every(({ question }) => isAnswered(question));
+
+  const firstNum = pageItems[0]?.number;
+  const lastNum = pageItems[pageItems.length - 1]?.number;
+
+  const goTo = (i) => {
+    setPage(i);
+    setShowMissing(false);
+    bodyRef.current?.scrollTo({ top: 0 });
+  };
+
+  const handleSelect = (questionId, optionId) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  };
+
+  const handleOtherChange = (questionId, text) => {
+    setOtherText((prev) => ({ ...prev, [questionId]: text }));
+  };
+
+  const handleNext = () => {
+    if (!isPageComplete(page)) {
+      setShowMissing(true);
+      return;
+    }
+    goTo(page + 1);
+  };
+
+  const handleExit = () => {
+    if (
+      Object.keys(answers).length > 0 &&
+      !window.confirm("Leave the survey? Your answers so far will not be saved.")
+    ) {
+      return;
+    }
+    window.location.href = exitHref;
+  };
+
+  const handleSubmit = async () => {
+    const firstIncomplete = pages.findIndex((_, i) => !isPageComplete(i));
+    if (firstIncomplete !== -1) {
+      setPage(firstIncomplete);
+      setShowMissing(true);
+      bodyRef.current?.scrollTo({ top: 0 });
       return;
     }
 
@@ -50,266 +251,288 @@ export default function SimpleSurvey({ data, onSurveyComplete }) {
     const submissionData = {
       surveyId: data.id,
       surveyTitle: data.title,
-      answers: Object.entries(answers).map(([questionId, answerId]) => ({
-        questionId,
-        answer: answerId,
-        questionText: data.questions.find(q => q.id === questionId)?.text,
-      })),
+      answers: data.questions
+        .filter((q) => answers[q.id])
+        .map((q) => {
+          const opt = selectedOption(q);
+          return {
+            questionId: q.id,
+            questionText: q.text,
+            ...(q.section ? { section: q.section } : {}),
+            answer: answers[q.id],
+            answerText: opt?.text,
+            ...(opt?.allowText ? { otherText: otherText[q.id].trim() } : {}),
+          };
+        }),
       completedAt: endTime.toISOString(),
       timeSpent: Math.round((endTime - startTime) / 1000),
       completionPercentage: 100,
     };
 
-    setIsSubmitted(true);
-    if (onSurveyComplete) onSurveyComplete(submissionData);
-    console.log("Survey Submitted:", submissionData);
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const result = onSurveyComplete ? await onSurveyComplete(submissionData) : null;
+      if (result && result.success === false) throw result.error || new Error("Submit failed");
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error("Survey submit error:", err);
+      setSubmitError("Something went wrong saving your answers. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  if (!mounted) return null;
+
+  // ---------- Thank-you screen ----------
   if (isSubmitted) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-gray-800/70 rounded-2xl shadow-xl p-8 max-w-md w-full text-center border border-gray-700/50">
-          <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Thank You!</h2>
-          <p className="text-gray-300 mb-6">Your survey has been submitted successfully.</p>
-          <div className="bg-gray-700/30 p-4 rounded-lg mb-6">
-            <p className="text-sm text-gray-400">
-              Your responses have been recorded and will help improve the course experience.
-            </p>
-          </div>
+    return createPortal(
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 p-4">
+        <div className="w-full max-w-md rounded-2xl border border-gray-700/50 bg-gray-800/70 p-8 text-center shadow-xl">
+          <CheckCircle className="mx-auto mb-4 h-20 w-20 text-green-400" />
+          <h2 className="mb-2 text-2xl font-bold text-white">Thank you!</h2>
+          <p className="mb-6 text-gray-300">Your survey has been submitted.</p>
           <button
-            onClick={() => (window.location.href = "/student/student-dashboard/quizzes")}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            onClick={() => (window.location.href = exitHref)}
+            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
           >
             Return to Quizzes
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
-    <div className="py-4 px-2 sm:px-0 sm:py-6">
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header Section */}
-        <section className="bg-gray-800/70 rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-700/50">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 text-blue-300">
+  // ---------- Survey ----------
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex flex-col bg-gray-900 text-gray-100"
+      aria-labelledby="survey-title"
+    >
+      {/* Top bar */}
+      <header className="flex-shrink-0 border-b border-gray-800">
+        <div className="flex w-full items-center gap-3 px-4 py-2.5 sm:px-6 lg:px-10">
+          <button
+            onClick={handleExit}
+            aria-label="Exit survey"
+            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <h1 id="survey-title" className="flex-1 truncate text-base font-semibold sm:text-lg">
             {data.title}
-          </h2>
-          <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-4 sm:mb-6">
-            {data.description}
-          </p>
+          </h1>
+          <span className="hidden text-sm text-gray-500 sm:inline">
+            Page {page + 1} of {pages.length} · Questions {firstNum}–{lastNum}
+          </span>
+          <span className="whitespace-nowrap text-sm text-gray-400 sm:ml-4">
+            {answeredCount}/{total} answered
+          </span>
+        </div>
+        <div
+          className="h-1 bg-gray-800"
+          role="progressbar"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Survey progress"
+        >
+          <div className="h-1 bg-blue-500 transition-all duration-300" style={{ width: `${percent}%` }} />
+        </div>
+      </header>
 
-          {/* Progress Bar */}
-          <div className="bg-gray-700/30 p-3 sm:p-4 rounded-lg">
-            <div className="flex justify-between text-xs sm:text-sm text-gray-400 mb-2">
-              <span>Progress</span>
-              <span className="text-blue-400">{getCompletionPercentage()}% Complete</span>
-            </div>
-            <div className="w-full bg-gray-700 rounded-full h-2">
-              <div
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${getCompletionPercentage()}%` }}
-              />
-            </div>
-            <div className="text-xs text-gray-400 mt-2">
-              {Object.keys(answers).length} of {data.questions.length} questions answered
-            </div>
-          </div>
-        </section>
-
-        {/* Warning Message */}
-        {showIncompleteWarning && (
-          <div className="bg-orange-900/20 border-l-4 border-orange-500 p-3 sm:p-4 rounded-lg">
-            <div className="flex items-center">
-              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400 mr-2 flex-shrink-0" />
-              <p className="text-xs sm:text-sm text-orange-300">
-                Please answer all questions before submitting.
+      {/* Body */}
+      <main ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto">
+        <div className="flex min-h-full w-full flex-col px-4 py-4 sm:px-6 lg:px-10">
+          {/* Instructions — shown at the top of every page */}
+          {data.description && (
+            <div className="mb-4 flex flex-shrink-0 gap-3 rounded-lg border border-blue-900/60 bg-blue-950/30 px-4 py-3 text-sm leading-relaxed text-gray-300 lg:text-[15px]">
+              <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-300" aria-hidden="true" />
+              <p>
+                <span className="sr-only">Instructions: </span>
+                {data.description}
               </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Likert Scale Questions */}
-        <section className="bg-gray-800/70 rounded-xl shadow-lg border border-gray-700/50 overflow-hidden">
+          <p className="mb-3 text-xs text-gray-500 sm:hidden">
+            Page {page + 1} of {pages.length} · Questions {firstNum}–{lastNum}
+          </p>
 
-          {/* ── DESKTOP / TABLET (md+): sticky header + grid rows ── */}
-          <div className="hidden md:block">
-            {/* Sticky Header */}
-            <div className="bg-gray-700/50 px-4 lg:px-6 py-3 lg:py-4 border-b border-gray-700 sticky top-0 z-10">
+          {showMissing && (
+            <div
+              role="alert"
+              className="mb-4 flex flex-shrink-0 items-center gap-2 rounded-lg border-l-4 border-orange-500 bg-orange-900/20 p-3 text-sm text-orange-300"
+            >
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-orange-400" />
+              Please answer the highlighted questions to continue.
+            </div>
+          )}
+
+          {section && (
+            <h2 className="mb-3 flex-shrink-0 text-base font-semibold text-white lg:text-lg">{section}</h2>
+          )}
+
+          {pageIsChoice ? (
+            /* ---------- Single-choice questions ---------- */
+            <div className="grid content-start gap-4 xl:grid-cols-2">
+              {pageItems.map(({ question, number }) => (
+                <ChoiceQuestion
+                  key={question.id}
+                  question={question}
+                  number={number}
+                  options={getOptions(question)}
+                  value={answers[question.id]}
+                  other={otherText[question.id]}
+                  missing={showMissing && !isAnswered(question)}
+                  onSelect={(optId) => handleSelect(question.id, optId)}
+                  onOtherChange={(text) => handleOtherChange(question.id, text)}
+                />
+              ))}
+            </div>
+          ) : (
+            /* ---------- Likert table (fills remaining height) ---------- */
+            <div className="flex flex-1 flex-col rounded-xl border border-gray-700/50 bg-gray-800/70">
               <div
-                className="grid gap-2 items-center"
-                style={{ gridTemplateColumns: `2fr repeat(${primaryOptions.length}, 1fr)` }}
+                className="sticky top-0 z-10 hidden flex-shrink-0 items-end gap-2 rounded-t-xl border-b border-gray-700 bg-gray-800 px-4 py-3 md:grid lg:px-6"
+                style={{ gridTemplateColumns: cols }}
+                aria-hidden="true"
               >
                 <div />
-                {primaryOptions.map(option => (
-                  <div key={option.id} className="text-center">
-                    <span className="text-xs lg:text-sm font-medium text-gray-300 leading-tight">
-                      {option.text}
-                    </span>
+                {options.map((o) => (
+                  <div key={o.id} className="text-center text-xs font-medium leading-tight text-gray-300 lg:text-sm">
+                    {o.shortText || o.text}
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Questions */}
-            <div className="divide-y divide-gray-700/50">
-              {data.questions.map((question, index) => {
-                const options = getOptionsForQuestion(question);
-                return (
-                  <div
-                    key={question.id}
-                    id={question.id}
-                    className={`px-4 lg:px-6 py-4 lg:py-5 hover:bg-gray-700/20 transition-colors ${
-                      !answers[question.id] && showIncompleteWarning
-                        ? "bg-orange-900/10 border-l-4 border-orange-500"
-                        : ""
-                    }`}
-                  >
+              <div className="flex flex-1 flex-col divide-y divide-gray-700/50">
+                {pageItems.map(({ question, number }) => {
+                  const missing = showMissing && !isAnswered(question);
+                  return (
                     <div
-                      className="grid gap-2 items-center"
-                      style={{ gridTemplateColumns: `2fr repeat(${options.length}, 1fr)` }}
+                      key={question.id}
+                      role="radiogroup"
+                      aria-labelledby={`${question.id}-text`}
+                      className={`border-l-4 px-4 py-4 md:grid md:flex-1 md:items-center md:gap-2 lg:px-6 ${
+                        missing ? "border-orange-500 bg-orange-900/15" : "border-transparent"
+                      }`}
+                      style={{ gridTemplateColumns: cols }}
                     >
-                      {/* Question Text */}
-                      <div className="pr-3">
-                        <div className="flex items-start gap-2">
-                          <span className="text-gray-500 text-xs lg:text-sm font-medium flex-shrink-0">
-                            {index + 1}.
-                          </span>
-                          <p className="text-xs lg:text-sm text-gray-200 leading-relaxed">
-                            {question.text}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Radio Buttons */}
-                      {options.map(option => (
-                        <div key={option.id} className="flex justify-center">
-                          <label className="cursor-pointer group">
-                           <div className="relative flex items-center justify-center">
-  <input
-    type="radio"
-    name={question.id}
-    value={option.id}
-    checked={answers[question.id] === option.id}
-    onChange={() => handleAnswerSelect(question.id, option.id)}
-    className="w-5 h-5 cursor-pointer appearance-none rounded-full border-2 
-               border-gray-500 bg-gray-700 transition-all duration-150
-               focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 focus:ring-offset-gray-800"
-  />
-  {answers[question.id] === option.id && (
-    <div className="absolute w-2.5 h-2.5 rounded-full bg-green-400 pointer-events-none" />
-  )}
-</div>
-                            <span className="sr-only">{option.text}</span>
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-
-                    {answers[question.id] && (
-                      <div className="flex items-center gap-1 text-green-400 text-xs mt-2 pl-5">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Answered</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── MOBILE (< md): stacked card layout ── */}
-          <div className="md:hidden divide-y divide-gray-700/50">
-            {data.questions.map((question, index) => {
-              const options = getOptionsForQuestion(question);
-              return (
-                <div
-                  key={question.id}
-                  id={question.id}
-                  className={`p-4 ${
-                    !answers[question.id] && showIncompleteWarning
-                      ? "bg-orange-900/10 border-l-4 border-orange-500"
-                      : ""
-                  }`}
-                >
-                  {/* Question */}
-                  <p className="text-sm text-gray-200 leading-relaxed mb-3">
-                    <span className="text-gray-500 font-medium mr-1">{index + 1}.</span>
-                    {question.text}
-                  </p>
-
-                  {/* Options as labeled radio buttons */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {options.map(option => (
-                      <label
-                        key={option.id}
-                        className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
-                          answers[question.id] === option.id
-                            ? "border-blue-500 bg-blue-900/20 text-blue-300"
-                            : "border-gray-600 bg-gray-700/30 text-gray-300 hover:border-gray-500"
-                        }`}
+                      <p
+                        id={`${question.id}-text`}
+                        className="flex gap-2 text-sm leading-relaxed text-gray-200 md:pr-6 lg:text-base"
                       >
-                        <input
-                          type="radio"
-                          name={question.id}
-                          value={option.id}
-                          checked={answers[question.id] === option.id}
-                          onChange={() => handleAnswerSelect(question.id, option.id)}
-                          className="w-3.5 h-3.5 text-blue-600 bg-gray-700 border-gray-600 flex-shrink-0"
-                        />
-                        <span className="text-xs leading-tight">{option.text}</span>
-                      </label>
-                    ))}
-                  </div>
+                        <span className="w-7 flex-shrink-0 text-right font-medium tabular-nums text-gray-500">
+                          {number}.
+                        </span>
+                        <span>
+                          <QuestionText text={question.text} />
+                        </span>
+                      </p>
 
-                  {answers[question.id] && (
-                    <div className="flex items-center gap-1 text-green-400 text-xs mt-2">
-                      <CheckCircle className="w-3 h-3" />
-                      <span>Answered</span>
+                      <div
+                        className="mt-3 grid gap-1.5 md:mt-0 md:contents"
+                        style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }}
+                      >
+                        {options.map((o) => {
+                          const checked = answers[question.id] === o.id;
+                          return (
+                            <label
+                              key={o.id}
+                              className={`flex cursor-pointer flex-col items-center justify-center gap-1 self-stretch rounded-lg border px-1 py-2 text-center transition-colors md:border-transparent md:bg-transparent md:hover:bg-gray-700/30 ${
+                                checked
+                                  ? "border-blue-500 bg-blue-900/30"
+                                  : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={question.id}
+                                value={o.id}
+                                checked={checked}
+                                onChange={() => handleSelect(question.id, o.id)}
+                                className="peer sr-only"
+                              />
+                              <RadioDot checked={checked} />
+                              <span className="text-[11px] leading-tight text-gray-300 md:sr-only">
+                                {o.shortText || o.text}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Submit Section */}
-        <section className="bg-gray-800/70 rounded-xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-700/50">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-gray-400 text-center sm:text-left">
-              <p className="text-xs sm:text-sm">
-                Please ensure all questions are answered before submitting.
-              </p>
-              <p className="text-xs mt-1">
-                {data.questions.length - Object.keys(answers).length} questions remaining
-              </p>
-            </div>
-            <button
-              onClick={handleSubmit}
-              className={`w-full sm:w-auto px-6 sm:px-8 py-3 rounded-lg font-medium transition-all transform hover:scale-105 
-                ${isComplete()
-                  ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25"
-                  : "bg-gray-700 text-gray-400 hover:bg-gray-600 cursor-not-allowed"
-                }`}
-            >
-              Submit Survey
-            </button>
-          </div>
-
-          {isComplete() && (
-            <div className="mt-4 p-3 sm:p-4 bg-green-900/20 rounded-lg border border-green-700/50">
-              <div className="flex items-center gap-2 text-green-400">
-                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="text-xs sm:text-sm font-medium">
-                  All questions answered! Ready to submit.
-                </span>
+                  );
+                })}
               </div>
             </div>
           )}
-        </section>
-      </div>
-    </div>
+
+          {submitError && (
+            <p role="alert" className="mt-4 text-sm text-red-400">
+              {submitError}
+            </p>
+          )}
+        </div>
+      </main>
+
+      {/* Footer navigation */}
+      <footer className="flex-shrink-0 border-t border-gray-800">
+        <div className="flex w-full items-center justify-between gap-3 px-4 py-2.5 sm:px-6 lg:px-10">
+          <button
+            onClick={() => goTo(page - 1)}
+            disabled={page === 0}
+            className="flex items-center gap-1 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800 disabled:invisible"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </button>
+
+          <nav aria-label="Survey pages" className="hidden items-center gap-1.5 sm:flex">
+            {pages.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                aria-label={`Go to page ${i + 1}${isPageComplete(i) ? " (complete)" : ""}`}
+                aria-current={i === page ? "step" : undefined}
+                className={`h-2.5 rounded-full transition-all ${
+                  i === page
+                    ? "w-6 bg-blue-500"
+                    : isPageComplete(i)
+                    ? "w-2.5 bg-green-500"
+                    : "w-2.5 bg-gray-600 hover:bg-gray-500"
+                }`}
+              />
+            ))}
+          </nav>
+          <span className="text-sm text-gray-400 sm:hidden">
+            {page + 1} / {pages.length}
+          </span>
+
+          {isLastPage ? (
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="flex items-center gap-1 rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-60"
+            >
+              {isSubmitting ? "Submitting…" : "Submit"}
+              {!isSubmitting && <CheckCircle className="h-4 w-4" />}
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              className="flex items-center gap-1 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </footer>
+    </div>,
+    document.body
   );
 }

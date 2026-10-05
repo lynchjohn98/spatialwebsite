@@ -127,11 +127,6 @@ export const quizData = {
         id: 25,
         type: "likert-question2",
         text: "I gave up when I couldn't solve the problems in the workbook."
-    },
-    {
-        id: 26,
-        type: "text-question",
-        text: "Any other comments?" 
     }
 ],
   likertOptions: [
