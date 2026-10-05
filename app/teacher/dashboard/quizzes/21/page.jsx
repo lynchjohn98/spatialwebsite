@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import ResponsiveSurvey from "../../../../../components/quiz_questions/ResponsiveSurvey";
-import { quizData } from "../../../../library/quiz_data/mmq_survey"; // swap for the survey this page shows
+import { quizData } from "../../../../library/quiz_data/post_intervention_survey"; // swap for the survey this page shows
 import { submitTeacherSurvey } from "../../../../library/services/teacher_services/teacher_quiz";
 
 const QUIZZES_HREF = "/teacher/dashboard/quizzes";

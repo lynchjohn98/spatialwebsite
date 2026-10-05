@@ -1,97 +1,60 @@
 "use server";
 import { createClient } from "../../../utils/supabase/server";
-import { v4 as uuidv4, v4 } from "uuid";
 
-export async function submitTeacherQuiz(payload) {
-try {
-        console.log("FULL PAYLOAD", payload);
-        const quizResults = payload.quizData;
-        const teacherData = payload.teacherData;
-        const supabase = await createClient();
-        const { data, error } = await supabase
-            .from("teachers_grades")
-            .insert([
-                {
-                    created_at: new Date().toISOString(),
-                    quiz_id: quizResults.quizId,
-                    score: quizResults.results.totalScore,
-                    submitted_answers: quizResults.answers,
-                    time_submitted: new Date().toISOString(),
-                    time_taken: quizResults.timeSpent,
-                    teacher_id: teacherData.id
-                }
-            ]);
-        if (error) {
-            console.error("Error submitting pre/post quiz:", error);
-            return { success: false, error };
-        }
+const getCourseId = (t) => t?.courses?.id ?? t?.course_id ?? null;
 
-        return { success: true, data };
-    } catch (error) {
-        console.error("Error in submitTeacherPrePostQuiz:", error);
-        return { success: false, error };
-    }
+async function insertTeacherGrade(teacherData, row) {
+  if (!teacherData?.id) {
+    return { success: false, error: { message: "Missing teacher data. Please sign in again." } };
+  }
 
-}
-
-/*
-export async function submitTeacherSurvey(payload) {
-    const surveyResults = payload.survey_results;
-    const teacherData = payload.teacher_data;
+  try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-    .from("teachers_grades")
-    .insert([
-        {
-            created_at: new Date().toISOString(),
-            quiz_id: surveyResults.surveyId,
-            score: 0,
-            submitted_answers: surveyResults.answers,
-            time_submitted: new Date().toISOString(),
-            time_taken: surveyResults.timeSpent,
-            student_id: studentData.id,
-            course_id: studentData.courses.id
-        }
+    const now = new Date().toISOString();
+    const courseId = getCourseId(teacherData);
+
+    const { data, error } = await supabase.from("teachers_grades").insert([
+      {
+        created_at: now,
+        time_submitted: now,
+        teacher_id: teacherData.id,
+        ...(courseId ? { course_id: courseId } : {}),
+        ...row,
+      },
     ]);
+
     if (error) {
-        console.error("Error submitting survey:", error);
-        return { success: false, error };
+      console.error("Error inserting teacher grade:", error);
+      return { success: false, error: { message: error.message, code: error.code } };
     }
-
     return { success: true, data };
+  } catch (err) {
+    console.error("Error in insertTeacherGrade:", err);
+    return { success: false, error: { message: err?.message || "Unknown error" } };
+  }
 }
-    */
-
 
 export async function submitTeacherPrePostQuiz(payload) {
-    try {
-        console.log("FULL PAYLOAD", payload);
-        const quizResults = payload.quizData;
-        const teacherData = payload.teacherData;
-        const supabase = await createClient();
-        const { data, error } = await supabase
-            .from("teachers_grades")
-            .insert([
-                {
-                    created_at: new Date().toISOString(),
-                    quiz_id: quizResults.quizId,
-                    score: quizResults.results.totalScore,
-                    submitted_answers: quizResults.answers,
-                    time_submitted: new Date().toISOString(),
-                    time_taken: quizResults.timeSpent,
-                    teacher_id: teacherData.id
-                }
-            ]);
-        if (error) {
-            console.error("Error submitting pre/post quiz:", error);
-            return { success: false, error };
-        }
-
-        return { success: true, data };
-    } catch (error) {
-        console.error("Error in submitTeacherPrePostQuiz:", error);
-        return { success: false, error };
-    }
+  const { quizData: results, teacherData } = payload || {};
+  return insertTeacherGrade(teacherData, {
+    quiz_id: results?.quizId,
+    score: results?.results?.totalScore ?? 0,
+    submitted_answers: results?.answers,
+    time_taken: results?.timeSpent,
+  });
 }
 
+// Kept so existing imports keep working; identical to the pre/post version
+export async function submitTeacherQuiz(payload) {
+  return submitTeacherPrePostQuiz(payload);
+}
 
+export async function submitTeacherSurvey(payload) {
+  const { survey_results: survey, teacher_data: teacherData } = payload || {};
+  return insertTeacherGrade(teacherData, {
+    quiz_id: survey?.surveyId,
+    score: 0,
+    submitted_answers: survey?.answers,
+    time_taken: survey?.timeSpent,
+  });
+}
