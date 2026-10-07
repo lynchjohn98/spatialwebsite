@@ -407,61 +407,62 @@ export const lecturePowerpoints = [
   { 
     title: "Module 1 Lecture - Combining Solids",
     description: "Lecture for Module 1",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module1.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module1.pdf",
     type: "Lecture",
   },
   {
     title: "Module 2 Lecture - Surfaces and Solids of Revolution",
     description: "Lecture for Module 2",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module2.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module2.pdf",
     type: "Lecture",
   },
   {
     title: "Module 3 Lecture - Isometric Sketching and Coded Plans",
     description: "Lecture for Module 3",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module3.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module3.pdf",
+    
     type: "Lecture",
   },  
    {
     title: "Module 4 Lecture - Flat Patterns",
     description: "Lecture for Module 4",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module4.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module4.pdf",
     type: "Lecture",
   },
   {
     title: "Module 5 Lecture - Rotation of Objects About a Single Axis",
     description: "Lecture for Module 5",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module5.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module5.pdf",
     type: "Lecture",
   },
   {
     title: "Module 6 Lecture - Reflections and Symmetry",
     description: "Lecture for Module 6",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module6.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module6.pdf",
     type: "Lecture",
   },
   {
     title: "Module 7 Lecture - Cutting Planes and Cross-Sections",
     description: "Lecture for Module 7",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module7.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module7.pdf",
     type: "Lecture",
   },
   {
     title: "Module 8 Lecture - Rotation of Objects About Two or More Axes",
     description: "Lecture for Module 8",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module8.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module8.pdf",
     type: "Lecture",
   },
   {
     title: "Module 9 Lecture - Orthographic Projection",
     description: "Lecture for Module 9",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module9.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module9.pdf",
     type: "Lecture",
   },
   {
     title: "Module 10 Lecture - Inclined and Curved Surfaces",
     description: "Lecture for Module 10",
-    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module10.pptx",
+    downloadUrl:"https://puoorlpussgrjrehisvk.supabase.co/storage/v1/object/public/SupplementalMaterial/Module10.pdf",
     type: "Lecture",  
   }
 ]
